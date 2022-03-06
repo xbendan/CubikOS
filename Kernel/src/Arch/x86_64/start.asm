@@ -70,3 +70,59 @@ exception:
 	mov dword [0xb8008], 0x4f204f20
 	mov byte  [0xb800a], al
 	hlt
+
+section .data
+align 16
+GDT64:
+    .Null: equ $ - GDT64
+    dw 0xFFFF
+    dw 0
+    db 0
+    db 0
+    db 0
+    db 0
+    .Code: equ $ - GDT64
+    dw 0
+    dw 0
+    db 0
+    db 10011010b
+    db 00100000b
+    db 0
+    .Data: equ $ - GDT64
+    dw 0
+    dw 0
+    db 0
+    db 10010010b
+    db 00000000b
+    db 0
+    .UserCode: equ $ - GDT64
+    dw 0
+    dw 0
+    db 0
+    db 11111010b
+    db 00100000b
+    db 0
+    .UserData: equ $ - GDT64
+    dw 0
+    dw 0
+    db 0
+    db 11110010b
+    db 00000000b
+    db 0
+    .TSS: ;equ $ - GDT64         ; TSS Descriptor
+    .len:
+    dw 108                       ; TSS Length - the x86_64 TSS is 108 bytes loong
+    .low:
+    dw 0                         ; Base (low).
+    .mid:
+    db 0                         ; Base (middle)
+    db 10001001b                 ; Flags
+    db 00000000b                 ; Flags 2
+    .high:
+    db 0                         ; Base (high).
+    .high32:
+    dd 0                         ; High 32 bits
+    dd 0                         ; Reserved
+	.PTR:                    ; The GDT-pointer.
+    dw $ - GDT64 - 1             ; Limit.
+    dq GDT64                     ; Base.

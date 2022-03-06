@@ -25,6 +25,8 @@ namespace Core {
 
     void KInitMultiboot2(multiboot2_info_header_t* mbInfo)
     {
+        InitCore();
+
         multiboot_tag* tag = reinterpret_cast<multiboot_tag*>(mbInfo->tags);
 
         while (tag->type != MULTIBOOT_HEADER_TAG_END && reinterpret_cast<uintptr_t>(tag) < reinterpret_cast<uintptr_t>(mbInfo) + mbInfo->totalSize) {
@@ -75,6 +77,8 @@ namespace Core {
                 }
             }
         }
+
+        EnablePaging();
     }
 
     void KInitStivale2(void *infoPtr, uint32_t magic)
