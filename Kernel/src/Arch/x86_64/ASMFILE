@@ -1,0 +1,13 @@
+global GetEDXFeature
+GetEDXFeature:
+    mov eax, 1
+    cpuid
+    mov eax, edx
+    ret
+
+global GetECXFeature
+GetECXFeature:
+    mov eax, 1
+    cpuid
+    mov eax, ecx
+    ret
