@@ -1,4 +1,4 @@
-#include <Arch/x86_64/Hardware.h>
+#include <Arch/x86_64/Hard.h>
 #include <String.h>
 
 namespace Hardware {

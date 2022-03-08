@@ -11,3 +11,10 @@ GetECXFeature:
     cpuid
     mov eax, ecx
     ret
+
+global ISRWrapper
+align 4
+ISRWrapper:
+    pushad
+    cld
+    call 

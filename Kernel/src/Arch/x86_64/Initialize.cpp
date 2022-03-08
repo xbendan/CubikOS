@@ -21,6 +21,8 @@ namespace Core {
     {
         Console::Initialize();
         PrintLine("Start loading core features...");
+        Interrupts::LoadInterruptDescriptorTable();
+        PrintLine("Loading IDT...");
     }
 
     void KInitMultiboot2(multiboot2_info_header_t* mbInfo)

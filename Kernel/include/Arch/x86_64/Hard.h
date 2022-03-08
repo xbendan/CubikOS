@@ -81,4 +81,5 @@ namespace Hardware {
     } __attribute__((packed));
 
     ProcessorInfo GetCPUID();
+
 }

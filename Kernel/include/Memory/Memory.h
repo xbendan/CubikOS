@@ -6,7 +6,9 @@
 #endif
 
 namespace Memory {
-    static uint32_t MEM_ISIZE = 0;
+    typedef struct MemoryInfo {
+        size_t maxSize;
+    }
     
     typedef struct MemoryPageDir {
         bool present; // Must be 1
