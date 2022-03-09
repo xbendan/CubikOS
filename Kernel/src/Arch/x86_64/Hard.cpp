@@ -1,5 +1,5 @@
 #include <Arch/x86_64/Hard.h>
-#include <String.h>
+#include <Memory/Memory.h>
 
 namespace Hardware {
     static inline int CPUID_STRING(int code, int where[4])

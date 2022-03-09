@@ -110,8 +110,16 @@ namespace Interrupts {
         uint64_t flags;
         uint64_t rsp;
         uint64_t ss;
-    }
+    };
+
+    typedef struct InterruptServiceRoutineHandler {
+        isr_t handler;
+        void* data;
+    };
+
+    typedef void (*isr_t)(void*, InterruptStackFrame*);
 
     void LoadInterruptDescriptorTable();
     void RegisterInterruptHandler(uint8_t intr, isr_t func, void* data);
+    void SetInterruptEntry(uint8_t vec, uint64_t base, uint16_t selector, uint8_t flags, uint8_t isr = 0);
 }

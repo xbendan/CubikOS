@@ -46,7 +46,7 @@ namespace Core {
                 }
                 case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO: {
                     multiboot_tag_basic_meminfo* memInfoTag = reinterpret_cast<multiboot_tag_basic_meminfo *>(tag);
-                    Memory::MEM_ISIZE = memInfoTag->mem_lower + memInfoTag->mem_upper;
+                    Memory::LoadMemoryInfo({ .maxSize = memInfoTag->mem_lower + memInfoTag->mem_upper });
                     break;
                 }
                 case MULTIBOOT_TAG_TYPE_MMAP: {

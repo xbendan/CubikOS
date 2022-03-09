@@ -2,10 +2,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-extern "C" void* memset(void* src, int c, size_t count);
-extern "C" void* memcpy(void* dest, const void* src, size_t count);
-extern "C" int memcmp(const void* s1, const void* s2, size_t n);
-
 void strcpy(char* dest, const char* src);
 void strncpy(char* dest, const char* src, size_t n);
 int strcmp(const char* s1, const char* s2);

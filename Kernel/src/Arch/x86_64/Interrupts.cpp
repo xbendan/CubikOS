@@ -6,6 +6,7 @@ extern void* isr_stub_table[];
 namespace Interrupts {
     static IDTEntry idtEntry[32];
     static IDTPointer idtr;
+    static InterruptServiceRoutineHandler isrHandlers[32];
 
     void LoadInterruptDescriptorTable()
     {
@@ -23,7 +24,10 @@ namespace Interrupts {
 
     void RegisterInterruptHandler(uint8_t intr, isr_t func, void* data)
     {
-
+        isrHandlers[intr] = { 
+            .handler = func,
+            .data = data
+        };
     }
 
     void SetInterruptEntry(uint8_t vec, uint64_t base, uint16_t selector, uint8_t flags, uint8_t isr = 0)
@@ -39,7 +43,7 @@ namespace Interrupts {
 
     __attribute__((interrupt)) void EmptyInterruptHandler(InterruptStackFrame *isf)
     {
-
+        
     }
 
     __attribute__((noreturn)) void __exception()
