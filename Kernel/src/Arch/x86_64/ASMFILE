@@ -18,3 +18,8 @@ ISRWrapper:
     pushad
     cld
     call 
+
+global LoadPageMaps
+LoadPageMaps:
+    mov cr3, rdi
+    ret

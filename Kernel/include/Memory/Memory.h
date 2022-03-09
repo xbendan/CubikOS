@@ -6,10 +6,17 @@
 #define TABLES_PER_DIR      512
 #define DIRS_PER_PDPT       512
 #define PDPTS_PER_PML4      512
+#define PML4_INDEX_OF(addr) (((addr) >> 39) & 0x1FF)
+#define PDPT_INDEX_OF(addr) (((addr) >> 30) & 0x1FF)
+#define PAGE_DIR_INDEX_OF(addr) (((addr) >> 21) & 0x1FF)
+#define PAGE_TABLE_INDEX_OF(addr) (((addr) >> 12) & 0x1FF)
+#define SIZE_TO_PAGE(size) (size / MEM_PAGE_SIZE)
+#define IS_PAGE_ALIGNED(addr) (addr % MEM_PAGE_SIZE == 0)
 
 extern "C" void* memset(void* src, int c, size_t count);
 extern "C" void* memcpy(void* dest, const void* src, size_t count);
 extern "C" int memcmp(const void* s1, const void* s2, size_t n);
+extern "C" void LoadPageMaps(uintptr_t ptr);
 
 namespace Memory {
     typedef struct MemoryInfo {
@@ -76,10 +83,17 @@ namespace Memory {
         bool disableExecution: 1;
     } __attribute__((packed)) pml1_entry_t;
 
-    using page_dir_t = pd_entry_t[TABLES_PER_DIR];
-    using pdpt_t = = pdpt_entry_t[DIRS_PER_PDPT];
+    typedef struct MemoryBlock {
+        uintptr_t base;
+        size_t size;
+    } memory_range_t;
+    
+    using page_table_t = pml1_entry_t[PAGES_PER_TABLE]
+    using page_dir_t = pml2_entry_t[TABLES_PER_DIR];
+    using pdpt_t = = pml3_entry_t[DIRS_PER_PDPT];
     using pml4_t = pml4_entry_t[PDPTS_PER_PML4];
 
-
     void LoadMemoryInfo(MemoryInfo memInfo);
+    void FreePhysicalPage(uintptr_t addr);
+    void FreePhysicalBlock(memory_range_t block);
 }

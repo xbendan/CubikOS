@@ -8,4 +8,9 @@ namespace Memory {
             // system panic, memory size is too small
         }
     }
+
+    void InitializeMemoryManagement()
+    {
+        
+    }
 }
