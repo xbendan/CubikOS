@@ -26,9 +26,6 @@ namespace Console {
         ERROR = 3
     };
 
-    static inline uint8_t ToColorEntry(enum VGAColor fore, enum VGAColor back);
-    static inline uint16_t ToBufferEntry(unsigned char code, uint8_t color);
-
     void Initialize(void);
     void Clean(void);
     void TEST(void);
@@ -36,4 +33,4 @@ namespace Console {
     void Print(const char* str);
     void PrintLine(const char* str);
 }
-
+void PrintLine(const char* str);

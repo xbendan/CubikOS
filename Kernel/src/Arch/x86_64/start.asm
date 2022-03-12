@@ -17,6 +17,8 @@ _start:
     call check_cpuid
     call check_long_mode
 
+    lgdt [GDT64PTR]
+
 	push ebx                      ; Push pointer to multiboot info structure
     call kload_multiboot2
     hlt
@@ -123,6 +125,6 @@ GDT64:
     .high32:
     dd 0                         ; High 32 bits
     dd 0                         ; Reserved
-	.PTR:                    ; The GDT-pointer.
+GDT64PTR:                    ; The GDT-pointer.
     dw $ - GDT64 - 1             ; Limit.
     dq GDT64                     ; Base.

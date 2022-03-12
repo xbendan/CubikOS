@@ -1,8 +1,10 @@
 #include <Arch/x86_64/Initialize.h>
 #include <Arch/x86_64/Multiboot2.h>
 #include <Arch/x86_64/Stivale2.h>
+#include <Interrupts.h>
 #include <Memory.h>
-#include <Base.h>
+
+using namespace Memory;
 
 namespace Core {
     void KInitMultiboot2(multiboot2_info_header_t* mbInfo);
@@ -24,7 +26,7 @@ namespace Core {
         InitCore();
 
         multiboot_tag* tag = reinterpret_cast<multiboot_tag*>(mbInfo->tags);
-        memory_info_t *memInfo = &Memory::memInfo;
+        memory_info_t *mem_info = Memory::GetMemInfoPointer();
         while (tag->type != MULTIBOOT_HEADER_TAG_END && reinterpret_cast<uintptr_t>(tag) < reinterpret_cast<uintptr_t>(mbInfo) + mbInfo->totalSize) {
             switch (tag->type)
             {
@@ -39,7 +41,7 @@ namespace Core {
                 }
                 case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO: {
                     multiboot_tag_basic_meminfo* memInfoTag = reinterpret_cast<multiboot_tag_basic_meminfo *>(tag);
-                    memInfo->maxSize = memInfoTag->mem_lower + memInfoTag->mem_upper;
+                    mem_info->total = memInfoTag->mem_lower + memInfoTag->mem_upper;
                     break;
                 }
                 case MULTIBOOT_TAG_TYPE_MMAP: {
@@ -48,39 +50,34 @@ namespace Core {
 
                     while (reinterpret_cast<uintptr_t>(currentEntry) < reinterpret_cast<uintptr_t>(memMapTag) + memMapTag->size)
                     {
-                        MemoryMapEntry *entry = memInfo->entries[memInfo->mapSize];
+                        MemoryMapEntry entry = mem_info->entries[mem_info->mapSize];
 
-                        entry->block = (MemoryBlock){ currentEntry->addr, currentEntry->length };
+                        entry.block = (MemoryRange){ currentEntry->addr, currentEntry->length };
                         switch(currentEntry->type)
                         {
                             case MULTIBOOT_MEMORY_AVAILABLE:
-                                memInfo->usable += currentEntry->length;
-                                
-                                PrintLine("Memory region "
-                                 + currentEntry->addr 
-                                 + "-" 
-                                 + (currentEntry->addr + currentEntry->length)
-                                 + " available.");
-                                entry->type = MEMORY_MAP_ENTRY_AVAILABLE;
+                                mem_info->usable += currentEntry->length;
+                                PrintLine("Memory region available.");
+                                entry.type = MEMORY_MAP_ENTRY_AVAILABLE;
                                 break;
                             case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
-                                entry->type = MEMORY_MAP_ENTRY_ACPI_RECLAIMABLE;
+                                entry.type = MEMORY_MAP_ENTRY_ACPI_RECLAIMABLE;
                                 break;
                             case MULTIBOOT_MEMORY_RESERVED:
-                                entry->type = MEMORY_MAP_ENTRY_RESERVED;
+                                entry.type = MEMORY_MAP_ENTRY_RESERVED;
                                 break;
                             case MULTIBOOT_MEMORY_BADRAM:
-                                entry->type = MEMORY_MAP_ENTRY_BADRAM;
+                                entry.type = MEMORY_MAP_ENTRY_BADRAM;
                                 break;
                             case MULTIBOOT_MEMORY_NVS:
-                                entry->type = MEMORY_MAP_ENTRY_NVS;
+                                entry.type = MEMORY_MAP_ENTRY_NVS;
                                 break;
                             default:
-                                entry->type = MEMORY_MAP_ENTRY_RESERVED;
+                                entry.type = MEMORY_MAP_ENTRY_RESERVED;
                                 break;
                         }
-                        memInfo->mapSize++;
-                        currentEntry = reinterpret_cast<multiboot_memory_map_t*>((uintptr_t)currentEntry + memMapTag->entrySize);
+                        mem_info->mapSize++;
+                        currentEntry = reinterpret_cast<multiboot_memory_map_t*>((uintptr_t)currentEntry + memMapTag->entry_size);
                     }
                     break;
                 }
@@ -99,7 +96,7 @@ namespace Core {
             }
         }
 
-        Memory::InitializeMemoryManagement(memInfo);
+        Memory::InitializeMemoryManagement();
     }
 
     void KInitStivale2(void *infoPtr, uint32_t magic)

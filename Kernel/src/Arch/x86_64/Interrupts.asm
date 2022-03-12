@@ -1,3 +1,4 @@
+extern __exception
 %macro isr_err_stub 1
 isr_stub_%+%1:
     call __exception
@@ -44,6 +45,7 @@ isr_no_err_stub 29
 isr_err_stub    30
 isr_no_err_stub 31
 
+section .rodata
 global isr_stub_table
 isr_stub_table:
 %assign i 0 

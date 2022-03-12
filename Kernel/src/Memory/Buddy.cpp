@@ -1,6 +1,5 @@
 #include <stdint.h>
-#include <Memory/MemoryAllocation.h>
-#include <Memory/Buddy.h>
+#include <Buddy.h>
 
 namespace Memory {
 
@@ -20,7 +19,7 @@ namespace Memory {
         return size + 1;
     }
 
-    void InitBuddy(MemoryInfo memInfo)
+    void InitBuddy(memory_info_t *memInfo)
     {
 
     }
@@ -30,7 +29,7 @@ namespace Memory {
 
     }
 
-    MemoryBlock BuddyAllocateBlock(size_t size)
+    MemoryRange BuddyAllocateBlock(size_t size)
     {
         
     }
@@ -48,12 +47,12 @@ namespace Memory {
 
     }
 
-    void BuddyFreeBlock(MemoryBlock block)
+    void BuddyFreeBlock(MemoryRange block)
     {
 
     }
 
-    void BuddyForceFreeBlock(MemoryBlock block)
+    void BuddyForceFreeBlock(MemoryRange block)
     {
 
     }
@@ -73,7 +72,7 @@ namespace Memory {
 
     }
 
-    void BuddyMarkPageFree(uint64_t base)
+    void BuddyMarkPageUsed(uint64_t base)
     {
 
     }

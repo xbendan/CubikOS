@@ -3,6 +3,6 @@ Kernel/dist
 Kernel/targets/limine
 Kernel/targets/x86_64/image.iso
 Kernel/targets/x86_64/limine
+Kernel/targets/x86_64/iso
 .vscode
-Kernel/targets/x86_64/iso/boot/atrikrnl.elf
-Kernel/targets/x86_64/iso/boot/atrikrnl.bin
+backup

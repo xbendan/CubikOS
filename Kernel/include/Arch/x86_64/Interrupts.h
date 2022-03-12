@@ -23,6 +23,7 @@
 
 #include <stdint.h>
 
+/**
 struct FaultName
 {
     char* name;
@@ -43,83 +44,84 @@ struct FaultName
     {"Stack-Segment Fault", true},
     {"General Protection Fault", true},
     {"Page Fault", true},
-    {NULL, false},
+    {nullptr, false},
     {"x87 Floating-Point Exception", false},
     {"Alignment Check", false},
     {"Machine Check", false},
     {"SIMD Floating-Point Exception", false},
     {"Virtualization Exception", false},
-    {NULL, false},
-    {NULL, false},
-    {NULL, false},
-    {NULL, false},
-    {NULL, false},
-    {NULL, false},
-    {NULL, false},
-    {NULL, false},
-    {NULL, false},
+    {nullptr, false},
+    {nullptr, false},
+    {nullptr, false},
+    {nullptr, false},
+    {nullptr, false},
+    {nullptr, false},
+    {nullptr, false},
+    {nullptr, false},
+    {nullptr, false},
     {"Security Exception", true},
-    {NULL, false}
+    {nullptr, false}
 };
+*/
+
+typedef struct IDTPointer {
+    uint16_t limit;
+    uint64_t base;
+} __attribute__((packed)) idt_ptr_t;
+
+typedef struct IDTEntry {
+    uint16_t baseLow;
+    uint16_t selector;
+    uint8_t ist;
+    uint8_t flags;
+    uint16_t baseMedium;
+    uint32_t baseHigh;
+    uint32_t reserved;
+} __attribute__((packed)) idt_entry_t;
+
+typedef struct RegisterContext {
+    uint64_t r15;
+    uint64_t r14;
+    uint64_t r13;
+    uint64_t r12;
+    uint64_t r11;
+    uint64_t r10;
+    uint64_t r9;
+    uint64_t r8;
+    uint64_t rbp;
+    uint64_t rdi;
+    uint64_t rsi;
+    uint64_t rdx;
+    uint64_t rcx;
+    uint64_t rbx;
+    uint64_t rax;
+    uint64_t intno;
+    uint64_t err;
+    uint64_t rip;
+    uint64_t cs;
+    uint64_t rflags;
+    uint64_t rsp;
+    uint64_t ss;
+} __attribute__((packed)) reg_context_t;
+
+typedef struct InterruptStackFrame
+{
+    uint64_t rip;
+    uint64_t cs;
+    uint64_t flags;
+    uint64_t rsp;
+    uint64_t ss;
+} isf_t;
+
+typedef void (*isr_t)(void*, isf_t*);
+
+typedef struct InterruptServiceRoutineHandler {
+    isr_t handler;
+    void* data;
+} isr_handler_t;
 
 namespace Interrupts {
-    typedef struct IDTPointer {
-        uint16_t limit;
-        uint64_t base;
-    } __attribute__((packed)) idt_ptr_t;
-
-    typedef struct IDTEntry {
-        uint16_t baseLow;
-        uint16_t selector;
-        uint8_t ist;
-        uint8_t flags;
-        uint16_t baseMedium;
-        uint32_t baseHigh;
-        uint32_t reserved;
-    } __attribute__((packed)) idt_entry_t;
-
-    typedef struct RegisterContext {
-        uint64_t r15;
-        uint64_t r14;
-        uint64_t r13;
-        uint64_t r12;
-        uint64_t r11;
-        uint64_t r10;
-        uint64_t r9;
-        uint64_t r8;
-        uint64_t rbp;
-        uint64_t rdi;
-        uint64_t rsi;
-        uint64_t rdx;
-        uint64_t rcx;
-        uint64_t rbx;
-        uint64_t rax;
-        uint64_t intno;
-        uint64_t err;
-        uint64_t rip;
-        uint64_t cs;
-        uint64_t rflags;
-        uint64_t rsp;
-        uint64_t ss;
-    } __attribute__((packed));
-
-    typedef struct InterruptStackFrame
-    {
-        uint64_t rip;
-        uint64_t cs;
-        uint64_t flags;
-        uint64_t rsp;
-        uint64_t ss;
-    };
-
-    typedef struct InterruptServiceRoutineHandler {
-        isr_t handler;
-        void* data;
-    };
-
-    typedef void (*isr_t)(void*, InterruptStackFrame*);
-
     void LoadInterruptDescriptorTable();
-    void RegisterInterruptHandler(uint8_t intr, isr_t func, void* data);
-    void SetInterruptEntry(uint8_t vec, uint64_t base, uint16_t selector, uint8_t flags, uint8_t isr = 0);
+    void RegisterInterruptHandler(uint8_t intr, isr_t func, void* data = nullptr);
+    void SetInterruptEntry(uint8_t vec, uint64_t base, uint16_t selector, uint8_t flags, uint8_t ist = 0);
 }
