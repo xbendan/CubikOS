@@ -6,6 +6,7 @@
 #define TABLES_PER_DIR      512
 #define DIRS_PER_PDPT       512
 #define PDPTS_PER_PML4      512
+#define MEMORY_MAP_LIMIT    64;
 #define PML4_INDEX_OF(addr) (((addr) >> 39) & 0x1FF)
 #define PDPT_INDEX_OF(addr) (((addr) >> 30) & 0x1FF)
 #define PAGE_DIR_INDEX_OF(addr) (((addr) >> 21) & 0x1FF)
@@ -19,9 +20,29 @@ extern "C" int memcmp(const void* s1, const void* s2, size_t n);
 extern "C" void LoadPageMaps(uintptr_t ptr);
 
 namespace Memory {
+    MemoryInfo memInfo;
+
     typedef struct MemoryInfo {
-        size_t maxSize;
-    }
+        size_t total;
+        size_t usable;
+        MemoryMapEntry entries[MEMORY_MAP_LIMIT];
+        size_t mapSize;
+    } memory_info_t;
+
+    struct MemoryMapEntry {
+        MemoryBlock block {};
+        MemoryMapEntryType type;
+    };
+
+    enum MemoryMapEntryType
+    {
+        MEMORY_MAP_ENTRY_AVAILABLE,
+        MEMORY_MAP_ENTRY_RESERVED,
+        MEMORY_MAP_ENTRY_ACPI_RECLAIMABLE,
+        MEMORY_MAP_ENTRY_NVS,
+        MEMORY_MAP_ENTRY_BADRAM,
+        MEMORY_MAP_ENTRY_KERNEL
+    };
     
     typedef struct PML4Entry {
         bool present: 1; // Must be 1
@@ -93,7 +114,7 @@ namespace Memory {
     using pdpt_t = = pml3_entry_t[DIRS_PER_PDPT];
     using pml4_t = pml4_entry_t[PDPTS_PER_PML4];
 
-    void LoadMemoryInfo(MemoryInfo memInfo);
+    void InitializeMemoryManagement(MemoryInfo memInfo);
     void FreePhysicalPage(uintptr_t addr);
     void FreePhysicalBlock(memory_range_t block);
 }

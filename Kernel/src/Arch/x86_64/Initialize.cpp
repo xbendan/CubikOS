@@ -1,14 +1,8 @@
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
 #include <Arch/x86_64/Initialize.h>
 #include <Arch/x86_64/Multiboot2.h>
 #include <Arch/x86_64/Stivale2.h>
-#include <Console.h>
-#include <Memory/Memory.h>
-
-using namespace Console;
+#include <Memory.h>
+#include <Base.h>
 
 namespace Core {
     void KInitMultiboot2(multiboot2_info_header_t* mbInfo);
@@ -30,7 +24,7 @@ namespace Core {
         InitCore();
 
         multiboot_tag* tag = reinterpret_cast<multiboot_tag*>(mbInfo->tags);
-
+        memory_info_t *memInfo = &Memory::memInfo;
         while (tag->type != MULTIBOOT_HEADER_TAG_END && reinterpret_cast<uintptr_t>(tag) < reinterpret_cast<uintptr_t>(mbInfo) + mbInfo->totalSize) {
             switch (tag->type)
             {
@@ -38,7 +32,6 @@ namespace Core {
                     break;
                 }
                 case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME: {
-
                     break;
                 }
                 case MULTIBOOT_TAG_TYPE_MODULE: {
@@ -46,7 +39,7 @@ namespace Core {
                 }
                 case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO: {
                     multiboot_tag_basic_meminfo* memInfoTag = reinterpret_cast<multiboot_tag_basic_meminfo *>(tag);
-                    Memory::LoadMemoryInfo({ .maxSize = memInfoTag->mem_lower + memInfoTag->mem_upper });
+                    memInfo->maxSize = memInfoTag->mem_lower + memInfoTag->mem_upper;
                     break;
                 }
                 case MULTIBOOT_TAG_TYPE_MMAP: {
@@ -55,13 +48,39 @@ namespace Core {
 
                     while (reinterpret_cast<uintptr_t>(currentEntry) < reinterpret_cast<uintptr_t>(memMapTag) + memMapTag->size)
                     {
+                        MemoryMapEntry *entry = memInfo->entries[memInfo->mapSize];
+
+                        entry->block = (MemoryBlock){ currentEntry->addr, currentEntry->length };
                         switch(currentEntry->type)
                         {
-                            case 1:
+                            case MULTIBOOT_MEMORY_AVAILABLE:
+                                memInfo->usable += currentEntry->length;
+                                
+                                PrintLine("Memory region "
+                                 + currentEntry->addr 
+                                 + "-" 
+                                 + (currentEntry->addr + currentEntry->length)
+                                 + " available.");
+                                entry->type = MEMORY_MAP_ENTRY_AVAILABLE;
+                                break;
+                            case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
+                                entry->type = MEMORY_MAP_ENTRY_ACPI_RECLAIMABLE;
+                                break;
+                            case MULTIBOOT_MEMORY_RESERVED:
+                                entry->type = MEMORY_MAP_ENTRY_RESERVED;
+                                break;
+                            case MULTIBOOT_MEMORY_BADRAM:
+                                entry->type = MEMORY_MAP_ENTRY_BADRAM;
+                                break;
+                            case MULTIBOOT_MEMORY_NVS:
+                                entry->type = MEMORY_MAP_ENTRY_NVS;
                                 break;
                             default:
+                                entry->type = MEMORY_MAP_ENTRY_RESERVED;
                                 break;
                         }
+                        memInfo->mapSize++;
+                        currentEntry = reinterpret_cast<multiboot_memory_map_t*>((uintptr_t)currentEntry + memMapTag->entrySize);
                     }
                     break;
                 }
@@ -80,7 +99,7 @@ namespace Core {
             }
         }
 
-        EnablePaging();
+        Memory::InitializeMemoryManagement(memInfo);
     }
 
     void KInitStivale2(void *infoPtr, uint32_t magic)

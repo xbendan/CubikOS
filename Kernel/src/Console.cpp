@@ -90,12 +90,9 @@ namespace Console {
         Print(str);
         PrintCode('\n');
     }
-
-    void Log(const char* str)
-    {
-        
-    }
 }
-    
 
-
+void PrintLine(const char* str)
+{
+    Console::PrintLine(str);
+}
