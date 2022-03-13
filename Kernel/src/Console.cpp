@@ -34,11 +34,11 @@ namespace Console {
         c_buffer = (uint16_t*) 0x000b8000;
 
         Clean();
-        PrintLine("Console output initialized.");
+        //PrintLine("Console output initialized.");
     }
 
     void Clean()
-    {    
+    {
         for(size_t _row = 0; _row < 25; _row++)
         {
             for(size_t _col = 0; _col < 80; _col++)
@@ -73,7 +73,6 @@ namespace Console {
         c_column++;
     }
 
-
     void Print(const char* str)
     {
         size_t len = strlen(str);
@@ -95,4 +94,14 @@ namespace Console {
 void PrintLine(const char* str)
 {
     Console::PrintLine(str);
+}
+
+void PrintNum(uint64_t num)
+{
+    while (num > 0)
+    {
+        size_t digit = num % 10;
+        num /= 10;
+        Console::PrintCode((char)(digit + 48));
+    }
 }

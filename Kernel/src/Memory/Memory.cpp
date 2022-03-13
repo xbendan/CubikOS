@@ -52,7 +52,7 @@ extern "C" int memcmp(const void* s1, const void* s2, size_t n) {
 namespace Memory {
     memory_info_t memInfo;
 
-    memory_info_t* GetMemInfoPointer()
+    memory_info_t* _memInfo()
     {
         return &memInfo;
     }

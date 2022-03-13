@@ -35,8 +35,8 @@ namespace Memory {
         size_t mapSize;
     } memory_info_t;
 
+    memory_info_t* _memInfo();
     void InitializeMemoryManagement();
-    memory_info_t* GetMemInfoPointer(); 
     void FreePhysicalPage(uintptr_t addr);
     void FreePhysicalBlock(memory_range_t block);
 }

@@ -28,9 +28,9 @@ namespace Console {
 
     void Initialize(void);
     void Clean(void);
-    void TEST(void);
     void PrintCode(char code);
     void Print(const char* str);
     void PrintLine(const char* str);
 }
 void PrintLine(const char* str);
+void PrintNum(uint64_t num);

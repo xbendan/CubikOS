@@ -178,10 +178,16 @@ struct multiboot_header_tag_relocatable
   multiboot_uint32_t preference;
 };
 
+struct multiboot_tag
+{
+  multiboot_uint32_t type;
+  multiboot_uint32_t size;
+};
+
 typedef struct{
 	multiboot_uint32_t totalSize;
 	multiboot_uint32_t reserved;
-	multiboot_uint8_t tags[];
+	struct multiboot_tag tags[0];
 } __attribute__((packed)) multiboot2_info_header_t;
 
 struct multiboot_color
@@ -204,12 +210,6 @@ struct multiboot_mmap_entry
   multiboot_uint32_t zero;
 };
 typedef struct multiboot_mmap_entry multiboot_memory_map_t;
-
-struct multiboot_tag
-{
-  multiboot_uint32_t type;
-  multiboot_uint32_t size;
-};
 
 struct multiboot_tag_string
 {

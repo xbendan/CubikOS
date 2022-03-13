@@ -1,3 +1,4 @@
+bits 64
 extern __exception
 %macro isr_err_stub 1
 isr_stub_%+%1:
@@ -50,6 +51,6 @@ global isr_stub_table
 isr_stub_table:
 %assign i 0 
 %rep    32 
-    dd isr_stub_%+i ; use DQ instead if targeting 64-bit
+    dq isr_stub_%+i ; use DQ instead if targeting 64-bit
 %assign i i+1 
 %endrep
