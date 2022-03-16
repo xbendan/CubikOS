@@ -21,6 +21,10 @@
 #define IDT_VIRTUALIZATION_EXCEPTION 0x14
 #define IDT_CONTROL_PROTECTION_EXCEPTION 0x15
 
+#define IDT_FLAGS_INTGATE 0x8e
+#define IDT_FLAGS_TRAPGATE 0xeF
+#define IDT_FLAGS_USER 0b01100000
+
 #include <stdint.h>
 
 /**
@@ -69,7 +73,7 @@ typedef struct IDTPointer {
     uint64_t base;
 } __attribute__((packed)) idt_ptr_t;
 
-typedef struct IDTEntry {
+typedef struct IDT64Entry {
     uint16_t baseLow;
     uint16_t selector;
     uint8_t ist;
@@ -77,6 +81,19 @@ typedef struct IDTEntry {
     uint16_t baseMedium;
     uint32_t baseHigh;
     uint32_t reserved;
+
+    constexpr IDT64Entry() : IDT64Entry(0, 0, 0) {}
+
+    constexpr IDT64Entry(uintptr_t base, uint8_t ist, uint8_t flags)
+      : baseLow(base & 0xFFFF),
+        selector(0x08),
+        ist(ist & 0x07),
+        flags(flags),
+        baseMedium((base >> 16) & 0xFFFF),
+        baseHigh((base >> 32) & 0xFFFFFFFF),
+        reserved(0)
+    {}
+
 } __attribute__((packed)) idt_entry_t;
 
 typedef struct RegisterContext {
@@ -104,16 +121,7 @@ typedef struct RegisterContext {
     uint64_t ss;
 } __attribute__((packed)) reg_context_t;
 
-typedef struct InterruptStackFrame
-{
-    uint64_t rip;
-    uint64_t cs;
-    uint64_t flags;
-    uint64_t rsp;
-    uint64_t ss;
-} isf_t;
-
-typedef void (*isr_t)(void*, isf_t*);
+typedef void (*isr_t)(void*, reg_context_t*);
 
 typedef struct InterruptServiceRoutineHandler {
     isr_t handler;
@@ -121,7 +129,7 @@ typedef struct InterruptServiceRoutineHandler {
 } isr_handler_t;
 
 namespace Interrupts {
-    void LoadInterruptDescriptorTable();
+    void Initialize();
     void RegisterInterruptHandler(uint8_t intr, isr_t func, void* data = nullptr);
-    void SetInterruptEntry(uint8_t vec, uint64_t base, uint16_t selector, uint8_t flags, uint8_t ist = 0);
+    void SetEntry(uint8_t vec, uint64_t base, uint16_t selector, uint8_t flags, uint8_t ist = 0);
 }

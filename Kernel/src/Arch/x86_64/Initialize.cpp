@@ -4,11 +4,9 @@
 #include <Interrupts.h>
 #include <Memory.h>
 #include <Macros.h>
+#include <Paging.h>
 
 using namespace Memory;
-
-extern "C" void check_cpuid();
-extern "C" void check_long_mode();
 
 namespace Core {
     void KInitMultiboot2(multiboot2_info_header_t* mbInfo);
@@ -23,14 +21,18 @@ namespace Core {
     {
         Console::Initialize();
         PrintLine("Start loading core features...");
-        Interrupts::LoadInterruptDescriptorTable();
+        Interrupts::Initialize();
         PrintLine("Loading IDT...");
+        //Paging::InitPagingTables();
+        //PrintLine("Loading new page tables...");
     }
 
     void KInitMultiboot2(multiboot2_info_header_t* mbInfo)
     {
+        __asm__("cli");
         InitCore();
 
+        /**
         PrintLine("Prepare to read multiboot information");
         if(mbInfo == nullptr)
         {
@@ -69,38 +71,38 @@ namespace Core {
 
                     while (reinterpret_cast<uintptr_t>(currentEntry) < reinterpret_cast<uintptr_t>(memMapTag) + memMapTag->size)
                     {
-                        MemoryMapEntry entry = memInfoPtr->entries[memInfoPtr->mapSize];
+                        MemoryMapEntry *entry = &memInfoPtr->entries[memInfoPtr->mapSize];
 
-                        entry.block = (MemoryRange){ currentEntry->addr, currentEntry->length };
+                        entry->range = (MemoryRange){ currentEntry->addr, currentEntry->length };
+                        PrintNum(currentEntry->length);
                         switch(currentEntry->type)
                         {
                             case MULTIBOOT_MEMORY_AVAILABLE:
                                 memInfoPtr->usable += currentEntry->length;
                                 PrintLine("Memory region available.");
-                                entry.type = MEMORY_MAP_ENTRY_AVAILABLE;
+                                entry->type = MEMORY_MAP_ENTRY_AVAILABLE;
                                 break;
                             case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
                                 PrintLine("Memory region ACPI reclaimable.");
-                                entry.type = MEMORY_MAP_ENTRY_ACPI_RECLAIMABLE;
+                                entry->type = MEMORY_MAP_ENTRY_ACPI_RECLAIMABLE;
                                 break;
                             case MULTIBOOT_MEMORY_RESERVED:
                                 PrintLine("Memory region reserved.");
-                                entry.type = MEMORY_MAP_ENTRY_RESERVED;
+                                entry->type = MEMORY_MAP_ENTRY_RESERVED;
                                 break;
                             case MULTIBOOT_MEMORY_BADRAM:
                                 PrintLine("Memory region bad ram.");
-                                entry.type = MEMORY_MAP_ENTRY_BADRAM;
+                                entry->type = MEMORY_MAP_ENTRY_BADRAM;
                                 break;
                             case MULTIBOOT_MEMORY_NVS:
                                 PrintLine("Memory region nvs.");
-                                entry.type = MEMORY_MAP_ENTRY_NVS;
+                                entry->type = MEMORY_MAP_ENTRY_NVS;
                                 break;
                             default:
                                 PrintLine("Memory region other.");
-                                entry.type = MEMORY_MAP_ENTRY_RESERVED;
+                                entry->type = MEMORY_MAP_ENTRY_RESERVED;
                                 break;
                         }
-                        PrintNum(currentEntry->length);
                         memInfoPtr->mapSize++;
                         currentEntry = reinterpret_cast<multiboot_memory_map_t*>((uintptr_t)currentEntry + memMapTag->entry_size);
                     }
@@ -135,14 +137,13 @@ namespace Core {
         }
 
         PrintLine("Multiboot Information all read.");
+        */
 
-        for(;;)
-        {
-            asm("cli");
-            asm("hlt");
-        }
+        //Memory::InitializeMemoryManagement();
+        
+        __asm__("sti");
 
-        Memory::InitializeMemoryManagement();
+        PrintLine("Line");
     }
 
     void KInitStivale2(void *infoPtr, uint32_t magic)
@@ -173,10 +174,9 @@ extern "C" [[noreturn]] void kload_multiboot2(multiboot2_info_header_t* mbInfo)
 {
     Core::KInitMultiboot2(mbInfo);
 
-    for(;;)
-    {
-        asm("hlt");
-    }
+hang:
+    __asm__("hlt");
+    goto hang;
 }
 
 /**
@@ -188,10 +188,9 @@ extern "C" [[noreturn]] void kload_stivale2(void *info)
 {
     Core::KInitStivale2(info, 0x73747632);
 
-    for(;;)
-    {
-        asm("hlt");
-    }
+hang:
+    __asm__("hlt");
+    goto hang;
 }
 
 

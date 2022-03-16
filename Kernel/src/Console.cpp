@@ -34,6 +34,7 @@ namespace Console {
         c_buffer = (uint16_t*) 0x000b8000;
 
         Clean();
+        PrintNum((uint64_t)c_buffer);
         //PrintLine("Console output initialized.");
     }
 
@@ -55,8 +56,19 @@ namespace Console {
 
         if(c_row >= MAX_ROW)
         {
-            Clean();
-            c_row = 0;
+            // Move up
+            for (size_t _row = 0; _row < 24; _row++)
+            {
+                for (size_t _col = 0; _col < 80; _col++)
+                {
+                    c_buffer[_row * MAX_COLUMN + _col] = c_buffer[(_row + 1) * MAX_COLUMN + _col];
+                }
+            }
+
+            for(size_t _col = 0; _col < MAX_COLUMN; _col++)
+                c_buffer[1920 + _col] = ToBufferEntry(' ', c_color);
+
+            c_row--;
         }
     }
 
@@ -84,8 +96,6 @@ namespace Console {
 
     void PrintLine(const char* str)
     {
-        if(c_column != 0)
-            PrintCode('\n');
         Print(str);
         PrintCode('\n');
     }
@@ -104,4 +114,5 @@ void PrintNum(uint64_t num)
         num /= 10;
         Console::PrintCode((char)(digit + 48));
     }
+    Console::PrintCode(' ');
 }

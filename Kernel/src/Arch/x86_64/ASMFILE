@@ -12,6 +12,7 @@ GetECXFeature:
     mov eax, ecx
     ret
 
+;bits 64
 ;global LoadPageMaps
 ;LoadPageMaps:
 ;    mov cr3, rdi

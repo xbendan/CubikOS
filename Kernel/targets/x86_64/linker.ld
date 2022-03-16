@@ -1,7 +1,7 @@
 OUTPUT_FORMAT(elf64-x86-64)
 OUTPUT_ARCH(i386:x86-64)
 
-ENTRY(entry)
+ENTRY(_start)
 
 SECTIONS
 {
@@ -32,7 +32,7 @@ SECTIONS
         _ctors_end = .;
         . = ALIGN(4096);
     }
-
+    
     .rodata : AT(ADDR(.rodata) - KERNEL_VMA)
     {
         _rodata = .;
@@ -56,8 +56,6 @@ SECTIONS
        *(.eh_frame)
         . = ALIGN(4096);
    }
-
-
 
    .bss : AT(ADDR(.bss) - KERNEL_VMA)
    {

@@ -1,5 +1,5 @@
-#include <stdint.h>
 #include <Buddy.h>
+#include <Slab.h>
 
 namespace Memory {
 
@@ -16,17 +16,50 @@ namespace Memory {
         size |= size >> 4;
         size |= size >> 8;
         size |= size >> 16;
+        size |= size >> 32;
         return size + 1;
     }
 
     void InitBuddy(memory_info_t *memInfo)
     {
-
+        PrintNum(memInfo->mapSize);
+        for (int i = 0; i < memInfo->mapSize; i++)
+        {
+            MemoryMapEntry *item = &memInfo->entries[i];
+            if(item->type == MEMORY_MAP_ENTRY_AVAILABLE)
+            {
+                CreateBuddyNode(item->range.base, item->range.size);
+            }
+        }
     }
 
-    BuddyNode CreateBuddyNode(size_t size)
+    void CreateBuddyNode(uint64_t base, size_t size)
     {
+        PrintNum(size);
+        if (size < 512 * 1024)
+        {
+            PrintLine("Memory block less than 512 KiB, push to slab.");
+            SlabAddMemory(base, size);
+            return;
+        }
 
+        buddy_node_t node = {};
+        
+        if(IS_POWER_OF_2(size))
+        {
+            size -= node.size = size;
+        }
+        else
+        {
+            size_t newSize = node.size = AsFixedSize(size) / 2;
+            size -= newSize;
+            base += newSize;
+        }
+
+        if(size > 0)
+            CreateBuddyNode(base, size);
+
+        return;
     }
 
     MemoryRange BuddyAllocateBlock(size_t size)
@@ -47,12 +80,12 @@ namespace Memory {
 
     }
 
-    void BuddyFreeBlock(MemoryRange block)
+    void BuddyFreeBlock(MemoryRange range)
     {
 
     }
 
-    void BuddyForceFreeBlock(MemoryRange block)
+    void BuddyForceFreeBlock(MemoryRange range)
     {
 
     }
@@ -73,6 +106,11 @@ namespace Memory {
     }
 
     void BuddyMarkPageUsed(uint64_t base)
+    {
+
+    }
+
+    uint64_t BuddyFindFreePage()
     {
 
     }

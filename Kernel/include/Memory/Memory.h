@@ -5,7 +5,7 @@
 extern "C" void* memset(void* src, int c, size_t count);
 extern "C" void* memcpy(void* dest, const void* src, size_t count);
 extern "C" int memcmp(const void* s1, const void* s2, size_t n);
-//extern "C" void LoadPageMaps(uintptr_t ptr);
+extern "C" void LoadPageMaps(uintptr_t ptr);
 
 namespace Memory {
     typedef struct MemoryRange {
@@ -24,7 +24,7 @@ namespace Memory {
     };
 
     typedef struct MemoryMapEntry {
-        MemoryRange block {};
+        MemoryRange range {};
         MemoryMapEntryType type;
     } memory_map_entry_t;
 

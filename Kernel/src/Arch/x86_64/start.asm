@@ -1,6 +1,7 @@
 BITS    32
 
-global entry
+global _start
+global fatal
 global entryst2
 global kernel_pml4
 global kernel_pdpt
@@ -23,7 +24,7 @@ extern kload_stivale2
 
 KERNEL_VIRTUAL_BASE equ 0xFFFFFFFF80000000
 KERNEL_BASE_PML4_INDEX equ (((KERNEL_VIRTUAL_BASE) >> 39) & 0x1FF)
-KERNEL_BASE_PDPT_INDEX equ  (((KERNEL_VIRTUAL_BASE) >> 30) & 0x1FF)
+KERNEL_BASE_PDPT_INDEX equ (((KERNEL_VIRTUAL_BASE) >> 30) & 0x1FF)
 
 section .boot.data
 align 4096
@@ -160,17 +161,8 @@ no64:
   loop .fill
   jmp $
 
-entry:
+_start:
   mov dword [mb_addr], ebx
-
-  mov eax, [ebx+88] ; Framebuffer pointer address in multiboot header
-  mov dword [fb_addr], eax 
-
-  mov eax, [ebx+96] ; Framebuffer pitch
-  mov dword [fb_pitch], eax
-
-  mov eax, [ebx+104] ; Framebuffer height
-  mov dword [fb_height], eax
 
   mov eax, 0x80000000
   cpuid                  ; CPU identification.
@@ -221,11 +213,19 @@ entry:
   mov cr0, eax
 
   lgdt [GDT64Pointer]
-  jmp 0x8:entry64 - KERNEL_VIRTUAL_BASE
+  jmp 0x08:_start64 - KERNEL_VIRTUAL_BASE
 BITS 64
 
   cli
   hlt
+
+exception:
+    ; print "ERR: X" where X is the error code
+	mov dword [0xb8000], 0x4f524f45
+	mov dword [0xb8004], 0x4f3a4f52
+	mov dword [0xb8008], 0x4f204f20
+	mov byte  [0xb800a], al
+	hlt
 
 
 fb_addr:
@@ -261,7 +261,7 @@ extern _bss_end
 
 BITS 64
 section .text
-entry64:
+_start64:
   lgdt [GDT64Pointer64]
 
   mov ax, 0x10

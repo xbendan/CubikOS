@@ -12,8 +12,7 @@
 #define SIZE_TO_PAGE(size) (size / MEM_PAGE_SIZE)
 #define IS_PAGE_ALIGNED(addr) (addr % MEM_PAGE_SIZE == 0)
 
-namespace Paging {
-    typedef struct PML4Entry {
+typedef struct PML4Entry {
         bool present: 1; // Must be 1
         bool writable: 1; // Page is readonly if set to 0, also called Read/Write bit
         bool uaccess: 1; // Everyone could access this page if it's not 0, or only supervisor allowed.
@@ -72,9 +71,29 @@ namespace Paging {
         bool key: 5;
         bool disableExecution: 1;
     } __attribute__((packed)) pml1_entry_t;
-    
-    using page_table_t = pml1_entry_t[PAGES_PER_TABLE];
-    using page_dir_t = pml2_entry_t[TABLES_PER_DIR];
-    using pdpt_t = pml3_entry_t[DIRS_PER_PDPT];
-    using pml4_t = pml4_entry_t[PDPTS_PER_PML4];
+
+typedef struct PML4
+{
+    PML4Entry entries[PDPTS_PER_PML4];
+} __attribute__((packed)) pml4_t;
+
+typedef struct PML3
+{
+    PML3Entry entries[DIRS_PER_PDPT];
+} __attribute__((packed)) pdpt_t;
+
+typedef struct PML2
+{
+    PML2Entry entries[TABLES_PER_DIR];
+} __attribute__((packed)) page_dir_t;
+
+typedef struct PML1
+{
+    PML1Entry entries[PAGES_PER_TABLE];
+} __attribute__((packed)) page_table_t;
+
+extern "C" void LoadPageTables(uintptr_t addr);
+
+namespace Paging {
+    void InitPagingTables();
 }

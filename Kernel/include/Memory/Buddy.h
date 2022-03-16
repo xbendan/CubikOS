@@ -8,9 +8,10 @@ namespace Memory {
     typedef struct BuddyNode {
         uint64_t    size;
         uint8_t*    freeList;
-    } __attribute__((packed)) buddy_node_t;
+    } buddy_node_t;
 
-    void InitBuddy(memory_info_t memInfo);
+    void InitBuddy(memory_info_t *memInfo);
+    void CreateBuddyNode(uint64_t base, size_t size);
     memory_range_t BuddyAllocateBlock(size_t size);
     uint64_t BuddyAllocateMemory(size_t size);
     void BuddyFreeBlock(memory_range_t block);

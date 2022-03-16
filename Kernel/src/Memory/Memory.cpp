@@ -1,4 +1,4 @@
-#include <Memory.h>
+#include <Buddy.h>
 
 extern "C" void* memset(void* src, int c, size_t count) {
     uint8_t* xs = (uint8_t*)src;
@@ -59,16 +59,13 @@ namespace Memory {
 
     void InitializeMemoryManagement()
     {
+        PrintLine("Loading memory management...");
         if(memInfo.total < 256 * 1024)
         {
             PrintLine("The total memory is too low (<256MB)");
             // system panic, memory size is too small
         }
 
-        for (int i = 0; i < memInfo.mapSize; i++)
-        {
-            MemoryMapEntry entry = memInfo.entries[i];
-            
-        }
+        InitBuddy(_memInfo());
     }
 }
