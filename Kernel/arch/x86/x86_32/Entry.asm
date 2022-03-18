@@ -1,11 +1,13 @@
-section .boot.data
-GDT64:
-    .Null
+extern kload_multiboot2
 
 bits 32
+section .boot.data
+GDT32:
+    .Null:
+
 section .text
 start_mb32:
-    cli ; Disable interrupts
+    cli
 
     ; Save multiboot information from registers
     mov dword [mb_addr], ebx
@@ -14,9 +16,12 @@ start_mb32:
     call check_cpuid
     call check_long_mode
 
-    ; Set PAE bit
-    mov eax, 10100000b
-    mov cr4, eax
+    mov ebx, dword [mb_addr]
+    mov eax, dword [mb_magic]
+    call kload_multiboot2
+
+    cli
+    hlt
 
 check_cpuid:
     pushfd
@@ -34,34 +39,17 @@ check_cpuid:
     ret
 .fail:
     mov al, "0"
-    jmp _preboot_fatal
+    jmp _boot_fatal
 
-check_long_mode:
-    mov eax, 0x80000000
-	cpuid
-	cmp eax, 0x80000001
-	jb .fail
-	mov eax, 0x80000001
-	cpuid
-	test edx, 1 << 29
-	jz .fail
-	ret
-.fail:
-	mov al, "1"
-	jmp exception
-
-_preboot_fatal:
+_boot_fatal:
     mov dword [0xb8000], 0x4f524f45
 	mov dword [0xb8004], 0x4f3a4f52
 	mov dword [0xb8008], 0x4f204f20
 	mov byte  [0xb800a], al
 	hlt
 
-bits 64
 mb_addr:
     dd 0
     dd 0
 mb_magic:
     dd 0
-
-start_jmp64:

@@ -18,6 +18,7 @@
  *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
  *  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+#include <stdint.h>
 
 #ifndef MULTIBOOT_HEADER
 #define MULTIBOOT_HEADER 1
@@ -416,7 +417,22 @@ struct multiboot_tag_load_base_addr
   multiboot_uint32_t size;
   multiboot_uint32_t load_base_addr;
 };
-
 #endif /* ! ASM_FILE */
-
 #endif /* ! MULTIBOOT_HEADER */
+
+#ifndef CUBIK_BOOT_INFO
+#define CUBIK_BOOT_INFO 1
+
+typedef struct BootInfo
+{
+    
+} boot_info_t;
+
+namespace Boot
+{
+    void ParseMultibootInfo(boot_info_t* bootInfo, multiboot2_info_header_t* mbInfo);
+}
+
+
+#endif
+
