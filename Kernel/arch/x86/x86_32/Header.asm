@@ -14,7 +14,7 @@ align 8
 mb_tags_start:
     dw 1
     dw 0
-    dd request_tag_end - request_tag_start
+    dd mb_tags_end - mb_tags_start
     dd 1 ; require cmd line
     dd 2 ; require bootloader name
     dd 4 ; require basic memory info
@@ -22,13 +22,19 @@ mb_tags_start:
 mb_tags_end:
 
 align 8
-; Framebuffer tag
+    ; Framebuffer tag
     dw 5  ; Type - framebuffer
     dw 0  ; Flags
     dd 20 ; Size - 20
     dd 0  ; Width
     dd 0  ; Height
     dd 32  ; Depth
+
+align 8
+    ; Module tag
+    dw 6
+    dw 0
+    dd 8
 
     ; Eng tag
     dw 0

@@ -1,23 +1,27 @@
 extern kload_multiboot2
+extern stack_top
+global _boot_fatal
+global start_mb32
 
 bits 32
 section .boot.data
 GDT32:
-    .Null:
 
 section .text
 start_mb32:
     cli
 
+    mov esp, stack_top
+    xor ebp, ebp
+
     ; Save multiboot information from registers
-    mov dword [mb_addr], ebx
-    mov dword [mb_magic], eax
+    ; mov dword [mb_addr], ebx
+    ; mov dword [mb_magic], eax
 
-    call check_cpuid
-    call check_long_mode
+    ; call check_cpuid
 
-    mov ebx, dword [mb_addr]
-    mov eax, dword [mb_magic]
+    push eax
+    push ebx
     call kload_multiboot2
 
     cli

@@ -19,6 +19,7 @@
  *  IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #include <stdint.h>
+#include <stddef.h>
 
 #ifndef MULTIBOOT_HEADER
 #define MULTIBOOT_HEADER 1
@@ -28,7 +29,7 @@
 #define MULTIBOOT_HEADER_ALIGN			8
 
 /* The magic field should contain this.  */
-#define MULTIBOOT2_HEADER_MAGIC			0xe85250d6
+#define MULTIBOOT2_HEADER_MAGIC			0xE85250D6
 
 /* This should be in %eax.  */
 #define MULTIBOOT2_BOOTLOADER_MAGIC		0x36d76289
@@ -420,19 +421,126 @@ struct multiboot_tag_load_base_addr
 #endif /* ! ASM_FILE */
 #endif /* ! MULTIBOOT_HEADER */
 
-#ifndef CUBIK_BOOT_INFO
-#define CUBIK_BOOT_INFO 1
+#include <Memory.h>
+#include <Macros.h>
+
+using namespace Memory;
+
+typedef struct BootMemoryDetail
+{
+    uint64_t            memTotalSize;
+    uint64_t            memUsable;
+    size_t              memMapSize;
+    memory_map_entry_t  memEntries[MEMORY_MAP_LIMIT];
+} boot_memory_detail_t;
+
+typedef struct BootGraphicDetail
+{
+    uint64_t addr;
+    uint32_t pitch, height, width;
+    uint8_t depth;
+} boot_graphic_detail_t;
+
 
 typedef struct BootInfo
 {
-    
+    const char*             bootloader;
+    boot_memory_detail_t    memory;
+    boot_graphic_detail_t   graphic;
 } boot_info_t;
 
 namespace Boot
 {
-    void ParseMultibootInfo(boot_info_t* bootInfo, multiboot2_info_header_t* mbInfo);
+    void ParseMultibootInfo(boot_info_t* _bootInfo, multiboot2_info_header_t* mbInfo)
+    {
+        multiboot_tag* tag = reinterpret_cast<multiboot_tag*>(mbInfo->tags);
+
+        while (tag->type != MULTIBOOT_HEADER_TAG_END && reinterpret_cast<uintptr_t>(tag) < reinterpret_cast<uintptr_t>(mbInfo) + mbInfo->totalSize) {
+            switch (tag->type)
+            {
+                case MULTIBOOT_TAG_TYPE_CMDLINE: {
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME: {
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_MODULE: {
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO: {
+                    multiboot_tag_basic_meminfo* memInfoTag = reinterpret_cast<multiboot_tag_basic_meminfo *>(tag);
+                    _bootInfo->memTotalSize = memInfoTag->mem_lower + memInfoTag->mem_upper;
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_MMAP: {
+                    multiboot_tag_mmap* memMapTag = reinterpret_cast<multiboot_tag_mmap *>(tag);
+                    multiboot_memory_map_t* currentEntry = memMapTag->entries;
+
+                    while (reinterpret_cast<uintptr_t>(currentEntry) < reinterpret_cast<uintptr_t>(memMapTag) + memMapTag->size)
+                    {
+                        MemoryMapEntry *entry = &_bootInfo->memEntries[_bootInfo->memMapSize];
+
+                        entry->range = (MemoryRange){ currentEntry->addr, currentEntry->length };
+                        switch(currentEntry->type)
+                        {
+                            case MULTIBOOT_MEMORY_AVAILABLE:
+                                _bootInfo->memUsable += currentEntry->length;
+                                entry->type = MEMORY_MAP_ENTRY_AVAILABLE;
+                                break;
+                            case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
+                                entry->type = MEMORY_MAP_ENTRY_ACPI_RECLAIMABLE;
+                                break;
+                            case MULTIBOOT_MEMORY_RESERVED:
+                                entry->type = MEMORY_MAP_ENTRY_RESERVED;
+                                break;
+                            case MULTIBOOT_MEMORY_BADRAM:
+                                entry->type = MEMORY_MAP_ENTRY_BADRAM;
+                                break;
+                            case MULTIBOOT_MEMORY_NVS:
+                                entry->type = MEMORY_MAP_ENTRY_NVS;
+                                break;
+                            default:
+                                entry->type = MEMORY_MAP_ENTRY_RESERVED;
+                                break;
+                        }
+                        _bootInfo->memMapSize++;
+                        currentEntry = reinterpret_cast<multiboot_memory_map_t*>((uintptr_t)currentEntry + memMapTag->entry_size);
+                    }
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_VBE: {
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_FRAMEBUFFER: {
+                    framebufferTag* = reinterpret_cast<multiboot_tag_framebuffer *>(tag);
+                    if(framebufferTag->common == nullptr)
+                        continue;
+                    multiboot_tag_framebuffer_common common = framebufferTag->common;
+
+                    _bootInfo->graphic->addr = common.framebuffer_addr;
+                    _bootInfo->graphic->height = common.framebuffer_height;
+                    _bootInfo->graphic->width = common.framebuffer_width;
+                    _bootInfo->graphic->depth = common.framebuffer_bpp;
+                    _bootInfo->graphic->pitch = common.framebuffer_pitch;
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_ACPI_OLD: {
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_ACPI_NEW: {
+                    break;
+                }
+                default: {
+                    if(tag->type > 21 || tag->type < 0 || tag->type == 21)
+                    {
+                        //WriteLine("Unexpected multiboot info tag!");
+                    }
+                    break;
+                }
+            }
+
+            tag = (multiboot_tag *)ALIGN_UP((reinterpret_cast<uintptr_t>(tag) + tag->size), MULTIBOOT_TAG_ALIGN);
+        }
+    }
 }
-
-
-#endif
 
