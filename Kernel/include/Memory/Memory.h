@@ -40,7 +40,7 @@ namespace Memory {
         MemoryMapEntryType type;
     } memory_map_entry_t;
 
-    void InitializeMemoryManagement();
+    void Initialize(uint64_t totalSize, size_t mapSize, memory_map_entry_t* mapEntries);
     void FreePhysicalPage(uintptr_t addr);
     void FreePhysicalBlock(memory_range_t block);
 }

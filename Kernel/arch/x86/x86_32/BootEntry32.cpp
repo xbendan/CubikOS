@@ -3,33 +3,33 @@
 
 namespace Boot
 {
-    void InitGraphicOutput();
-
-    boot_info_t bootInfo;
-
-    void InitCore()
+    void KernelInitialize(boot_info_t* bootInfo)
     {
-        InitGraphicOutput();
-    }
-
-    void InitGraphicOutput()
-    {
-        if(&bootInfo == nullptr)
+        if(bootInfo == nullptr)
             return;
-        
-        Graphics::EnableGraphicOutput(bootInfo.graphic);
+
+        Graphics::Initialize(bootInfo->graphic);
+
+        if(bootInfo->memory.memTotalSize < 256 * 1024)
+        {
+            // System panic
+        }
+        else
+        {
+            Memory::Initialize(
+                bootInfo->memory.memTotalSize, 
+                bootInfo->memory.memMapSize, 
+                bootInfo->memory.memEntries
+            );
+        }
     }
-    
+
     void KernelLoadMultiboot(multiboot2_info_header_t* mbInfo)
     {
+        boot_info_t bootInfo;
+
         Boot::ParseMultibootInfo(&bootInfo, mbInfo);
-
-        InitCore();
-    }
-
-    void KernelInitialize()
-    {
-        
+        KernelInitialize(&bootInfo);
     }
 }
 

@@ -24,7 +24,7 @@ namespace Graphics
     void DrawChar(Point point, ScreenPixelColor color, char c);
     void DrawText(Point point, ScreenPixelColor color, const char* str);
 
-    void EnableGraphicOutput(framebuffer_t fbt)
+    void Initialize(framebuffer_t fbt)
     {
         buffer = fbt;
         address = (color_t*)fbt.addr;

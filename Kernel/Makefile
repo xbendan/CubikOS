@@ -101,3 +101,7 @@ build-x64-mb: $(x86_64_object) $(shared_object)
 clean: 
 	rm -rf ./build
 	rm -rf ./dist
+
+.PHONY: run-x86
+run-x86:
+	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_32/cubik.iso

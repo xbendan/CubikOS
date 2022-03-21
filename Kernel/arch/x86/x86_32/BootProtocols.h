@@ -425,14 +425,11 @@ struct multiboot_tag_load_base_addr
 #include <GraphicsDevice.h>
 #include <Macros.h>
 
-using namespace Memory;
-
 typedef struct BootMemoryDetail
 {
     uint64_t            memTotalSize;
-    uint64_t            memUsable;
     size_t              memMapSize;
-    memory_map_entry_t  memEntries[MEMORY_MAP_LIMIT];
+    Memory::memory_map_entry_t  memEntries[MEMORY_MAP_LIMIT];
 } boot_memory_detail_t;
 
 typedef struct BootInfo
@@ -472,29 +469,28 @@ namespace Boot
 
                     while (reinterpret_cast<uintptr_t>(currentEntry) < reinterpret_cast<uintptr_t>(memMapTag) + memMapTag->size)
                     {
-                        MemoryMapEntry *entry = &memInfo->memEntries[memInfo->memMapSize];
+                        Memory::MemoryMapEntry *entry = &memInfo->memEntries[memInfo->memMapSize];
 
-                        entry->range = (MemoryRange){ currentEntry->addr, currentEntry->length };
+                        entry->range = (Memory::MemoryRange){ currentEntry->addr, currentEntry->length };
                         switch(currentEntry->type)
                         {
                             case MULTIBOOT_MEMORY_AVAILABLE:
-                                memInfo->memUsable += currentEntry->length;
-                                entry->type = MEMORY_MAP_ENTRY_AVAILABLE;
+                                entry->type = Memory::MEMORY_MAP_ENTRY_AVAILABLE;
                                 break;
                             case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
-                                entry->type = MEMORY_MAP_ENTRY_ACPI_RECLAIMABLE;
+                                entry->type = Memory::MEMORY_MAP_ENTRY_ACPI_RECLAIMABLE;
                                 break;
                             case MULTIBOOT_MEMORY_RESERVED:
-                                entry->type = MEMORY_MAP_ENTRY_RESERVED;
+                                entry->type = Memory::MEMORY_MAP_ENTRY_RESERVED;
                                 break;
                             case MULTIBOOT_MEMORY_BADRAM:
-                                entry->type = MEMORY_MAP_ENTRY_BADRAM;
+                                entry->type = Memory::MEMORY_MAP_ENTRY_BADRAM;
                                 break;
                             case MULTIBOOT_MEMORY_NVS:
-                                entry->type = MEMORY_MAP_ENTRY_NVS;
+                                entry->type = Memory::MEMORY_MAP_ENTRY_NVS;
                                 break;
                             default:
-                                entry->type = MEMORY_MAP_ENTRY_RESERVED;
+                                entry->type = Memory::MEMORY_MAP_ENTRY_RESERVED;
                                 break;
                         }
                         memInfo->memMapSize++;
