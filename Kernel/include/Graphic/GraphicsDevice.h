@@ -35,21 +35,24 @@ class GraphicsDevice
     /* data */
 };
 
-class Screen : public GraphicsDevice
+typedef struct Screen
 {
-    framebuffer_t buffer;
-    uint64_t id;
-    uint32_t width, height;
-};
+    color_t* buffer;
+    uint32_t id;
+    uint32_t width, height, pitch;
+    uint8_t depth;
+} screen_t;
 
 namespace Graphics
 {
     void DrawPoint(Point point, ScreenPixelColor color);
     void DrawLine(Point startPoint, Point endPoint, ScreenPixelColor color);
-    void DrawRect(Point startPoint, Point endPoint, ScreenPixelColor color, uint16_t cornerRadius = 0);
+    void DrawRect(Point startPoint, Size size, ScreenPixelColor color, uint16_t cornerRadius = 0);
     void DrawCircle(Point centerPoint, int radius, ScreenPixelColor color);
     void DrawChar(Point point, ScreenPixelColor color, char c);
     void DrawText(Point point, ScreenPixelColor color, const char* str);
+
+    screen_t* _screen();
 
     void Initialize(framebuffer_t fbt);
 }

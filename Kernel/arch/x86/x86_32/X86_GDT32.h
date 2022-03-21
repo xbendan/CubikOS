@@ -1,15 +1,17 @@
+#include <stdint.h>
+
+#define GDT_PRESENT     0b10010000     // Present bit. This must be 1 for all valid selectors.
+#define GDT_TSS_PRESENT 0b10000000 // Present bit. This must be 1 for all valid selectors.
+#define GDT_USER        0b01100000        // Privilege, 2 bits. Contains the ring level, 0 = highest (kernel), 3 = lowest (user applications).
+#define GDT_EXECUTABLE  0b00001000  // Executable bit. If 1 code in this segment can be executed, ie. a code selector. If 0 it is a data selector.
+#define GDT_READWRITE   0b00000010   // Readable bit for code selectors //Writable bit for data selectors
+#define GDT_ACCESSED    0b00000001
+#define GDT_ENTRY_SIZE  6
+#define GDT_FLAGS       0b1100
+#define TSS_FLAGS       0b0000
+
 namespace Arch::x86_32
 {
-    #define GDT_PRESENT 0b10010000     // Present bit. This must be 1 for all valid selectors.
-    #define GDT_TSS_PRESENT 0b10000000 // Present bit. This must be 1 for all valid selectors.
-    #define GDT_USER 0b01100000        // Privilege, 2 bits. Contains the ring level, 0 = highest (kernel), 3 = lowest (user applications).
-    #define GDT_EXECUTABLE 0b00001000  // Executable bit. If 1 code in this segment can be executed, ie. a code selector. If 0 it is a data selector.
-    #define GDT_READWRITE 0b00000010   // Readable bit for code selectors //Writable bit for data selectors
-    #define GDT_ACCESSED 0b00000001
-
-    #define GDT_FLAGS 0b1100
-    #define TSS_FLAGS 0b0000
-
     typedef struct TaskStackSegment
     {
         uint32_t prev_tss;
@@ -57,26 +59,17 @@ namespace Arch::x86_32
         uint8_t flags : 4;
         uint8_t baseHigh;
 
-    constexpr GDT32Entry()
-        : GDT32Entry(0, 0, 0, 0)
-    {
-    }
+        constexpr GDT32Entry()
+            : GDT32Entry(0, 0, 0, 0) {}
 
-    constexpr GDT32Entry(uint32_t base, uint32_t limit, uint8_t access, uint8_t flags)
-        : limitLow((uint16_t)((limit)&0xffff)),
-          baseLow((uint16_t)((base)&0xffff)),
-          baseMedium((uint8_t)(((base) >> 16) & 0xff)),
-          access((access)),
-          limitMedium(((limit) >> 16) & 0x0f),
-          flags((flags)),
-          baseHigh((uint8_t)(((base) >> 24) & 0xff))
-    {
-    }
-
-    constexpr GDT32Entry(TaskStackSegment *tss, uint8_t access, uint8_t flags)
-        : GDT32Entry((uintptr_t)tss, ((uintptr_t)tss) + sizeof(TaskStackSegment), access, flags)
-    {
-    }
+        constexpr GDT32Entry(uint32_t base, uint32_t limit, uint8_t access, uint8_t flags)
+            : limitLow((uint16_t)((limit)&0xffff)),
+            baseLow((uint16_t)((base)&0xffff)),
+            baseMedium((uint8_t)(((base) >> 16) & 0xff)),
+            access((access)),
+            limitMedium(((limit) >> 16) & 0x0f),
+            flags((flags)),
+            baseHigh((uint8_t)(((base) >> 24) & 0xff)) {}
     };
     
 

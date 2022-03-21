@@ -1,5 +1,10 @@
 #include <stdint.h>
 #include <BootProtocols.h>
+#include <Panic.h>
+#include <X86_GDT32.h>
+#include <X86_IDT32.h>
+
+using namespace Arch::x86_32;
 
 namespace Boot
 {
@@ -10,18 +15,19 @@ namespace Boot
 
         Graphics::Initialize(bootInfo->graphic);
 
-        if(bootInfo->memory.memTotalSize < 256 * 1024)
+        SetupGDT();
+        SetupIDT();
+
+        if(bootInfo->memory.memTotalSize < 127 * 1024)
         {
-            // System panic
+            Panic("Not enough memory.");
         }
         else
-        {
             Memory::Initialize(
                 bootInfo->memory.memTotalSize, 
                 bootInfo->memory.memMapSize, 
                 bootInfo->memory.memEntries
             );
-        }
     }
 
     void KernelLoadMultiboot(multiboot2_info_header_t* mbInfo)

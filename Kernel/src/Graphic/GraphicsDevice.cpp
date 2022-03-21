@@ -2,8 +2,8 @@
 
 namespace Graphics
 {
-    framebuffer_t buffer;
     color_t* address;
+    screen_t screen;
 
     void DrawPoint(Point point, ScreenPixelColor color)
     {
@@ -15,7 +15,7 @@ namespace Graphics
     {
         for (unsigned i = 0; i < size.height; i++) {
             for (unsigned j = 0; j < size.width; j++) {
-                address[((i + point.y) * buffer.width) + j + point.x] = color;
+                screen.buffer[((i + point.y) * screen.width) + j + point.x] = color;
             }
         }
     }
@@ -24,11 +24,22 @@ namespace Graphics
     void DrawChar(Point point, ScreenPixelColor color, char c);
     void DrawText(Point point, ScreenPixelColor color, const char* str);
 
+    screen_t* _screen()
+    {
+        return &screen;
+    }
+
     void Initialize(framebuffer_t fbt)
     {
-        buffer = fbt;
-        address = (color_t*)fbt.addr;
-        if(buffer.depth == 32)
+        screen = {
+            .buffer = (color_t*)fbt.addr,
+            .id = 0,
+            .width = fbt.width,
+            .height = fbt.height,
+            .pitch = fbt.pitch,
+            .depth = fbt.depth
+        };
+        if(fbt.depth == 32)
             DrawRect((point_t){10, 10}, (struct Size){100, 100}, color_t(255, 255, 255), 0);
     }
 }
