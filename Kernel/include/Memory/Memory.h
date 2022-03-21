@@ -13,6 +13,12 @@ extern "C" int memcmp(const void* s1, const void* s2, size_t n);
 
 extern "C" void LoadPageMaps(uintptr_t ptr);
 
+typedef struct MemoryInfo
+{
+    /* data */
+} memory_info_t;
+
+
 namespace Memory {
     typedef struct MemoryRange {
         uint64_t base;

@@ -3,26 +3,28 @@
 
 namespace Boot
 {
+    void InitGraphicOutput();
+
     boot_info_t bootInfo;
 
     void InitCore()
     {
-
+        InitGraphicOutput();
     }
 
     void InitGraphicOutput()
     {
-        if(bootInfo == nullptr)
+        if(&bootInfo == nullptr)
             return;
         
-        
+        Graphics::EnableGraphicOutput(bootInfo.graphic);
     }
     
     void KernelLoadMultiboot(multiboot2_info_header_t* mbInfo)
     {
         Boot::ParseMultibootInfo(&bootInfo, mbInfo);
 
-        bootInfo.graphic.addr
+        InitCore();
     }
 
     void KernelInitialize()
