@@ -25,9 +25,11 @@
 #define IDT_FLAGS_TRAPGATE 0xeF
 #define IDT_FLAGS_USER 0b01100000
 
+#define IDT_ENTRY_COUNT 256
+
 #include <stdint.h>
 
-typedef struct IDTPack {
+typedef struct IDT32Pack {
     uint16_t limit;
     uint32_t base;
 } __attribute__((packed)) idt_ptr_t;
@@ -85,6 +87,6 @@ typedef struct InterruptServiceRoutineHandler {
 
 namespace Arch::x86_32 {
     void SetupIDT();
-    void RegisterInterruptHandler(uint8_t intr, isr_t func, void* data = nullptr);
+    void RegisterService(uint8_t intr, isr_t func, void* data = nullptr);
     void SetIDTEntry(uint8_t vec, uint64_t base, uint16_t selector, uint8_t flags);
 }

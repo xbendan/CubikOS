@@ -40,6 +40,6 @@ namespace Graphics
             .depth = fbt.depth
         };
         if(fbt.depth == 32)
-            DrawRect((point_t){10, 10}, (struct Size){100, 100}, color_t(255, 255, 255), 0);
+            DrawRect((point_t){10, 10}, (struct Size){200, 100}, color_t(255, 255, 255), 0);
     }
 }

@@ -6,7 +6,7 @@
 #define GDT_EXECUTABLE  0b00001000  // Executable bit. If 1 code in this segment can be executed, ie. a code selector. If 0 it is a data selector.
 #define GDT_READWRITE   0b00000010   // Readable bit for code selectors //Writable bit for data selectors
 #define GDT_ACCESSED    0b00000001
-#define GDT_ENTRY_SIZE  6
+#define GDT_ENTRY_COUNT 6
 #define GDT_FLAGS       0b1100
 #define TSS_FLAGS       0b0000
 

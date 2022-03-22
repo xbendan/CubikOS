@@ -31,9 +31,9 @@ namespace Arch::x86_32
         .trap = 0,
         .iomap_base = 0,
     };
-    static GDT32Entry gdt[GDT_ENTRY_SIZE];
+    static GDT32Entry gdt[GDT_ENTRY_COUNT];
     static GDT32Pack gdtr = {
-        .limit = sizeof(GDT32Entry) * GDT_ENTRY_SIZE,
+        .limit = sizeof(GDT32Entry) * GDT_ENTRY_COUNT,
         .base = (uint32_t) &gdt[0]
     };
     

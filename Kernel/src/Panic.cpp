@@ -11,4 +11,8 @@ void __attribute__((noreturn)) Panic(string msg)
         (ScreenPixelColor){255, 0, 0},
         0
     );
+
+hang:
+    __asm__("hlt");
+    goto hang;
 }
