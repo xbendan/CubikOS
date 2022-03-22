@@ -21,8 +21,8 @@
 #define IDT_VIRTUALIZATION_EXCEPTION 0x14
 #define IDT_CONTROL_PROTECTION_EXCEPTION 0x15
 
-#define IDT_FLAGS_INTGATE 0x8e
-#define IDT_FLAGS_TRAPGATE 0xeF
+#define IDT_FLAGS_INTGATE 0x8E
+#define IDT_FLAGS_TRAPGATE 0xEF
 #define IDT_FLAGS_USER 0b01100000
 
 #define IDT_ENTRY_COUNT 256
@@ -84,6 +84,8 @@ typedef struct InterruptServiceRoutineHandler {
     isr_t handler;
     void* data;
 } isr_handler_t;
+
+extern "C" void __flushIDT(uint32_t);
 
 namespace Arch::x86_32 {
     void SetupIDT();

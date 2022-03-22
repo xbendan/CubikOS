@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <BootProtocols.h>
 #include <Panic.h>
+#include <Paging.h>
 #include <X86_GDT32.h>
 #include <X86_IDT32.h>
 
@@ -12,12 +13,13 @@ namespace Boot
     {
         if(bootInfo == nullptr)
             return;
+        __asm__("cli");
 
-        Graphics::Initialize(bootInfo->graphic);
+        //Graphics::Initialize(bootInfo->graphic);
 
         SetupGDT();
         SetupIDT();
-
+/**
         if(bootInfo->memory.memTotalSize < 127 * 1024)
         {
             Panic("Not enough memory.");
@@ -28,6 +30,10 @@ namespace Boot
                 bootInfo->memory.memMapSize, 
                 bootInfo->memory.memEntries
             );
+*/
+
+        __asm__("sti");
+        __asm__("hlt");
     }
 
     void KernelLoadMultiboot(multiboot2_info_header_t* mbInfo)

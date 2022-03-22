@@ -2,7 +2,7 @@
 
 extern "C" uintptr_t isrTable[];
 //__attribute__((aligned(0x10)))
-    idt_entry_t  idt[IDT_ENTRY_COUNT];
+       idt_entry_t  idt[IDT_ENTRY_COUNT];
 static idt_ptr_t    idtr = {
     .limit = sizeof(IDT32Entry) * IDT_ENTRY_COUNT,
     .base = (uint32_t)&idt[0]
@@ -19,10 +19,10 @@ namespace Arch::x86_32 {
         idt[3] = IDT32Entry(isrTable[3], 0x08, IDT_FLAGS_TRAPGATE);
         idt[4] = IDT32Entry(isrTable[3], 0x08, IDT_FLAGS_TRAPGATE);
 
-        idt[127] = IDT32Entry(isrTable[48], 0, IDT_FLAGS_INTGATE);
-        idt[128] = IDT32Entry(isrTable[49], 0, IDT_FLAGS_INTGATE | IDT_FLAGS_USER);
-
-        __asm__ volatile ("lidt %0" : : "m"(idtr)); // load the new IDT
+        idt[127] = IDT32Entry(isrTable[48], 0x08, IDT_FLAGS_INTGATE);
+        idt[128] = IDT32Entry(isrTable[49], 0x08, IDT_FLAGS_INTGATE | IDT_FLAGS_USER);
+        
+        __flushIDT((uint32_t) &idtr);
     }
 
     void RegInterrupt(uint8_t intr, isr_t func, void* data)

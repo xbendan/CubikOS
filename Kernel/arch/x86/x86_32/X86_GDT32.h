@@ -47,7 +47,7 @@ namespace Arch::x86_32
     {
         uint16_t limit;
         uint32_t base;
-    };
+    } __attribute__((packed));
 
     struct GDT32Entry
     {
@@ -60,18 +60,19 @@ namespace Arch::x86_32
         uint8_t baseHigh;
 
         constexpr GDT32Entry()
-            : GDT32Entry(0, 0, 0, 0) {}
+          : GDT32Entry(0, 0, 0, 0) {}
 
         constexpr GDT32Entry(uint32_t base, uint32_t limit, uint8_t access, uint8_t flags)
-            : limitLow((uint16_t)((limit)&0xffff)),
+          : limitLow((uint16_t)((limit)&0xffff)),
             baseLow((uint16_t)((base)&0xffff)),
             baseMedium((uint8_t)(((base) >> 16) & 0xff)),
             access((access)),
             limitMedium(((limit) >> 16) & 0x0f),
             flags((flags)),
             baseHigh((uint8_t)(((base) >> 24) & 0xff)) {}
-    };
-    
+    } __attribute__((packed));
+
+    extern "C" void __flushGDT(uint32_t);
 
     void SetupGDT();
 }

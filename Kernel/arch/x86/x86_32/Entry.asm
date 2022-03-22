@@ -10,6 +10,7 @@ GDT32:
 section .text
 start_mb32:
     cli
+    cld
 
     mov esp, stack_top
     xor ebp, ebp

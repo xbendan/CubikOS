@@ -36,7 +36,6 @@ namespace Arch::x86_32
         .limit = sizeof(GDT32Entry) * GDT_ENTRY_COUNT,
         .base = (uint32_t) &gdt[0]
     };
-    
 
     void SetupGDT()
     {
@@ -46,28 +45,28 @@ namespace Arch::x86_32
         gdt[1] = GDT32Entry(
             0,
             0xFFFFFFFF,
-            GDT_PRESENT | GDT_READWRITE | GDT_EXECUTABLE,
+            GDT_PRESENT | GDT_READWRITE | GDT_EXECUTABLE, // 10011010
             GDT_FLAGS
         );
         // Data
         gdt[2] = GDT32Entry(
             0,
             0xFFFFFFFF,
-            GDT_PRESENT | GDT_READWRITE, 
+            GDT_PRESENT | GDT_READWRITE, // 10010010
             GDT_FLAGS
         );
         // UserCode
         gdt[3] = GDT32Entry(
             0,
             0xFFFFFFFF,
-            GDT_PRESENT | GDT_READWRITE | GDT_USER | GDT_EXECUTABLE, 
+            GDT_PRESENT | GDT_READWRITE | GDT_USER | GDT_EXECUTABLE, // 11111010
             GDT_FLAGS
         );
         // UserData
         gdt[4] = GDT32Entry(
             0,
             0xFFFFFFFF,
-            GDT_PRESENT | GDT_READWRITE | GDT_USER, 
+            GDT_PRESENT | GDT_READWRITE | GDT_USER, // 11110010
             GDT_FLAGS
         );
         // TSS
@@ -77,5 +76,7 @@ namespace Arch::x86_32
             GDT_TSS_PRESENT | GDT_ACCESSED | GDT_EXECUTABLE | GDT_USER, 
             TSS_FLAGS
         );
+
+        __flushGDT((uint32_t) &gdtr);
     }
 }

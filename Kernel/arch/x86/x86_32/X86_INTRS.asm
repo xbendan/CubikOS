@@ -4,12 +4,14 @@ dd __interrupt%1
 
 %macro INTR_ERR 1
 __interrupt%1:
+    hlt
     push %1
     jmp __IntrCommonHandler
 %endmacro
 
 %macro INTR_NO_ERR 1
 __interrupt%1:
+    hlt
     push 0
     push %1
     jmp __IntrCommonHandler
