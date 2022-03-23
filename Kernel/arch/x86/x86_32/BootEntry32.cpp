@@ -15,10 +15,12 @@ namespace Boot
             return;
         __asm__("cli");
 
-        //Graphics::Initialize(bootInfo->graphic);
+        Graphics::Initialize(bootInfo->graphic);
 
         SetupGDT();
         SetupIDT();
+
+        Paging::Initialize();
 /**
         if(bootInfo->memory.memTotalSize < 127 * 1024)
         {
@@ -33,7 +35,6 @@ namespace Boot
 */
 
         __asm__("sti");
-        __asm__("hlt");
     }
 
     void KernelLoadMultiboot(multiboot2_info_header_t* mbInfo)

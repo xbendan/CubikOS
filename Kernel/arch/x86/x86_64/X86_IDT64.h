@@ -30,26 +30,27 @@
 #include <stdint.h>
 
 namespace Arch::x86_32 {
-    typedef struct IDT32Pack {
+    typedef struct IDT64Pack {
         uint16_t limit;
-        uint32_t base;
+        uint64_t base;
     } __attribute__((packed)) idt_ptr_t;
 
-    typedef struct IDT32Entry {
+    typedef struct IDT64Entry {
         uint16_t baseLow;
         uint16_t selector;
         uint8_t ign;
         uint8_t flags;
         uint16_t baseMedium;
 
-        constexpr IDT32Entry() : IDT32Entry(0, 0, 0) {}
+        constexpr IDT64Entry() : IDT64Entry(0, 0, 0) {}
 
-        constexpr IDT32Entry(uintptr_t base, uint16_t selector, uint8_t flags)
-          : baseLow(base & 0xFFFF),
+        constexpr IDT64Entry(uintptr_t base, uint16_t selector, uint8_t flags)
+        : baseLow(base & 0xFFFF),
             selector(selector),
             ign(0),
             flags(flags),
-            baseMedium((base >> 16) & 0xFFFF) {}
+            baseMedium((base >> 16) & 0xFFFF)
+        {}
 
     } __attribute__((packed)) idt_entry_t;
 
@@ -85,7 +86,7 @@ namespace Arch::x86_32 {
         void* data;
     } isr_handler_t;
 
-    extern "C" void __flushIDT(uint32_t);
+    extern "C" void __flushIDT(uint64_t);
 
     void SetupIDT();
     void RegisterService(uint8_t intr, isr_t func, void* data = nullptr);

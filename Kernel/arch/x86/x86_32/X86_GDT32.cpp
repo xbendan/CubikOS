@@ -1,5 +1,9 @@
 #include <X86_GDT32.h>
 
+/**
+ * @brief code rewrited from skiftOS.
+ * 
+ */
 namespace Arch::x86_32
 {
     static TaskStackSegment tss = {

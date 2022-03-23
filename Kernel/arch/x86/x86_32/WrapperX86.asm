@@ -21,3 +21,23 @@ __flushIDT:
     mov eax, [esp + 4]
     lidt [eax]
     ret
+
+global __enablePaging
+__enablePaging:
+    mov eax, cr0
+    or eax, 0x80000000
+    mov cr0, eax
+    ret
+
+global __disablePaging
+__disablePaging:
+    mov eax, cr0
+    and eax, 0x7fffffff
+    mov cr0, eax
+    ret
+
+global __loadPaging
+__loadPaging:
+    mov eax, [esp + 4]
+    mov cr3, eax
+    ret
