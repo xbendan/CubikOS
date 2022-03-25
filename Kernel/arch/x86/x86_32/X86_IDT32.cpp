@@ -27,7 +27,7 @@ namespace Arch::x86_32
 
     void RegInterrupt(uint8_t intr, isr_t func, void* data)
     {
-
+  
     }
 
     void SetIDTEntry(uint8_t vec, uint64_t base, uint16_t selector, uint8_t flags);

@@ -33,8 +33,15 @@ namespace Boot
                 bootInfo->memory.memEntries
             );
 
+        /**
+         * @attention PIC and PIT are required before enable interrupts
+         * @link https://forum.osdev.org/viewtopic.php?f=1&t=18932 @endlink
+         * @ref LordMage "you must remap the PIC or your code will never work."
+         * Load pic and pit first, or it will keep throwing double fault
+         * Hardware will call double fault if irq is not remapped.
+         */
 
-        __asm__("sti");
+        //__asm__("sti");
     }
 
     void KernelLoadMultiboot(multiboot2_info_header_t* mbInfo)

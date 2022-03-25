@@ -37,11 +37,12 @@ shared_include = -Iinclude \
 	-Iinclude/ControlSet
 
 cppflags = -ffreestanding \
+	-fomit-frame-pointer \
 	-mno-red-zone \
 	-mno-mmx \
 	-mno-sse \
 	-mno-sse2 \
-	-o2 \
+	-O2 \
 	-c
 
 ldflags = -nostdlib \

@@ -1,3 +1,4 @@
+
 %macro INTR_NAME 1
 dd __interrupt%1
 %endmacro
@@ -64,6 +65,7 @@ extern DispatchInterrupt
 
 __IntrCommonHandler:
     cld
+    hlt
 
     pushad
 
@@ -92,7 +94,7 @@ __IntrCommonHandler:
 
     add esp, 8 ; pop errcode and int number
 
-    iret
+    iretq
 
 INTR_NO_ERR 0
 INTR_NO_ERR 1
