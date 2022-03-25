@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <Misc.h>
 #define MEM_PAGE_SIZE       4096
 #define PAGE_DIRECTORY_INDEX(vaddr) ((vaddr) >> 22)
 #define PAGE_TABLE_INDEX(vaddr) (((vaddr) >> 12) & 0x03ff)
@@ -50,7 +51,7 @@ namespace Paging {
         uint32_t as_uint;
     } __attribute__((packed));
 
-    struct PageDirectory
+    struct PageDirectory : public Addrspace
     {
         PageDirectoryEntry entries[PAGE_DIRECTORY_ENTRY_COUNT];
     } __attribute__((packed));
@@ -60,4 +61,6 @@ namespace Paging {
     extern "C" void __disablePaging();
 
     void Initialize();
+    void Enable();
+    void Disable();
 }

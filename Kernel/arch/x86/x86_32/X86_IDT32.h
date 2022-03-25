@@ -54,28 +54,28 @@ namespace Arch::x86_32 {
     } __attribute__((packed)) idt_entry_t;
 
     typedef struct RegisterContext {
-        uint64_t r15;
-        uint64_t r14;
-        uint64_t r13;
-        uint64_t r12;
-        uint64_t r11;
-        uint64_t r10;
-        uint64_t r9;
-        uint64_t r8;
-        uint64_t rbp;
-        uint64_t rdi;
-        uint64_t rsi;
-        uint64_t rdx;
-        uint64_t rcx;
-        uint64_t rbx;
-        uint64_t rax;
-        uint64_t intno;
-        uint64_t err;
-        uint64_t rip;
-        uint64_t cs;
-        uint64_t rflags;
-        uint64_t rsp;
-        uint64_t ss;
+        uint32_t r15;
+        uint32_t r14;
+        uint32_t r13;
+        uint32_t r12;
+        uint32_t r11;
+        uint32_t r10;
+        uint32_t r9;
+        uint32_t r8;
+        uint32_t rbp;
+        uint32_t rdi;
+        uint32_t rsi;
+        uint32_t rdx;
+        uint32_t rcx;
+        uint32_t rbx;
+        uint32_t rax;
+        uint32_t intno;
+        uint32_t err;
+        uint32_t rip;
+        uint32_t cs;
+        uint32_t rflags;
+        uint32_t rsp;
+        uint32_t ss;
     } __attribute__((packed)) reg_context_t;
 
     typedef void (*isr_t)(void*, RegisterContext*);
@@ -89,5 +89,5 @@ namespace Arch::x86_32 {
 
     void SetupIDT();
     void RegisterService(uint8_t intr, isr_t func, void* data = nullptr);
-    void SetIDTEntry(uint8_t vec, uint64_t base, uint16_t selector, uint8_t flags);
+    void SetIDTEntry(uint8_t vec, uint32_t base, uint16_t selector, uint8_t flags);
 }

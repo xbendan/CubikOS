@@ -66,9 +66,9 @@ namespace Arch::x86_32
           : limitLow((uint16_t)((limit)&0xffff)),
             baseLow((uint16_t)((base)&0xffff)),
             baseMedium((uint8_t)(((base) >> 16) & 0xff)),
-            access((access)),
+            access(access),
             limitMedium(((limit) >> 16) & 0x0f),
-            flags((flags)),
+            flags(flags),
             baseHigh((uint8_t)(((base) >> 24) & 0xff)) {}
     } __attribute__((packed));
 

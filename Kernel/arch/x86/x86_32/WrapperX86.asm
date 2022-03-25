@@ -1,3 +1,5 @@
+section .text
+
 global __flushGDT
 __flushGDT:
     mov eax, [esp + 4]

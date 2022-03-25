@@ -21,7 +21,7 @@ namespace Boot
         SetupIDT();
 
         Paging::Initialize();
-/**
+
         if(bootInfo->memory.memTotalSize < 127 * 1024)
         {
             Panic("Not enough memory.");
@@ -32,7 +32,7 @@ namespace Boot
                 bootInfo->memory.memMapSize, 
                 bootInfo->memory.memEntries
             );
-*/
+
 
         __asm__("sti");
     }

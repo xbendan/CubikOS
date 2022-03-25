@@ -1,13 +1,13 @@
 #include <stdint.h>
 
-typedef struct ScreenPixelColor
+typedef struct PixelColor
 {
     uint8_t blue;
     uint8_t green;
     uint8_t red;
     uint8_t reserved;
 
-    ScreenPixelColor(uint8_t red, uint8_t green, uint8_t blue)
+    PixelColor(uint8_t red, uint8_t green, uint8_t blue)
       : blue(blue),
         green(green),
         red(red) {}
@@ -45,12 +45,12 @@ typedef struct Screen
 
 namespace Graphics
 {
-    void DrawPoint(Point point, ScreenPixelColor color);
-    void DrawLine(Point startPoint, Point endPoint, ScreenPixelColor color);
-    void DrawRect(Point startPoint, Size size, ScreenPixelColor color, uint16_t cornerRadius = 0);
-    void DrawCircle(Point centerPoint, int radius, ScreenPixelColor color);
-    void DrawChar(Point point, ScreenPixelColor color, char c);
-    void DrawText(Point point, ScreenPixelColor color, const char* str);
+    void DrawPoint(Point point, PixelColor color);
+    void DrawLine(Point startPoint, Point endPoint, PixelColor color);
+    void DrawRect(Point startPoint, Size size, PixelColor color, uint16_t cornerRadius = 0);
+    void DrawCircle(Point centerPoint, int radius, PixelColor color);
+    void DrawChar(Point point, PixelColor color, char c);
+    void DrawText(Point point, PixelColor color, const char* str);
 
     screen_t* _screen();
 

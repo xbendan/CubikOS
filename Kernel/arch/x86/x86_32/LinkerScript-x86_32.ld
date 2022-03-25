@@ -6,6 +6,8 @@ ENTRY(start_mb32)
 SECTIONS {
     . = 0x100000;
 
+    __kmstart__ = .;
+
     .boot.text : 
     {
         KEEP(*(.boot.text))
@@ -42,6 +44,8 @@ SECTIONS {
         *(.bss)
         *(COMMON)
     }
+
+    __kmend__ = .;
 
     /DISCARD/ :
     {

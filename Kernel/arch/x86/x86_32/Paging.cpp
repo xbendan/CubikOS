@@ -17,7 +17,9 @@ namespace Paging
         }
         
         __loadPaging(((uintptr_t) &kpdir));
-        //__enablePaging();
         //Interrupts::RegisterInterruptHandler(14, InterruptHandler_PageFault);
     }
+
+    void Enable() { __enablePaging(); }
+    void Disable() { __disablePaging(); }
 }

@@ -3,16 +3,18 @@
 
 using namespace Graphics;
 
-void __attribute__((noreturn)) Panic(string msg)
+void Panic(string msg)
 {
     DrawRect(
-        (Point){0, 0},
-        (Size){_screen()->width, _screen()->height},
-        (ScreenPixelColor){255, 0, 0},
+        (Point){200, 200},
+        (Size){_screen()->width / 2, _screen()->height / 2},
+        (PixelColor){255, 0, 0},
         0
     );
 
+/**
 hang:
     __asm__("hlt");
     goto hang;
+*/
 }
