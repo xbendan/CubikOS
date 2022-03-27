@@ -1,3 +1,5 @@
+extern DispatchInterrupt
+
 %macro INTR_NAME 1
 dd __interrupt%1
 %endmacro
@@ -5,26 +7,32 @@ dd __interrupt%1
 %macro INTR_ERR 1
 __interrupt%1:
     push %1
-    jmp __IntrCommonHandler
+    jmp __commonInterrupt__
 %endmacro
 
 %macro INTR_NO_ERR 1
 __interrupt%1:
     push 0
     push %1
-    jmp __IntrCommonHandler
+    jmp __commonInterrupt__
+%endmacro
+
+%macro IRQ 2
+global irq%1
+irq%1:
+    push 0
+    push %2
+    jmp __commonInterrupt__
 %endmacro
 
 %macro INTR_SYSCALL 1
 __interrupt%1:
     push 0
     push %1
-    jmp __IntrCommonHandler
+    jmp __commonInterrupt__
 %endmacro
 
-extern DispatchInterrupt
-
-__IntrCommonHandler:
+__commonInterrupt__:
     cld
 
     pusha
@@ -89,22 +97,24 @@ INTR_NO_ERR 29
 INTR_ERR   30
 INTR_NO_ERR 31
 
-INTR_NO_ERR 32
-INTR_NO_ERR 33
-INTR_NO_ERR 34
-INTR_NO_ERR 35
-INTR_NO_ERR 36
-INTR_NO_ERR 37
-INTR_NO_ERR 38
-INTR_NO_ERR 39
-INTR_NO_ERR 40
-INTR_NO_ERR 41
-INTR_NO_ERR 42
-INTR_NO_ERR 43
-INTR_NO_ERR 44
-INTR_NO_ERR 45
-INTR_NO_ERR 46
-INTR_NO_ERR 47
+; remove 32-47 could resolve GPF exception.
+
+IRQ 0, 32
+IRQ 1, 33
+IRQ 2, 34
+IRQ 3, 35
+IRQ 4, 36
+IRQ 5, 37
+IRQ 6, 38
+IRQ 7, 39
+IRQ 8, 40
+IRQ 9, 41
+IRQ 10, 42
+IRQ 11, 43
+IRQ 12, 44
+IRQ 13, 45
+IRQ 14, 46
+IRQ 15, 47
 
 INTR_NO_ERR 127
 INTR_SYSCALL 128
@@ -144,23 +154,6 @@ isrTable:
     INTR_NAME 29
     INTR_NAME 30
     INTR_NAME 31
-
-    INTR_NAME 32
-    INTR_NAME 33
-    INTR_NAME 34
-    INTR_NAME 35
-    INTR_NAME 36
-    INTR_NAME 37
-    INTR_NAME 38
-    INTR_NAME 39
-    INTR_NAME 40
-    INTR_NAME 41
-    INTR_NAME 42
-    INTR_NAME 43
-    INTR_NAME 44
-    INTR_NAME 45
-    INTR_NAME 46
-    INTR_NAME 47
 
     INTR_NAME 127
     INTR_NAME 128

@@ -1,4 +1,6 @@
-static inline uint8_t inport8(uint16_t port)
+#include <stdint.h>
+
+static inline uint8_t PortReadInByte_8(uint16_t port)
 {
     uint8_t data;
     asm volatile("inb %1, %0"
@@ -7,7 +9,7 @@ static inline uint8_t inport8(uint16_t port)
     return data;
 }
 
-static inline uint16_t in16(uint16_t port)
+static inline uint16_t PortReadInWord_16(uint16_t port)
 {
     uint16_t data;
     asm volatile("inw %1, %0"
@@ -16,7 +18,7 @@ static inline uint16_t in16(uint16_t port)
     return data;
 }
 
-static inline uint32_t in32(uint16_t port)
+static inline uint32_t PortReadInDWord_32(uint16_t port)
 {
     uint32_t data;
     asm volatile("inl %1, %0"
@@ -25,21 +27,21 @@ static inline uint32_t in32(uint16_t port)
     return data;
 }
 
-static inline void outport8(uint16_t port, uint8_t data)
+static inline void PortWriteOutByte_8(uint16_t port, uint8_t data)
 {
     asm volatile("outb %0, %1"
                  :
                  : "a"(data), "d"(port));
 }
 
-static inline void out16(uint16_t port, uint16_t data)
+static inline void PortWriteOutWord_16(uint16_t port, uint16_t data)
 {
     asm volatile("outw %0, %1"
                  :
                  : "a"(data), "d"(port));
 }
 
-static inline void out32(uint16_t port, uint32_t data)
+static inline void PortWriteOutDWord_32(uint16_t port, uint32_t data)
 {
     asm volatile("outl %0, %1"
                  :

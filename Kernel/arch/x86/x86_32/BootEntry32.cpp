@@ -4,11 +4,26 @@
 #include <Paging.h>
 #include <X86_GDT32.h>
 #include <X86_IDT32.h>
+#include <X86_PIC.h>
+#include <X86_PIT.h>
 
 using namespace Arch::x86_32;
+using namespace Arch::x86;
 
 namespace Boot
 {
+    /**
+     * @brief initialize system environment
+     * This method was designed for initializing all the basic data
+     * in the early environment of the kernel.
+     * All the features should be loaded in the BootEntryXX.cpp
+     * 
+     * @param bootInfo the pointer of parsed boot info from multiboot (x86_32)
+     */
+    /**
+     * 这个方法被设计为用于加载系统的早期初始环境
+     * 所有可以用于被加载功能的方法都应该在此被调用
+     */
     void KernelInitialize(boot_info_t* bootInfo)
     {
         if(bootInfo == nullptr)
@@ -40,8 +55,10 @@ namespace Boot
          * Load pic and pit first, or it will keep throwing double fault
          * Hardware will call double fault if irq is not remapped.
          */
+        
+        LoadPIT(1000);
 
-        //__asm__("sti");
+        __asm__("sti");
     }
 
     void KernelLoadMultiboot(multiboot2_info_header_t* mbInfo)

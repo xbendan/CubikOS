@@ -71,5 +71,5 @@ namespace Arch::x86_32 {
 
     void SetupIDT();
     void RegisterService(uint8_t intr, isr_t func, void* data = nullptr);
-    void SetIDTEntry(uint8_t vec, uint32_t base, uint16_t selector, uint8_t flags);
+    void SetIDTEntry(uint8_t num, uint32_t base, uint16_t selector, uint8_t flags);
 }
