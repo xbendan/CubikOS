@@ -3,7 +3,7 @@
 
 namespace Arch::x86
 {
-    void LoadPIC()
+    void LoadPic()
     {
         PortWriteOutByte_8(0x20, 0x11);
         PortWriteOutByte_8(0xA0, 0x11);
@@ -21,7 +21,7 @@ namespace Arch::x86
         PortWriteOutByte_8(0xA1, 0x0);
     }
 
-    void PIC_ACK(int i)
+    void PicRefreshState(int i)
     {
         if (i >= 40)
         {

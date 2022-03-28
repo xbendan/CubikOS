@@ -18,9 +18,9 @@ namespace Arch::x86_32
             handleISRInterrupt(intNum, &context);
         else if (intNum < 48)
             handleIRQInterrupt(intNum - 32, &context);
-        else
+        else {}
         
-        Arch::x86::PIC_ACK(context.intno);
+        Arch::x86::PicRefreshState(context.intno);
         
         return esp;
     }

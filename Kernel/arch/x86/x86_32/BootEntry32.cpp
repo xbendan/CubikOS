@@ -55,8 +55,9 @@ namespace Boot
          * Load pic and pit first, or it will keep throwing double fault
          * Hardware will call double fault if irq is not remapped.
          */
-        
-        LoadPIT(1000);
+
+        LoadPic();
+        LoadPit(1000);
 
         __asm__("sti");
     }

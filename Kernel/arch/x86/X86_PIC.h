@@ -1,5 +1,5 @@
 namespace Arch::x86
 {
-    void LoadPIC();
-    void PIC_ACK(int i);
+    void LoadPic();
+    void PicRefreshState(int i);
 }

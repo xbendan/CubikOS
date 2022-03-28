@@ -3,5 +3,5 @@
 
 namespace Arch::x86
 {
-    void LoadPIT(uint32_t freq);
+    void LoadPit(uint32_t freq);
 } // namespace Arch::x86

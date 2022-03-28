@@ -1,6 +1,5 @@
 #include <X86_IDT32.h>
 #include <X86_INTR32.h>
-#include <X86_PIC.h>
 
 extern "C"
 {
@@ -56,7 +55,6 @@ namespace Arch::x86_32
         idt[45] = IDT32Entry((uint32_t)irq13, 0x08, IDT_FLAGS_INTGATE);
         idt[46] = IDT32Entry((uint32_t)irq14, 0x08, IDT_FLAGS_INTGATE);
         idt[47] = IDT32Entry((uint32_t)irq15, 0x08, IDT_FLAGS_INTGATE);
-        Arch::x86::LoadPIC();
 
         idt[127] = IDT32Entry(isrTable[48], 0x08, IDT_FLAGS_INTGATE);
         idt[128] = IDT32Entry(isrTable[49], 0x08, IDT_FLAGS_INTGATE | IDT_FLAGS_USER);

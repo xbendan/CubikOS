@@ -437,6 +437,7 @@ typedef struct BootInfo
     const char*             bootloader;
     boot_memory_detail_t    memory;
     framebuffer_t           graphic;
+    uint8_t*                rsdpPtr;
 } boot_info_t;
 
 namespace Boot

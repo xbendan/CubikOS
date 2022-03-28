@@ -3,7 +3,7 @@
 
 namespace Arch::x86
 {
-    void LoadPIT(uint32_t freq)
+    void LoadPit(uint32_t freq)
     {
         uint16_t __divisor__ = PIT_FREQUENCY / freq;
 
