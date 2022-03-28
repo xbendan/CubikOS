@@ -52,6 +52,6 @@ namespace Arch::x86
         uint64_t ptr[]; // (table.length - sizeof(table)) / 8
     } acpi_xsdt_t;
     
-    void LoadApic();
+    void LoadAcpi();
     void ApicFindTable(const char* str);
 }

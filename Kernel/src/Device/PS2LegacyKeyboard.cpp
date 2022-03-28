@@ -25,7 +25,7 @@ namespace Device::Input
         'e',
         'r',
         't',
-        'y'.
+        'y',
         'u',
         'i',
         'o',
@@ -61,7 +61,7 @@ namespace Device::Input
         0, /* Right Shift */
         '*',
         271, /* Left Alt */
-        ' ' /* Space */
+        ' ', /* Space */
         273, /* Caps Lock */
         256,
         257,
@@ -124,7 +124,7 @@ namespace Device::Input
         'e',
         'r',
         't',
-        'y'.
+        'y',
         'u',
         'i',
         'o',
@@ -160,7 +160,7 @@ namespace Device::Input
         0, /* Right Shift */
         '*',
         271, /* Left Alt */
-        ' ' /* Space */
+        ' ', /* Space */
         273, /* Caps Lock */
         256,
         257,

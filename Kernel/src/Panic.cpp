@@ -12,9 +12,7 @@ void Panic(string msg)
         0
     );
 
-/**
 hang:
     __asm__("hlt");
     goto hang;
-*/
 }

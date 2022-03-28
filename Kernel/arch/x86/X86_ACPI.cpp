@@ -2,7 +2,7 @@
 
 namespace Arch::x86
 {
-    void LoadApic()
+    void LoadAcpi()
     {
         
     }

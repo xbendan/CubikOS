@@ -1,4 +1,5 @@
 #include <X86_APIC.h>
+#include <X86_PIC.h>
 
 namespace Arch::x86
 {
@@ -16,6 +17,6 @@ namespace Arch::x86
 
     void LoadApic()
     {
-        
+        UnloadPic();
     }
 }

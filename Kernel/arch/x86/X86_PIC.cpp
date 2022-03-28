@@ -21,6 +21,12 @@ namespace Arch::x86
         PortWriteOutByte_8(0xA1, 0x0);
     }
 
+    void UnloadPic()
+    {
+        PortWriteOutByte_8(0xA1, 0xFF);
+        PortWriteOutByte_8(0x21, 0xFF);
+    }
+
     void PicRefreshState(int i)
     {
         if (i >= 40)
