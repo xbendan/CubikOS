@@ -36,7 +36,8 @@ shared_include = -Iinclude \
 	-Iinclude/Security \
 	-Iinclude/Device \
 	-Iinclude/Interrupts \
-	-Iinclude/System
+	-Iinclude/System \
+	-Iinclude/Utils
 
 cppflags = -ffreestanding \
 	-fomit-frame-pointer \

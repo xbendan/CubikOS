@@ -43,6 +43,4 @@ namespace Memory {
     typedef void (*paging_t)(void);
 
     void Initialize(uint64_t totalSize, size_t mapSize, memory_map_entry_t* mapEntries);
-    void FreePhysicalPage(uintptr_t addr);
-    void FreePhysicalBlock(memory_range_t block);
 }
