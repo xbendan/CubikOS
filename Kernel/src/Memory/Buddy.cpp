@@ -1,38 +1,69 @@
 #include <Buddy.h>
+#include <Math.h>
 
 namespace Memory::Allocation
 {
     uint32_t nodeCount = 0;
     buddy_node_t* nodes;
 
-    void BdCreateNode(uint64_t base)
+    void BuddyCreateNode(memory_range_t range)
     {
         
     }
 
-    void* BdMemoryAllocate(size_t size)
+    void* BuddyAllocate(size_t size)
     {
-        if(size > BUDDY_NODE_SIZE)
+        if(size > BUDDY_NODE_SIZE || size <= 0)
         { 
             return nullptr;
         }
 
-        size = ToPowerOf2(size);
+        size_t sizePow = ToPowerOf2(size);
+        uint8_t order = ToOrder(sizePow);
 
-        return BdAllocatePage(0);
+        //return BuddyAllocatePage((uint8_t) Math::log(2, size, BUDDY_TREE_DEPTH));
     }
 
-    buddy_page_t* BdAllocatePage(uint8_t depth)
+    /**
+     * @brief 
+     * 
+     * @param order
+     * @return buddy_page_t* 
+     */
+    buddy_page_t* BuddyAllocatePage(uint8_t order)
     {
-        if(depth > BUDDY_TREE_DEPTH)
+        if(order > BUDDY_TREE_DEPTH)
         {
             return nullptr;
         }
 
+        return nullptr;
     }
 
-    void BdMemoryFree(uintptr_t addr);
-    void BdMarkMemoryPageUsed(uintptr_t addr);
-    void BdMarkMemoryPageFree(uintptr_t addr);
-    void BdMemoryDump();
+    void BuddyFree(uintptr_t addr)
+    {
+
+    }
+
+    void BuddyMarkRangeUsed(uintptr_t addr, size_t size)
+    {
+
+    }
+
+    void BuddyMarkRangeFree(uintptr_t addr, size_t size)
+    {
+
+    }
+
+    void BuddyMarkPageUsed(uintptr_t addr)
+    {
+
+    }
+
+    void BuddyMarkPageFree(uintptr_t addr)
+    {
+
+    }
+
+    void BuddyDump();
 }

@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <Memory.h>
 #include <LinkedList.h>
+#include <Spinlock.h>
 /**
  * Each buddy node manages 16MiB memory
  */
@@ -36,10 +38,20 @@ namespace Memory::Allocation
      */
     typedef struct BuddyFreeArea
     {
+        /**
+         * This variable does not represents the whole list,
+         * any valid node in the actual list could be saved here
+         * but usually the first one
+         */
         struct LinkedListNode freeList;
-        uint32_t count;
+        lock_t lock;
+        uint32_t count; /* How many pages left in the list */
     } buddy_area_t;
 
+    /**
+     * @brief the biggest block for buddy allocator
+     * 
+     */
     typedef struct BuddyNode
     {
         uint32_t pageCount, pageSize;
@@ -58,13 +70,31 @@ namespace Memory::Allocation
         return size + 1;
     }
 
-    void BdCreateNode(uint64_t base);
-    void* BdAllocate(size_t size);
-    buddy_page_t* BdAllocatePage(uint8_t depth);
-    void BdMemoryFree(uintptr_t addr);
-    void BdMarkRangeUsed(uintptr_t addr, size_t size);
-    void BdMarkRangeFree(uintptr_t addr, size_t size);
-    void BdMarkPageUsed(uintptr_t addr);
-    void BdMarkPageFree(uintptr_t addr);
-    void BdMemoryDump();
+    /**
+     * @brief 
+     * 
+     * @param size must be 2^N
+     * @return constexpr uint8_t 
+     */
+    static constexpr uint8_t ToOrder(size_t size)
+    {
+        uint8_t order = BUDDY_TREE_DEPTH;
+        size_t m_size = BUDDY_NODE_SIZE;
+        while (m_size != size)
+        {
+            m_size /= 2;
+            order--;
+        }
+        return order;
+    }
+
+    void BuddyCreateNode(memory_range_t range);
+    void* BuddyAllocate(size_t size);
+    buddy_page_t* BuddyAllocatePage(uint8_t depth);
+    void BuddyFree(uintptr_t addr);
+    void BuddyMarkRangeUsed(uintptr_t addr, size_t size);
+    void BuddyMarkRangeFree(uintptr_t addr, size_t size);
+    void BuddyMarkPageUsed(uintptr_t addr);
+    void BuddyMarkPageFree(uintptr_t addr);
+    void BuddyDump();
 }

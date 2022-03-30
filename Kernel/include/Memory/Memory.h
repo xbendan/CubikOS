@@ -1,3 +1,14 @@
+/**
+ * @file Memory.h
+ * @author RainbowMeowCat ()
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-30
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -18,10 +29,48 @@ typedef struct MemoryInfo
     /* data */
 } memory_info_t;
 
+typedef struct SystemMemoryInfo
+{
+    uint64_t totalSize;
+    uint64_t available;
+    size_t inUsed;
+    size_t allocated;
+    size_t standby;
+    size_t free;
+} system_memory_info_t;
+
+typedef struct ProcessMemoryRecord
+{
+    /**
+     * @brief Indicates how many memory is actually in used
+     */
+    size_t inUsed;
+    /**
+     * @brief Indicates how many memory is allocated
+     * This value should always be equals to or greater
+     * than @code size_t inUsed @endcode
+     * In other words, this value is how many memory that the process
+     * got from the allocator. But it doesn't mean that the process
+     * knows it got such a lot memory. The process always considers that
+     * it has @code size_t inUsed @endcode KiB memory.
+     * 
+     * For instance, once the process asks for 41KiB memory, but the
+     * allocator decided to allocate 44KiB memory. The value of "inUsed"
+     * is 41KiB and the value of "allocated" is 44KiB
+     */
+    size_t allocated;
+} memory_record_t;
 
 namespace Memory {
     typedef struct MemoryRange {
+        /**
+         * @brief The start address of the memory range
+         */
         uint64_t base;
+        /**
+         * @brief The length of the range.
+         * Equals to "end address" - "start address (base)"
+         */
         uint64_t size;
     } memory_range_t;
 
@@ -40,7 +89,17 @@ namespace Memory {
         MemoryMapEntryType type;
     } memory_map_entry_t;
 
+
     typedef void (*paging_t)(void);
 
+    /**
+     * @brief Initialize the memory management
+     * 
+     * 
+     * 
+     * @param totalSize The total size of system memory, including the unusable region.
+     * @param mapSize indicates the size of mapEntries
+     * @param mapEntries storage the entries for initialize
+     */
     void Initialize(uint64_t totalSize, size_t mapSize, memory_map_entry_t* mapEntries);
 }

@@ -45,8 +45,10 @@ cppflags = -ffreestanding \
 	-mno-mmx \
 	-mno-sse \
 	-mno-sse2 \
+	-std=c++20 \
 	-O2 \
-	-c
+	-c \
+	-lgcc
 
 ldflags = -nostdlib \
 	-O2 \
