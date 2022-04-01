@@ -29,16 +29,23 @@ typedef struct MemoryInfo
     /* data */
 } memory_info_t;
 
+/**
+ * This struct represents the general information about memory management
+ */
 typedef struct SystemMemoryInfo
 {
-    uint64_t totalSize;
-    uint64_t available;
-    size_t inUsed;
-    size_t allocated;
-    size_t standby;
-    size_t free;
+    uint64_t totalSize; /* How many physical memory does the computer have */
+    uint64_t available; /* How many physical memory is usable */
+    size_t inUsed; /* The memory that is actually being used */
+    size_t allocated; /* The size that has been allocated. No less than inUsed! */
+    size_t standby; /* Memory that frozen to save physical memory, saved in disk */
+    size_t free; /* Memory that is free and can be allocated */
 } system_memory_info_t;
 
+/**
+ * @brief The simplified struct of @see SystemMemoryInfo
+ * This struct represents the memory related to a specific process.
+ */
 typedef struct ProcessMemoryRecord
 {
     /**

@@ -5,5 +5,5 @@
  */
 struct LinkedListNode
 {
-    struct LinkedListNode *prev, *next;
+    void *prev, *next;
 };

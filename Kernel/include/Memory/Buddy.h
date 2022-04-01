@@ -55,9 +55,15 @@ namespace Memory::Allocation
     typedef struct BuddyNode
     {
         uint32_t pageCount, pageSize;
-        uintptr_t startAddr, endAddr;
+        uintptr_t start, end;
         buddy_area_t freeAreaList[BUDDY_TREE_DEPTH];
     } buddy_node_t;
+
+    typedef struct BuddyNodeHeader
+    {
+        LinkedListNode listNode;
+        buddy_node_t buddyNode;
+    } buddy_header_t;
 
     static constexpr size_t ToPowerOf2(size_t size)
     {
@@ -79,7 +85,7 @@ namespace Memory::Allocation
     static constexpr uint8_t ToOrder(size_t size)
     {
         uint8_t order = BUDDY_TREE_DEPTH;
-        size_t m_size = BUDDY_NODE_SIZE;
+        size_t m_size = BUDDY_NODE_SIZE / ARCH_PAGE_SIZE;
         while (m_size != size)
         {
             m_size /= 2;
