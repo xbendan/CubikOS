@@ -6,6 +6,9 @@ namespace Memory::Allocation
     uint32_t nodeCount = 0;
     buddy_header_t first;
 
+    buddy_page_t* Expand(buddy_page_t* page, uint8_t order);
+    buddy_page_t* First(buddy_area_t* area);
+
     void BuddyCreateNode(memory_range_t range)
     {
         uint64_t base = range.base;
@@ -35,7 +38,7 @@ namespace Memory::Allocation
      * @param size 
      * @return void* 
      */
-    void* BuddyAllocate(size_t size)
+    void* BuddyAllocate(void* base, size_t size)
     {
         if(size > BUDDY_NODE_SIZE || size <= 0)
         {
@@ -58,13 +61,13 @@ namespace Memory::Allocation
      * @param order indicates the size of the page, and where should it be started to allocated from
      * @return buddy_page_t* the page pointer that is going to be allocated
      */
-    buddy_page_t* BuddyAllocatePage(uint8_t order)
+    buddy_page_t* BuddyAllocatePage(int8_t order)
     {
         /**
          * check whether the page going to be allocated is oversized
          * return nullptr if order is greater than the maximum possible order
          */
-        if(order > BUDDY_TREE_DEPTH)
+        if(order > BUDDY_TREE_DEPTH || order < 0)
         {
             return nullptr;
         }
@@ -83,10 +86,31 @@ search:
         if(header == nullptr)
             return addr;
 
-        buddy_area_t* area = &header->buddyNode.freeAreaList[order];
-        while (area->count == 0)
+        /* Create another order variable for detecting possible area lsit */
+        char m_order = order - 1;
+        buddy_area_t* area;
+        do 
         {
-            
+            m_order++;
+            area = &header->buddyNode.freeAreaList[m_order];
+            /* Return nothing if area is nullptr. (It shouldn't be!) */ 
+            if(area == nullptr)
+                break;
+        } while (area->count == 0);
+
+        addr = First(area);
+
+        /**
+         * If the m_order is equals to order, set the address directly
+         * Otherwise, expand the page until it matches the order.
+         */
+        if(m_order != order)
+        {
+            /* Expand a page from current order */
+            while (m_order > order)
+            {
+                addr = Expand(addr, m_order);
+            }
         }
 
         if(addr == nullptr && currentIndex < nodeCount)
@@ -122,9 +146,18 @@ search:
 
     }
 
-    void BuddyExpandPage(buddy_page_t page, uint8_t pageOrder)
+    buddy_page_t* Expand(buddy_page_t* page, uint8_t order)
     {
+        Utils::LinkedList::Remove(page->listNode);
+        
+    }
 
+    buddy_page_t* First(buddy_area_t* area)
+    {
+        buddy_page_t* page = area->pageFirst;
+        area->pageFirst = reinterpret_cast<buddy_page_t*>(page->listNode.next);
+        page->listNode = {};
+        return page;
     }
 
     void BuddyDump();

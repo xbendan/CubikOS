@@ -8,12 +8,13 @@
  */
 #define BUDDY_NODE_SIZE 16 * 1024 * 1024
 /**
+ * @deprecated Use linked list now rather than 
  * Each buddy node contains 4096 pages
  * So we need (4096 * 2 - 1) bits to manage pages
  * which is equals to 1024 unsigned byte
  * ((4096 * 2 - 1) / 8) = 1024
  */
-#define BUDDY_TREE_SIZE 1024
+//#define BUDDY_TREE_SIZE 1024
 #define BUDDY_TREE_DEPTH 12
 #define IS_POWER_OF_2(x) (!((x) & ((x) - 1)))
 
@@ -43,9 +44,8 @@ namespace Memory::Allocation
          * any valid node in the actual list could be saved here
          * but usually the first one
          */
-        struct LinkedListNode freeList;
-        lock_t lock;
-        uint32_t count; /* How many pages left in the list */
+        buddy_page_t* pageFirst;
+        uint32_t count; /* How many pages left in the list maximum at 32TiB */
     } buddy_area_t;
 
     /**
@@ -56,6 +56,11 @@ namespace Memory::Allocation
     {
         uint32_t pageCount, pageSize;
         uintptr_t start, end;
+        /**
+         * This array contains the areas struct
+         * The lowest is 0, equals to 4KiB (1 page)
+         * The highest is 12, equals to 16MiB (4096 pages)
+         */
         buddy_area_t freeAreaList[BUDDY_TREE_DEPTH];
     } buddy_node_t;
 
