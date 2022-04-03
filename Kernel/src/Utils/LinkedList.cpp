@@ -7,8 +7,10 @@ namespace Utils::LinkedList
         struct LinkedListNode* pNode = node.prev;
         struct LinkedListNode* nNode = node.next;
 
-        pNode->next = nNode;
-        nNode->prev = pNode;
+        if(pNode != nullptr)
+            pNode->next = nNode;
+        if(nNode != nullptr)
+            nNode->prev = pNode;
         node.prev = nullptr;
         node.next = nullptr;
     }

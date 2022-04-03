@@ -5,10 +5,10 @@
  */
 #pragma once
 
-struct LinkedListNode
+typedef struct LinkedListNode
 {
     struct LinkedListNode *prev, *next;
-};
+} linked_list_node_t;
 
 namespace Utils::LinkedList
 {

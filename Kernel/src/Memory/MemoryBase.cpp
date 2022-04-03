@@ -2,6 +2,8 @@
 #include <Buddy.h>
 #include <GraphicsDevice.h>
 
+#define CHECK_RANGE(x)
+
 extern uintptr_t __kmstart__;
 extern uintptr_t __kmend__;
 
@@ -15,13 +17,29 @@ namespace Memory
         totalSize = _totalSize;
         for (int index = 0; index < _mapSize; index++)
         {
-            if(_mapEntries[index].type == MEMORY_MAP_ENTRY_AVAILABLE)
+            if(_mapEntries[index].type == MEMORY_MAP_ENTRY_AVAILABLE &&
+                _mapEntries[index].range.size >= BUDDY_NODE_SIZE)
             {
-                if (_mapEntries[index].range.size >= BUDDY_NODE_SIZE)
+                Graphics::DrawRect({0,0}, {50, 50}, {127, 127, 127}, 0);
+
+                uint64_t start = _mapEntries[index].range.base;
+                uint64_t end = start + _mapEntries[index].range.size;
+
+                if((__kmstart <= start && __kmend__ >= end) || 
+                    ((__kmend__ - __kmstart__) >= _mapEntries[index].range.size && (__kmstart__ == start || __kmend__ == end)))
+                    continue;
+                else if(__kmstart__ > start && __kmend__ < end)
                 {
-                    Graphics::DrawRect({0,0}, {50, 50}, {127, 127, 127}, 0);
-                    Memory::Allocation::BuddyCreateNode(_mapEntries[index].range);
+                    Memory::Allocation::BuddyCreateNode(start, __kmstart__  - 1);
+                    Memory::Allocation::BuddyCreateNode(__kmend__ + 1, end);
+                    continue;
                 }
+                else if(__kmstart == start && __kmend__ < end)
+                    start += (__kmend__ - __kmstart__);
+                else if(__kmstart > start && __kmend__ == end)
+                    end -= (__kmend__ - __kmstart__);
+
+                Memory::Allocation::BuddyCreateNode(start, end);
             }
         }
 

@@ -10,12 +10,14 @@
 /**
  * @deprecated Use linked list now rather than 
  * Each buddy node contains 4096 pages
- * So we need (4096 * 2 - 1) bits to manage pages
+ * So we need (4096 * 2 - 1) bytes to manage pages
  * which is equals to 1024 unsigned byte
- * ((4096 * 2 - 1) / 8) = 1024
+ * (4096 * 2 - 1) = 8191, fix to 8192
  */
-//#define BUDDY_TREE_SIZE 1024
+#define BUDDY_TREE_SIZE 8191
+#define BUDDY_BLOCK_SIZE 8215
 #define BUDDY_TREE_DEPTH 12
+#define MAX_BUDDY_NODE 64
 #define IS_POWER_OF_2(x) (!((x) & ((x) - 1)))
 
 namespace Memory::Allocation
@@ -24,51 +26,31 @@ namespace Memory::Allocation
      * @brief Buddy page is the main unit of buddy system
      * It will be saved into the free area.
      * The page size must equals to 2^N
-     */
-    typedef struct BuddyPage
-    {
-        struct LinkedListNode listNode;
-        lock_t lock;
-        uintptr_t addr;
-    } buddy_page_t;
-
-    /**
-     * Each free area contains pages who have same size
-     * which means that you cannot save a 16K page and a 256K
-     * together.
-     */
-    typedef struct BuddyFreeArea
-    {
-        /**
-         * This variable does not represents the whole list,
-         * any valid node in the actual list could be saved here
-         * but usually the first one
-         */
-        buddy_page_t* pageFirst;
-        uint32_t count; /* How many pages left in the list maximum at 32TiB */
-    } buddy_area_t;
-
-    /**
-     * @brief the biggest block for buddy allocator
      * 
+     * This struct takes 8,215 bytes
      */
-    typedef struct BuddyNode
+    typedef struct BuddyBlock
     {
-        uint32_t pageCount, pageSize;
-        uintptr_t start, end;
         /**
          * This array contains the areas struct
          * The lowest is 0, equals to 4KiB (1 page)
-         * The highest is 12, equals to 16MiB (4096 pages)
+         * The highest is 11, equals to 16MiB (4096 pages)
          */
-        buddy_area_t freeAreaList[BUDDY_TREE_DEPTH];
-    } buddy_node_t;
+        uint8_t pages[BUDDY_TREE_SIZE];
+        uint16_t count[BUDDY_TREE_DEPTH];
+    } buddy_block_t;
 
-    typedef struct BuddyNodeHeader
+    /**
+     * the biggest unit for buddy allocator
+     * different from buddy_block_t, this struct is storaged in kernel
+     * and point to the address of block description struct!
+     */
+    typedef struct BuddyNode
     {
-        LinkedListNode listNode;
-        buddy_node_t buddyNode;
-    } buddy_header_t;
+        uintptr_t start, end; /* Pointer to the start and end address, aligned, includes the block descriptor structs */
+        uint32_t count; /* The number of buddy blocks available */
+        buddy_block_t* blockAddress; /* Point to the first block descriptor struct */
+    } buddy_node_t;
 
     static constexpr size_t ToPowerOf2(size_t size)
     {
@@ -99,9 +81,9 @@ namespace Memory::Allocation
         return order;
     }
 
-    void BuddyCreateNode(memory_range_t range);
+    void BuddyCreateNode(uint64_t start, uint64_t end);
     void* BuddyAllocate(size_t size);
-    buddy_page_t* BuddyAllocatePage(uint8_t depth);
+    buddy_page_t* BuddyAllocatePage(uint8_t order);
     void BuddyFree(uintptr_t addr);
     void BuddyMarkRangeUsed(uintptr_t addr, size_t size);
     void BuddyMarkRangeFree(uintptr_t addr, size_t size);

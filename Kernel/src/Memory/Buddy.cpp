@@ -3,32 +3,58 @@
 
 namespace Memory::Allocation
 {
-    uint32_t nodeCount = 0;
-    buddy_header_t first;
+    static size_t bNodeCount = 0;
+    static buddy_node_t[MAX_BUDDY_NODE] nodes;
 
-    buddy_page_t* Expand(buddy_page_t* page, uint8_t order);
-    buddy_page_t* First(buddy_area_t* area);
-
-    void BuddyCreateNode(memory_range_t range)
+    void BuddyCreateNode(uint64_t start, uint64_t end)
     {
-        uint64_t base = range.base;
-        uint64_t size = range.size;
-
-        if(size < 16384)
+        uint64_t _start = ALIGN_UP(start, 4096);
+        uint64_t _end = ALIGN_DOWN(end, 4096);
+        uint16_t count = (_end - _start) / (BUDDY_NODE_SIZE + 8215);
+        
+        if(count == 0)
             return;
 
-        buddy_header_t header = {
-            .listNode = {},
-            .buddyNode = {
-                .pageCount = 1,
-                .pageSize = ARCH_PAGE_SIZE,
-                .start = base,
-                .end = (uintptr_t) base + size,
-            }
+        /* The start address */
+        uint64_t mContentStartAddress = ALIGN_UP(start + (count * sizeof(buddy_block_t)));
+
+        nodes[bNodeCount] = {
+            .start = _start,
+            .end = _end,
+            .count = count,
+            .blockAddress = mContentStartAddress
         };
-        while (size >= 16384)
+
+        /**
+         * Verify that whether the blocks count is invalid due
+         * to the error of calculation.
+         */
+        if((nodes[bNodeCount].end - nodes[bNodeCount].start) / BUDDY_NODE_SIZE != count)
         {
-            
+            /* Try to remove 1 buddy block */
+            count--;
+            /**
+             * Ensure that whether this node is still available
+             * after remove 1 block
+             */
+            if(nodes[bNodeCount].count = count == 0)
+            {
+                /* If not, destory this buddy node */
+                nodes[bNodeCount] == {};
+                bNodeCount--;
+                return;
+            }
+        }
+
+        /**
+         * Initialize all block descriptors
+         */
+        buddy_block_t* blocks = (buddy_block_t*) start;
+        for(int idx = 0; idx < count; idx++)
+        {
+            blocks[idx] = {};
+            blocks[idx].pages[0] = 0b00000001;
+            blocks[idx].count[11] = 1;
         }
     }
 
@@ -38,7 +64,7 @@ namespace Memory::Allocation
      * @param size 
      * @return void* 
      */
-    void* BuddyAllocate(void* base, size_t size)
+    void* BuddyAllocate(size_t size)
     {
         if(size > BUDDY_NODE_SIZE || size <= 0)
         {
@@ -47,8 +73,7 @@ namespace Memory::Allocation
 
         size_t sizePow = ToPowerOf2(size);
         uint8_t order = ToOrder(sizePow / 4096);
-
-        //return BuddyAllocatePage((uint8_t) Math::log(2, size, BUDDY_TREE_DEPTH));
+        return BuddyAllocatePage(order);
     }
 
     /**
@@ -61,7 +86,7 @@ namespace Memory::Allocation
      * @param order indicates the size of the page, and where should it be started to allocated from
      * @return buddy_page_t* the page pointer that is going to be allocated
      */
-    buddy_page_t* BuddyAllocatePage(int8_t order)
+    void* BuddyAllocatePage(uint8_t order)
     {
         /**
          * check whether the page going to be allocated is oversized
@@ -72,7 +97,7 @@ namespace Memory::Allocation
             return nullptr;
         }
 
-        buddy_page_t* addr; /* addr storages the pointer to allocated page (might be nullptr!) */
+        void* addr; /* addr storages the pointer to allocated page (might be nullptr!) */
         int currentIndex = 0; /* currentIndex is the index of buddy_header_t list */
 
         /* Start to search exist page here */
@@ -87,11 +112,16 @@ search:
             return addr;
 
         /* Create another order variable for detecting possible area lsit */
-        char m_order = order - 1;
+        int8_t m_order = order - 1;
         buddy_area_t* area;
         do 
         {
             m_order++;
+            if(m_order > BUDDY_TREE_DEPTH)
+            {
+                // Alerting Out Of Memory
+                return nullptr;
+            }
             area = &header->buddyNode.freeAreaList[m_order];
             /* Return nothing if area is nullptr. (It shouldn't be!) */ 
             if(area == nullptr)
@@ -150,13 +180,13 @@ search:
     {
         Utils::LinkedList::Remove(page->listNode);
         
+        
     }
 
     buddy_page_t* First(buddy_area_t* area)
     {
         buddy_page_t* page = area->pageFirst;
         area->pageFirst = reinterpret_cast<buddy_page_t*>(page->listNode.next);
-        page->listNode = {};
         return page;
     }
 
