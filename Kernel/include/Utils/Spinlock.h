@@ -28,4 +28,9 @@ namespace Utils::Spinlock
                 : "[lv]" (lock_val)
                 : "memory");
     }
+
+    static inline void ReleaseLock(lock_t* lock)
+    {
+        
+    }
 }

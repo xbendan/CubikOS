@@ -22,10 +22,10 @@ namespace Memory
             {
                 Graphics::DrawRect({0,0}, {50, 50}, {127, 127, 127}, 0);
 
-                uint64_t start = _mapEntries[index].range.base;
-                uint64_t end = start + _mapEntries[index].range.size;
+                uintptr_t start = _mapEntries[index].range.base;
+                uintptr_t end = start + _mapEntries[index].range.size;
 
-                if((__kmstart <= start && __kmend__ >= end) || 
+                if((__kmstart__ <= start && __kmend__ >= end) || 
                     ((__kmend__ - __kmstart__) >= _mapEntries[index].range.size && (__kmstart__ == start || __kmend__ == end)))
                     continue;
                 else if(__kmstart__ > start && __kmend__ < end)
@@ -34,9 +34,9 @@ namespace Memory
                     Memory::Allocation::BuddyCreateNode(__kmend__ + 1, end);
                     continue;
                 }
-                else if(__kmstart == start && __kmend__ < end)
+                else if(__kmstart__ == start && __kmend__ < end)
                     start += (__kmend__ - __kmstart__);
-                else if(__kmstart > start && __kmend__ == end)
+                else if(__kmstart__ > start && __kmend__ == end)
                     end -= (__kmend__ - __kmstart__);
 
                 Memory::Allocation::BuddyCreateNode(start, end);
