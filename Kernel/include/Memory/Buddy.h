@@ -18,6 +18,8 @@
 #define BUDDY_TREE_DEPTH 12
 #define BUDDY_NODE_TOTAL_SIZE ((16 * 1024 * 1024) + (2048 * sizeof(buddy_page_t)) + 256)
 #define BUDDY_MAX_NODE 256
+/* This is the maximum number of pages in a single block */
+#define BUDDY_PAGE_EACH_BLOCK 4096
 #define IS_POWER_OF_2(x) (!((x) & ((x) - 1)))
 
 namespace Memory::Allocation

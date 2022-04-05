@@ -12,6 +12,7 @@ typedef struct LinkedListNode
 
 namespace Utils::LinkedList
 {
-    void Remove(struct LinkedListNode node);
-    void InsertAtNext(struct LinkedListNode node0, struct LinkedListNode node1);
+    void LlRemove(struct LinkedListNode* node);
+    void LlInsertAtNext(struct LinkedListNode* node0, struct LinkedListNode* node1);
+    void LlAppend(struct LinkedListNode node0, struct LinkedListNode node1);
 }

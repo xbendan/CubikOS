@@ -30,8 +30,8 @@ namespace Memory
                     continue;
                 else if(__kmstart__ > start && __kmend__ < end)
                 {
-                    Memory::Allocation::BuddyCreateNode(start, __kmstart__  - 1);
-                    Memory::Allocation::BuddyCreateNode(__kmend__ + 1, end);
+                    Memory::Allocation::MmCreateNode(start, __kmstart__  - 1);
+                    Memory::Allocation::MmCreateNode(__kmend__ + 1, end);
                     continue;
                 }
                 else if(__kmstart__ == start && __kmend__ < end)
@@ -39,10 +39,10 @@ namespace Memory
                 else if(__kmstart__ > start && __kmend__ == end)
                     end -= (__kmend__ - __kmstart__);
 
-                Memory::Allocation::BuddyCreateNode(start, end);
+                Memory::Allocation::MmCreateNode(start, end);
             }
         }
 
-        Memory::Allocation::BuddyMarkRangeUsed((uintptr_t)__kmstart__, (size_t)(__kmend__ - __kmstart__));
+        Memory::Allocation::MmCreateNode((uintptr_t)__kmstart__, (size_t)(__kmend__ - __kmstart__));
     }
 }
