@@ -3,60 +3,49 @@
 
 namespace Memory::Allocation
 {
-    size_t bNodeCount = 0;
-    buddy_node_t nodes[MAX_BUDDY_NODE];
+    uint8_t maxNodeIndex = 0;
+    buddy_node_t nodes[BUDDY_MAX_NODE];
 
-    void BuddyCreateNode(uintptr_t start, uintptr_t end)
+    buddy_page_t* Expand(buddy_page_t* page, uint8_t order);
+    buddy_page_t* First(buddy_area_t* area);
+
+    void MmCreateNode(uintptr_t start, uintptr_t end)
     {
         uintptr_t _start = ALIGN_UP(start, 4096);
         uintptr_t _end = ALIGN_DOWN(end, 4096);
-        uint16_t count = (_end - _start) / (BUDDY_NODE_SIZE + 8215);
-        
-        if(count == 0)
+        uint16_t count = (_end - _start) / BUDDY_NODE_TOTAL_SIZE;
+
+        count = (_end - ALIGN_UP(start + (count * ((2048 * sizeof(buddy_page_t)) + 256)), 4096)) / BUDDY_NODE_SIZE;
+        if(!count)
             return;
+        uintptr_t _pageStart = start + (count * 256);
+        uintptr_t _blockStart = ALIGN_UP(_pageStart + (count * 2048 * sizeof(buddy_page_t)), 4096);
 
-        /* The start address */
-        uintptr_t mContentStartAddress = ALIGN_UP(start + (count * sizeof(buddy_block_t)), 4096);
-
-        nodes[bNodeCount] = {
-            .start = _start,
-            .end = _end,
+        nodes[maxNodeIndex] = {
             .count = count,
-            .blockAddress = (buddy_block_t*) mContentStartAddress
+            .lnStart = _pageStart,
+            .lnEnd = _pageStart + (2048 * sizeof(buddy_page_t)) - 1,
+            .bkStart = _blockStart,
+            .bkEnd = _blockStart + (count * BUDDY_NODE_SIZE),
+            .bitmap = (uint64_t*) start
         };
+        //////////////Here
 
-        /**
-         * Verify that whether the blocks count is invalid due
-         * to the error of calculation.
-         */
-        if((nodes[bNodeCount].end - nodes[bNodeCount].start) / BUDDY_NODE_SIZE != count)
+        buddy_page_t* lastPage;
+        for(int mCount = 0; mCount < count; mCount++)
         {
-            /* Try to remove 1 buddy block */
-            count--;
-            /**
-             * Ensure that whether this node is still available
-             * after remove 1 block
-             */
-            if(nodes[bNodeCount].count = count == 0)
+            uint32_t offset = mCount / 64;
+            uint8_t bit = 63 - (mCount % 64);
+            nodes[maxNodeIndex].bitmap[offset] |= 1 << bit;
+            buddy_page_t* page = (buddy_page_t*) (_pageStart + (mCount * sizeof(buddy_page_t)));
+
+            page->order = 11;
+            page->addr = _blockStart + (mCount * BUDDY_NODE_SIZE);
+            if(lastPage != nullptr)
             {
-                /* If not, destory this buddy node */
-                nodes[bNodeCount] = {};
-                bNodeCount--;
-                return;
+                lastPage->listNode.next = &page->listNode;
+                page->listNode.prev = &lastPage->listNode;
             }
-        }
-
-        /**
-         * Initialize all block descriptors
-         */
-        buddy_block_t* blocks = (buddy_block_t*) start;
-        for(int idx = 0; idx < count; idx++)
-        {
-            blocks[idx] = {
-                .start = mContentStartAddress + (idx * BUDDY_NODE_SIZE)
-            };
-            blocks[idx].pages[0] = 0b00000001;
-            blocks[idx].count[0] = 1;
         }
     }
 
@@ -66,7 +55,7 @@ namespace Memory::Allocation
      * @param size 
      * @return void* 
      */
-    void* BuddyAllocate(size_t size)
+    buddy_page_t* MmAllocate(void* base, size_t size)
     {
         if(size > BUDDY_NODE_SIZE || size <= 0)
         {
@@ -75,7 +64,18 @@ namespace Memory::Allocation
 
         size_t sizePow = ToPowerOf2(size);
         uint8_t order = ToOrder(sizePow / 4096);
-        return BuddyAllocatePage(order);
+        if(base == nullptr)
+            void* ptr = (void*)BuddyAllocatePage(order)->addr;
+        else
+        {
+            buddy_page_t* pageAddress;
+            for(int idx = 0; idx < maxNodeIndex; idx++)
+            {
+                
+            }
+        }
+
+        //return BuddyAllocatePage((uint8_t) Math::log(2, size, BUDDY_TREE_DEPTH));
     }
 
     /**
@@ -88,103 +88,110 @@ namespace Memory::Allocation
      * @param order indicates the size of the page, and where should it be started to allocated from
      * @return buddy_page_t* the page pointer that is going to be allocated
      */
-    void* BuddyAllocatePage(uint8_t order)
+    buddy_page_t* MmAllocatePage(uint8_t order)
     {
         /**
          * check whether the page going to be allocated is oversized
          * return nullptr if order is greater than the maximum possible order
          */
-        if(order > BUDDY_TREE_DEPTH || order < 0)
+        if(order >= BUDDY_TREE_DEPTH || order < 0)
         {
             return nullptr;
         }
 
-        void* addr; /* addr storages the pointer to allocated page (might be nullptr!) */
-        int currentIndex = 0; /* currentIndex is the index of buddy_header_t list */
-        while(currentIndex < bNodeCount && addr == nullptr)
+        buddy_page_t* pageAddress; /* addr storages the pointer to allocated page (might be nullptr!) */
+
+        
+        uint8_t currentIndex = 0; /* currentIndex is the index of buddy_node_t array */
+        /* Start to search exist page here */
+search:
+        buddy_node_t* node = &nodes[currentIndex];
+        /**
+         * Do return whatever the addr is empty or not
+         * Due to the generation or unexpeceted error, the header might be null
+         * It doesn't happened in the ideal situation.
+         */
+        if(node == nullptr)
+            return pageAddress;
+
+        /* Create another order variable for detecting possible area lsit */
+        int8_t m_order = order - 1;
+        buddy_area_t* area;
+        do 
         {
-            /* Find available buddy block */
-            for(uint32_t mCount = 0; mCount < nodes[currentIndex].count; mCount++)
+            m_order++;
+            if(m_order >= BUDDY_TREE_DEPTH)
             {
-                buddy_block_t* block = &nodes[currentIndex].blockAddress[mCount];
-measureOrder:
-                uint8_t mOrder = order;
-                if(block->count[mOrder] == 0)
-                {
-                    if(mOrder == 0)
-                        /* No available page block, jump to the next */
-                        continue;
-                    mOrder--;
-                    goto measureOrder;
-                }
+                // Alerting Out Of Memory
+                return nullptr;
+            }
+            area = &node->freeAreaList[m_order];
+            /* Return nothing if area is nullptr. (It shouldn't be!) */ 
+            if(area == nullptr)
+                goto nextNode;
+        } while (area->count == 0);
 
-                uint8_t* mAddr = (uint8_t*)(&block->pages[0] + ToBlockAddress(mOrder));
-                uint32_t offset = 0;
-                if(mOrder < order)
-                {
-                    for(; offset < 1 << mOrder; offset++)
-                    {
-                        if(mAddr[offset] != 0b0001)
-                            continue;
-                        else
-                        {
-                            while(mOrder != order)
-                            {
-                                /* Mark current page as expanded */
-                                mAddr[offset] = 0b0010;
-                                /* Decrease current page size count */
-                                block->count[mOrder]--;
-                                /* Move to lower page list */
-                                mOrder++;
-                                block->count[mOrder] += 2;
-                                /* Redefine block address */
-                                mAddr = (uint8_t*) ToBlockAddress(mOrder);
-                                offset *= 2;
-                                mAddr[offset + 1] = 0b0001;
-                            }
-                            
-                            break;
-                        }
-                    }
-                }
-                
-                if(offset == 0)
-                    for(uint32_t offset = 0; offset < 1 << mOrder; offset++)
-                        if(mAddr[offset] == 0b0001)
-                            break;
+        pageAddress = First(area);
 
-                mAddr[offset] = 0b0100;
-                block->count[mOrder]--;
-                
-                return (void*)(block->start + (BUDDY_NODE_SIZE / (1 << order)) * offset);
+        /**
+         * If the m_order is equals to order, set the address directly
+         * Otherwise, expand the page until it matches the order.
+         */
+        if(m_order != order)
+        {
+            /* Expand a page from current order */
+            while (m_order > order)
+            {
+                pageAddress = Expand(pageAddress, m_order);
             }
         }
-        return addr;
+
+nextNode:
+        if(pageAddress == nullptr && currentIndex < maxNodeIndex)
+        {
+            currentIndex++;
+            goto search;
+        }
+        return pageAddress;
     }
 
-    void BuddyFree(uintptr_t addr)
+    void MmFree(uintptr_t addr)
     {
 
     }
 
-    void BuddyMarkRangeUsed(uintptr_t addr, size_t size)
+    void MmMarkRangeUsed(uintptr_t addr, size_t size)
     {
 
     }
 
-    void BuddyMarkRangeFree(uintptr_t addr, size_t size)
+    void MmMarkRangeFree(uintptr_t addr, size_t size)
     {
 
     }
 
-    void BuddyMarkPageUsed(uintptr_t addr)
+    void MmMarkPageUsed(uintptr_t addr)
     {
 
     }
 
-    void BuddyMarkPageFree(uintptr_t addr)
+    void MmMarkPageFree(uintptr_t addr)
     {
 
+    }
+
+    buddy_page_t* Expand(buddy_page_t* page, uint8_t order)
+    {
+        Utils::LinkedList::Remove(page->listNode);
+        
+        
+    }
+
+    buddy_page_t* First(buddy_area_t* area)
+    {
+        buddy_page_t* page = area->first;
+        area->first = reinterpret_cast<buddy_page_t*>(page->listNode.next);
+        return page;
     }
 
     void BuddyDump();
