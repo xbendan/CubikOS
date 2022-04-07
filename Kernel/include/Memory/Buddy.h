@@ -15,8 +15,13 @@
  * ((4096 * 2 - 1) / 8) = 1024
  */
 //#define BUDDY_TREE_SIZE 1024
-#define BUDDY_TREE_DEPTH 12
-#define BUDDY_NODE_TOTAL_SIZE ((16 * 1024 * 1024) + (2048 * sizeof(buddy_page_t)) + 256)
+/** 
+ *  1    2    4    8    16
+ *  32   64   128  256  512
+ *  1024 2048 4096
+ */
+#define BUDDY_TREE_DEPTH 13
+#define BUDDY_NODE_TOTAL_SIZE ((16 * 1024 * 1024) + (4096 * sizeof(buddy_page_t)))
 #define BUDDY_MAX_NODE 256
 /* This is the maximum number of pages in a single block */
 #define BUDDY_PAGE_EACH_BLOCK 4096
@@ -33,6 +38,7 @@ namespace Memory::Allocation
     {
         struct LinkedListNode listNode;
         uint32_t order;
+        bool free;
         lock_t lock;
         uintptr_t addr;
     } buddy_page_t;
@@ -61,9 +67,8 @@ namespace Memory::Allocation
     {
         /* Node count (16MiBs) */
         uint32_t count;
-        /* Start and End address of linked list node */
-        uintptr_t lnStart, lnEnd;
         /* Start and End address of actual blocks */
+        uintptr_t pgStart, pgEnd;
         uintptr_t bkStart, bkEnd;
         /**
          * This array contains the areas struct
@@ -71,10 +76,6 @@ namespace Memory::Allocation
          * The highest is 11, equals to 16MiB (4096 pages)
          */
         buddy_area_t freeAreaList[BUDDY_TREE_DEPTH];
-        /**
-         * Each 16MiB node takes 32 * uint64_t bitmap to manage link node
-         */
-        uint64_t* bitmap;
     } buddy_node_t;
 
     static constexpr size_t ToPowerOf2(size_t size)
@@ -110,9 +111,10 @@ namespace Memory::Allocation
     buddy_page_t* MmAllocate(size_t size);
     buddy_page_t* MmAllocatePage(uint8_t order);
     void MmFree(uintptr_t addr);
+    void MmFree(buddy_page_t* page, buddy_node_t* node);
     void MmMarkRangeUsed(uintptr_t addr, size_t size);
     void MmMarkRangeFree(uintptr_t addr, size_t size);
     void MmMarkPageUsed(uintptr_t addr);
     void MmMarkPageFree(uintptr_t addr);
     void BuddyDump();
-}
+} // namespace Memory::Allocation

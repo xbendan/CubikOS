@@ -17,12 +17,17 @@ namespace Utils::LinkedList
 
     void LlInsertAtNext(struct LinkedListNode* node0, struct LinkedListNode* node1)
     {
-        node1->prev = node0;
-        if(node0->next != nullptr)
+        if(node0 == nullptr)
+            node0 = node1;
+        else
         {
-            node1->next = node0->next;
-            node1->next->prev = node1;
+            node1->prev = node0;
+            if(node0->next != nullptr)
+            {
+                node1->next = node0->next;
+                node1->next->prev = node1;
+            }
+            node0->next = node1;
         }
-        node0->next = node1;
     }
 }

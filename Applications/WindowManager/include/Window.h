@@ -19,6 +19,11 @@ enum WindowStartupLocation
     BOTTOM_RIGHT_CORNER
 };
 
+enum WindowAttribute
+{
+
+};
+
 class Window
 {
     uint32_t process;
