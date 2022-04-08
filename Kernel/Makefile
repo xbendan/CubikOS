@@ -33,7 +33,7 @@ shared_include = -Iinclude \
 	-Iinclude/Graphic \
 	-Iinclude/FileSystem \
 	-Iinclude/Process  \
-	-Iinclude/Security \
+	-Iinclude/SecurityControl \
 	-Iinclude/Device \
 	-Iinclude/Interrupts \
 	-Iinclude/System \
