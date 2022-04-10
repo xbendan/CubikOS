@@ -5,14 +5,39 @@ namespace Arch::x86
 {
     static volatile uint32_t* apicLocalPtr = nullptr;
 
-    void ApicLocalWriteData(uint32_t r, uint32_t data)
+    void ApicLocalWriteData_32(uint32_t reg, uint32_t data)
     {
 
     }
 
-    uint32_t ApicLocalReadData(uint32_t r)
+    uint32_t ApicLocalReadData_32(uint32_t reg)
     {
         return *((volatile uint32_t*)(apicLocalPtr + r));
+    }
+
+    void ApicIoWriteData_32(uint32_t reg, uint32_t data)
+    {
+
+    }
+
+    uint32_t ApicIoReadData_32(uint32_t reg)
+    {
+
+    }
+
+    void ApicIoWriteData_64(uint32_t reg, uint64_t data)
+    {
+
+    }
+
+    uint64_t ApicIoReadData_64(uint32_t reg)
+    {
+
+    }
+
+    void ApicTimerStart()
+    {
+        ApicLocalWriteData_32(LOCAL_APIC_TIMER_DIVIDE, 0x3);
     }
 
     void LoadApic()

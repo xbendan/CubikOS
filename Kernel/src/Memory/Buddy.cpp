@@ -13,7 +13,7 @@ namespace Memory::Allocation
     buddy_page_t* Expand(buddy_node_t* node, buddy_page_t* page);
     buddy_page_t* PgDesc(buddy_node_t* node, uintptr_t newAddress);
 
-    void MmCreateNode(uintptr_t start, uintptr_t end)
+    void MmBuddyCreateNode(uintptr_t start, uintptr_t end)
     {
         uintptr_t _start = ALIGN_UP(start, 4096);
         uintptr_t _end = ALIGN_DOWN(end, 4096);
@@ -56,7 +56,7 @@ namespace Memory::Allocation
      * @param size 
      * @return void* 
      */
-    buddy_page_t* MmAllocate(size_t size)
+    buddy_page_t* MmBuddyAllocate(size_t size)
     {
         if(size > BUDDY_NODE_SIZE || size <= 0)
         {
@@ -66,7 +66,7 @@ namespace Memory::Allocation
         size_t sizePow = ToPowerOf2(size);
         uint8_t order = ToOrder(sizePow / 4096);
 
-        return (buddy_page_t*)MmAllocatePage(order)->addr;
+        return (buddy_page_t*)MmBuddyAllocatePage(order)->addr;
 
         //return BuddyAllocatePage((uint8_t) Math::log(2, size, BUDDY_TREE_DEPTH));
     }
@@ -81,7 +81,7 @@ namespace Memory::Allocation
      * @param order indicates the size of the page, and where should it be started to allocated from
      * @return buddy_page_t* the page pointer that is going to be allocated
      */
-    buddy_page_t* MmAllocatePage(uint8_t order)
+    buddy_page_t* MmBuddyAllocatePage(uint8_t order)
     {
         /**
          * check whether the page going to be allocated is oversized
@@ -160,7 +160,7 @@ nextNode:
         return page;
     }
 
-    void MmFree(uintptr_t addr)
+    void MmBuddyFree(uintptr_t addr)
     {
         buddy_node_t* node;
         int currentIndex = 0;
@@ -173,10 +173,10 @@ nextNode:
         uint32_t offset = (addr - node->bkStart) / 4096;
         buddy_page_t* page = (buddy_page_t*)(node->pgStart + (offset * sizeof(buddy_page_t)));
         
-        MmFree(page, node);
+        MmBuddyFree(page, node);
     }
 
-    void MmFree(buddy_page_t* page, buddy_node_t* node)
+    void MmBuddyFree(buddy_page_t* page, buddy_node_t* node)
     {
         if(page == nullptr)
             return;

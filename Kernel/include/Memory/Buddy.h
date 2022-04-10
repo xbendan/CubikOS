@@ -107,11 +107,11 @@ namespace Memory::Allocation
         return order;
     }
 
-    void MmCreateNode(uintptr_t start, uintptr_t end);
-    buddy_page_t* MmAllocate(size_t size);
-    buddy_page_t* MmAllocatePage(uint8_t order);
-    void MmFree(uintptr_t addr);
-    void MmFree(buddy_page_t* page, buddy_node_t* node);
+    void MmBuddyCreateNode(uintptr_t start, uintptr_t end);
+    buddy_page_t* MmBuddyAllocate(size_t size);
+    buddy_page_t* MmBuddyAllocatePage(uint8_t order);
+    void MmBuddyFree(uintptr_t addr);
+    void MmBuddyFree(buddy_page_t* page, buddy_node_t* node);
     void MmMarkRangeUsed(uintptr_t addr, size_t size);
     void MmMarkRangeFree(uintptr_t addr, size_t size);
     void MmMarkPageUsed(uintptr_t addr);
