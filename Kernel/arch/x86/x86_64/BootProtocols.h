@@ -531,7 +531,7 @@ struct stivale2_header_tag_smp {
 /* --- Struct --------------------------------------------------------------- */
 /*  Information passed from the bootloader to the kernel                      */
 
-struct stivale2_struct {
+typedef struct stivale2_struct {
 #define STIVALE2_BOOTLOADER_BRAND_SIZE 64
     char bootloader_brand[STIVALE2_BOOTLOADER_BRAND_SIZE];
 
@@ -539,7 +539,7 @@ struct stivale2_struct {
     char bootloader_version[STIVALE2_BOOTLOADER_VERSION_SIZE];
 
     uint64_t tags;
-};
+} stivale2_struct_t;
 
 #define STIVALE2_STRUCT_TAG_PMRS_ID 0x5df266a64047b6bd
 
@@ -796,19 +796,200 @@ struct stivale2_struct_tag_hhdm {
 
 #endif
 
-#ifndef CUBIK_BOOT_INFO
-#define CUBIK_BOOT_INFO 1
+#include <Memory.h>
+#include <GraphicsDevice.h>
+#include <Macros.h>
+
+typedef struct BootMemoryDetail
+{
+    uint64_t            memTotalSize;
+    uint64_t            memUsable;
+    size_t              memMapSize;
+    Memory::memory_map_entry_t  memEntries[MEMORY_MAP_LIMIT];
+} boot_memory_detail_t;
 
 typedef struct BootInfo
 {
-    
+    const char*             bootloader;
+    boot_memory_detail_t    memory;
+    framebuffer_t           graphic;
+    uint8_t*                rsdpPtr;
 } boot_info_t;
 
 namespace Boot
 {
-    void ParseMultibootInfo(boot_info_t* bootInfo, multiboot2_info_header_t* mbInfo);
-    void ParseStivaleInfo(boot_info_t* bootInfo, stivale2_header* stInfo);
-}
+    void ParseMultibootInfo(boot_info_t* _bootInfo, multiboot2_info_header_t* mbInfo)
+    {
+        multiboot_tag* tag = reinterpret_cast<multiboot_tag*>(mbInfo->tags);
+        boot_memory_detail_t* memInfo = &_bootInfo->memory;
 
-#endif
+        while (tag->type != MULTIBOOT_HEADER_TAG_END && reinterpret_cast<uintptr_t>(tag) < reinterpret_cast<uintptr_t>(mbInfo) + mbInfo->totalSize) 
+        {
+            switch (tag->type)
+            {
+                case MULTIBOOT_TAG_TYPE_CMDLINE: {
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME: {
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_MODULE: {
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_BASIC_MEMINFO: {
+                    multiboot_tag_basic_meminfo* memInfoTag = reinterpret_cast<multiboot_tag_basic_meminfo *>(tag);
+                    memInfo->memTotalSize = memInfoTag->mem_lower + memInfoTag->mem_upper;
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_MMAP: {
+                    multiboot_tag_mmap* memMapTag = reinterpret_cast<multiboot_tag_mmap *>(tag);
+                    multiboot_memory_map_t* currentEntry = memMapTag->entries;
+
+                    while (reinterpret_cast<uintptr_t>(currentEntry) < reinterpret_cast<uintptr_t>(memMapTag) + memMapTag->size)
+                    {
+                        Memory::MemoryMapEntry *entry = &memInfo->memEntries[memInfo->memMapSize];
+
+                        entry->range = (Memory::MemoryRange){ currentEntry->addr, currentEntry->length };
+                        switch(currentEntry->type)
+                        {
+                            case MULTIBOOT_MEMORY_AVAILABLE:
+                                entry->type = Memory::MEMORY_MAP_ENTRY_AVAILABLE;
+                                memInfo->memUsable += currentEntry->length;
+                                break;
+                            case MULTIBOOT_MEMORY_ACPI_RECLAIMABLE:
+                                entry->type = Memory::MEMORY_MAP_ENTRY_ACPI_RECLAIMABLE;
+                                break;
+                            case MULTIBOOT_MEMORY_RESERVED:
+                                entry->type = Memory::MEMORY_MAP_ENTRY_RESERVED;
+                                break;
+                            case MULTIBOOT_MEMORY_BADRAM:
+                                entry->type = Memory::MEMORY_MAP_ENTRY_BADRAM;
+                                break;
+                            case MULTIBOOT_MEMORY_NVS:
+                                entry->type = Memory::MEMORY_MAP_ENTRY_NVS;
+                                break;
+                            default:
+                                entry->type = Memory::MEMORY_MAP_ENTRY_RESERVED;
+                                break;
+                        }
+                        memInfo->memMapSize++;
+                        currentEntry = reinterpret_cast<multiboot_memory_map_t*>((uintptr_t)currentEntry + memMapTag->entry_size);
+                    }
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_VBE: {
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_FRAMEBUFFER: {
+                    multiboot_tag_framebuffer* framebufferTag = reinterpret_cast<multiboot_tag_framebuffer *>(tag);
+                    if(&framebufferTag->common == nullptr)
+                        continue;
+                    multiboot_tag_framebuffer_common common = framebufferTag->common;
+                    framebuffer_t* buffer = &_bootInfo->graphic;
+
+                    buffer->addr = common.framebuffer_addr;
+                    buffer->height = common.framebuffer_height;
+                    buffer->width = common.framebuffer_width;
+                    buffer->depth = common.framebuffer_bpp;
+                    buffer->pitch = common.framebuffer_pitch;
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_ACPI_OLD: {
+                    break;
+                }
+                case MULTIBOOT_TAG_TYPE_ACPI_NEW: {
+                    break;
+                }
+                default: {
+                    if(tag->type > 21 || tag->type < 0 || tag->type == 21)
+                    {
+                        //WriteLine("Unexpected multiboot info tag!");
+                    }
+                    break;
+                }
+            }
+
+            tag = (multiboot_tag *)ALIGN_UP((reinterpret_cast<uintptr_t>(tag) + tag->size), MULTIBOOT_TAG_ALIGN);
+        }
+    }
+
+    void ParseStivale2Info(boot_info_t* _bootInfo, stivale2_struct_t* stInfo)
+    {
+        stivale2_tag* tag = reinterpret_cast<stivale2_tag*>(stInfo->tags);
+        boot_memory_detail_t* memInfo = &_bootInfo->memory;
+        while(tag)
+        {
+            switch(tag->identifier)
+            {
+                case STIVALE2_STRUCT_TAG_MEMMAP_ID: {
+                    stivale2_struct_tag_memmap* memTag = reinterpret_cast<stivale2_struct_tag_memmap*>(tag);
+                    for(uint64_t idx = 0; idx < memTag->entries; idx++)
+                    {
+                        stivale2_mmap_entry* currentEntry = &memTag->memmap[idx];
+                        Memory::MemoryMapEntry* entry = &memInfo->memEntries[memInfo->memMapSize];
+
+                        if (currentEntry->base > UINTPTR_MAX ||
+                            currentEntry->base + currentEntry->length > UINTPTR_MAX)
+                        {
+                            continue;
+                        }
+/*
+                        if (currentEntry->type == STIVALE2_MMAP_USABLE ||
+                            currentEntry->type == STIVALE2_MMAP_KERNEL_AND_MODULES)
+                        {
+                            
+                        }
+*/
+
+                        memInfo->memTotalSize += currentEntry->length;
+                        entry->range = {
+                            .base = currentEntry->base,
+                            .size = currentEntry->length
+                        };
+                        switch (entry->type)
+                        {
+                            case STIVALE2_MMAP_USABLE:
+                            case STIVALE2_MMAP_KERNEL_AND_MODULES:
+                                memInfo->memUsable += currentEntry->length;
+                                currentEntry->type = Memory::MEMORY_MAP_ENTRY_AVAILABLE;
+                                break;
+                            case STIVALE2_MMAP_ACPI_RECLAIMABLE:
+                                currentEntry->type = Memory::MEMORY_MAP_ENTRY_ACPI_RECLAIMABLE;
+                                break;
+                            case STIVALE2_MMAP_ACPI_NVS:
+                                currentEntry->type = Memory::MEMORY_MAP_ENTRY_NVS;
+                                break;
+                            case STIVALE2_MMAP_BAD_MEMORY:
+                                currentEntry->type = Memory::MEMORY_MAP_ENTRY_BADRAM;
+                                break;
+                            default:
+                                currentEntry->type = Memory::MEMORY_MAP_ENTRY_RESERVED;
+                                break;
+                        }
+                        memInfo->memMapSize++;
+                    }
+                    break;
+                }
+                case STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID: {
+                    stivale2_struct_tag_framebuffer* fbTag = reinterpret_cast<stivale2_struct_tag_framebuffer*>(tag);
+                    framebuffer_t* buffer = &_bootInfo->graphic;
+
+                    buffer->addr = fbTag->framebuffer_addr;
+                    buffer->height = fbTag->framebuffer_height;
+                    buffer->width = fbTag->framebuffer_width;
+                    buffer->depth = fbTag->framebuffer_bpp;
+                    buffer->pitch = fbTag->framebuffer_pitch;
+                    break;
+                }
+                case STIVALE2_STRUCT_TAG_MODULES_ID: {
+                    break;
+                }
+                case STIVALE2_STRUCT_TAG_RSDP_ID: {
+                    break;
+                }
+            }
+            tag = reinterpret_cast<stivale2_tag *>(tag->next);
+        }
+    }
+}
 

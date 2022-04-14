@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
-#define MEM_PAGE_SIZE       4096
+#define ARCH_PAGE_SIZE       4096
 #define PAGES_PER_TABLE     512
 #define TABLES_PER_DIR      512
 #define DIRS_PER_PDPT       512
@@ -9,8 +9,8 @@
 #define PDPT_INDEX_OF(addr) (((addr) >> 30) & 0x1FF)
 #define PAGE_DIR_INDEX_OF(addr) (((addr) >> 21) & 0x1FF)
 #define PAGE_TABLE_INDEX_OF(addr) (((addr) >> 12) & 0x1FF)
-#define SIZE_TO_PAGE(size) (size / MEM_PAGE_SIZE)
-#define IS_PAGE_ALIGNED(addr) (addr % MEM_PAGE_SIZE == 0)
+#define SIZE_TO_PAGE(size) (size / ARCH_PAGE_SIZE)
+#define IS_PAGE_ALIGNED(addr) (addr % ARCH_PAGE_SIZE == 0)
 
 namespace Paging {
     typedef struct PML4Entry {
@@ -23,7 +23,7 @@ namespace Paging {
         int ign6_11: 6;
         uint64_t addr: 36; // Physical Address
         int ign48_62 : 15;                 // Ignored
-        bool execute_disabled : 1;
+        bool disableExecution : 1;
     } __attribute__((packed)) pml4_entry_t;
 
     typedef struct PML3Entry {
@@ -38,7 +38,7 @@ namespace Paging {
         int ign8_11: 4;
         uint64_t addr: 36;
         int ign48_62: 15;
-        bool execute_disabled: 1;
+        bool disableExecution: 1;
     } __attribute__((packed)) pml3_entry_t;
 
     typedef struct PML2Entry {
@@ -53,7 +53,7 @@ namespace Paging {
         int ign8_11: 4;
         uint64_t addr: 36;
         int ign48_62: 15;
-        bool execute_disabled: 1;
+        bool disableExecution: 1;
     } __attribute__((packed)) pml2_entry_t;
 
     typedef struct PML1Entry {

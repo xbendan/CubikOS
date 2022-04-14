@@ -1,3 +1,7 @@
+extern kload_stivale2
+extern start_st64
+extern stack_top
+
 MULTIBOOT_MAGIC       equ 0xE85250D6
 MULTIBOOT_ARCH        equ 0 ; x86
 MULTIBOOT_LENGTH      equ (multiboot_header_end - multiboot_header_start)
@@ -14,7 +18,7 @@ align 8
 mb_tags_start:
     dw 1
     dw 0
-    dd request_tag_end - request_tag_start
+    dd mb_tags_end - mb_tags_start
     dd 1 ; require cmd line
     dd 2 ; require bootloader name
     dd 4 ; require basic memory info
@@ -35,3 +39,22 @@ align 8
     dw 0
     dd 8
 multiboot_header_end:
+
+section .stivale2hdr
+align 4
+stivale2header:
+    dq kload_stivale2
+    dq stack_top
+    dq 0
+    dq stivale2framebuffer
+
+section .data
+stivale2framebuffer: ; Framebuffer
+    dq 0x3ecc1bc43d0f7971
+    dq stivale2framebufferWctag ; Next tag
+    dq 0 ; Width
+    dq 0 ; Height
+    dq 32 ; BPP
+stivale2framebufferWctag: ; Ask the bootloader to set framebuffer as writecombining in MTRRs
+    dq 0x4c7bb07731282e00
+    dq 0 ; No next tag

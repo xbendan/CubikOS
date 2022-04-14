@@ -12,7 +12,7 @@ namespace Arch::x86
 
     uint32_t ApicLocalReadData_32(uint32_t reg)
     {
-        return *((volatile uint32_t*)(apicLocalPtr + r));
+        return *((volatile uint32_t*)(apicLocalPtr + reg));
     }
 
     void ApicIoWriteData_32(uint32_t reg, uint32_t data)

@@ -1,3 +1,10 @@
+global start_mb32
+global start_st64
+global _boot_fatal
+extern kload_stivale2
+extern __bss
+extern __bss_end
+
 bits 32
 section .boot.data
 GDT64:
@@ -65,3 +72,50 @@ mb_magic:
     dd 0
 
 start_jmp64:
+    cli
+    hlt
+
+start_st64:
+    mov qword[st_addr], rdi ; Save RDI as it contains bootloader information
+
+    mov rdi, __bss
+    mov rcx, __bss_end
+    sub rcx, __bss
+    xor rax, rax
+    rep stosb
+
+    push 0x10
+    push rbp
+    pushf
+    push 0x8
+    push .cont
+    iretq
+
+.cont:
+    mov rax, cr0
+	and ax, 0xFFFB		; Clear coprocessor emulation
+	or ax, 0x2			; Set coprocessor monitoring
+	mov cr0, rax
+
+	;Enable SSE
+	mov rax, cr4
+	or ax, 3 << 9		; Set flags for SSE
+	mov cr4, rax
+
+    mov rcx, 0x277 ; PAT Model Specific Register
+    rdmsr
+    mov rbx, 0xFFFFFFFFFFFFFF
+    and rax, rbx
+    mov rbx, 0x100000000000000
+    or rax, rbx  ; Set PA7 to Write-combining (0x1, WC)
+    wrmsr
+
+    xor rbp, rbp
+    mov rdi, qword[st_addr]
+    call kload_stivale2
+
+    cli
+    hlt
+
+st_addr:
+    dq 0

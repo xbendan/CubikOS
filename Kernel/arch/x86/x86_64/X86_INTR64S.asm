@@ -65,34 +65,16 @@ extern DispatchInterrupt
 
 __IntrCommonHandler:
     cld
-    hlt
 
-    pushad
+    _PUSHA_
 
-    push ds
-    push es
-    push fs
-    push gs
-
-    mov ax, 0x10
-
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
-    push esp
+    mov rdi, rsp
     call DispatchInterrupt
-    mov esp, eax
+    mov rsp, rax
 
-    pop gs
-    pop fs
-    pop es
-    pop ds
+    _POPA_
 
-    popad
-
-    add esp, 8 ; pop errcode and int number
+    add rsp, 16 ; pop errcode and int number
 
     iretq
 

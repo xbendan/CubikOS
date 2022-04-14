@@ -2,8 +2,8 @@
 
 namespace Paging
 {
-    __attribute__((aligned(MEM_PAGE_SIZE))) PageDirectory kpdir      = {};
-    __attribute__((aligned(MEM_PAGE_SIZE))) PageTable     kptab[256] = {};
+    __attribute__((aligned(ARCH_PAGE_SIZE))) PageDirectory kpdir      = {};
+    __attribute__((aligned(ARCH_PAGE_SIZE))) PageTable     kptab[256] = {};
 
     void Initialize()
     {
@@ -13,7 +13,7 @@ namespace Paging
             entry->user = 0;
             entry->write = 1;
             entry->present = 1;
-            entry->frameNum = (size_t)&kptab[i] / MEM_PAGE_SIZE;
+            entry->frameNum = (size_t)&kptab[i] / ARCH_PAGE_SIZE;
         }
         
         __loadPaging(((uintptr_t) &kpdir));

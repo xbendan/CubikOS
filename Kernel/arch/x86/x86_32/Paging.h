@@ -1,13 +1,13 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <Misc.h>
-#define MEM_PAGE_SIZE       4096
+#define ARCH_PAGE_SIZE       4096
 #define PAGE_DIRECTORY_INDEX(vaddr) ((vaddr) >> 22)
 #define PAGE_TABLE_INDEX(vaddr) (((vaddr) >> 12) & 0x03ff)
 #define PAGE_TABLE_ENTRY_COUNT 1024
 #define PAGE_DIRECTORY_ENTRY_COUNT 1024
-#define SIZE_TO_PAGE(size) (size / MEM_PAGE_SIZE)
-#define IS_PAGE_ALIGNED(addr) (addr % MEM_PAGE_SIZE == 0)
+#define SIZE_TO_PAGE(size) (size / ARCH_PAGE_SIZE)
+#define IS_PAGE_ALIGNED(addr) (addr % ARCH_PAGE_SIZE == 0)
 
 namespace Paging {
     union PageTableEntry

@@ -1,4 +1,6 @@
-namespace 
+#include <Process.h>
+
+namespace Process
 {
     enum ActivityType
     {
@@ -6,11 +8,11 @@ namespace
         Background,
         Service,
         System
-    }
+    };
 
     typedef struct Activity
     {
         const char* name;
-        process_t pOwned[256];
+        process_t* pOwned[256];
     } activity_t;
 }

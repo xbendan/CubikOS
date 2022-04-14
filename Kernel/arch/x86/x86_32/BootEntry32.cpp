@@ -12,6 +12,8 @@ using namespace Arch::x86;
 
 namespace Boot
 {
+    boot_info_t bootInfo;
+
     /**
      * @brief initialize system environment
      * This method was designed for initializing all the basic data
@@ -37,7 +39,7 @@ namespace Boot
 
         Paging::Initialize();
 
-        if(bootInfo->memory.memTotalSize < 127 * 1024)
+        if(bootInfo->memory.memTotalSize < 255 * 1024)
         {
             Panic("Not enough memory.");
         }
@@ -64,8 +66,6 @@ namespace Boot
 
     void KernelLoadMultiboot(multiboot2_info_header_t* mbInfo)
     {
-        boot_info_t bootInfo;
-
         Boot::ParseMultibootInfo(&bootInfo, mbInfo);
         KernelInitialize(&bootInfo);
     }
@@ -73,7 +73,7 @@ namespace Boot
 
 extern "C" void _boot_fatal();
 
-extern "C" __attribute__((noreturn)) void kload_multiboot2(void* addr, uint64_t magic)
+extern "C" [[noreturn]] void kload_multiboot2(void* addr, uint64_t magic)
 {
     if(magic != MULTIBOOT2_HEADER_MAGIC && addr == nullptr)
     {
