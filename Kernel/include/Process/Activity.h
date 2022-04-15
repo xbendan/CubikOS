@@ -1,7 +1,7 @@
-#include <Process.h>
-
 namespace Process
 {
+    typedef class Process process_t;
+
     enum ActivityType
     {
         Application,
@@ -10,9 +10,10 @@ namespace Process
         System
     };
 
-    typedef struct Activity
+    typedef class Activity
     {
-        const char* name;
-        process_t* pOwned[256];
+        char* name;
+        uint8_t pAmount; /* Indicates the amount of processes currently contained */
+        process_t* pOwned; /*  */
     } activity_t;
 }
