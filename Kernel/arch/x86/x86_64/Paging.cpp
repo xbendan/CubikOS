@@ -1,6 +1,6 @@
 #include <Paging.h>
 
-namespace Paging
+namespace Arch::x86_64::Paging
 {
     PML4        kpml4       __attribute__((aligned(4096)));
     PML3        kpml3       __attribute__((aligned(4096)));
@@ -37,9 +37,6 @@ namespace Paging
             pml2_entry.present = 1;
             pml2_entry.addr = (uint64_t)&kpml1[i] / ARCH_PAGE_SIZE;
         }
-        
-        __loadPaging(((uintptr_t) &kpml4));
-        //__enablePaging();
         //Interrupts::RegisterInterruptHandler(14, InterruptHandler_PageFault);
     }
 

@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <MemoryFlags.h>
 #define ARCH_PAGE_SIZE       4096
 #define PAGES_PER_TABLE     512
 #define TABLES_PER_DIR      512
@@ -12,7 +13,7 @@
 #define SIZE_TO_PAGE(size) (size / ARCH_PAGE_SIZE)
 #define IS_PAGE_ALIGNED(addr) (addr % ARCH_PAGE_SIZE == 0)
 
-namespace Paging {
+namespace Arch::x86_64::Paging {
     typedef struct PML4Entry {
         bool present: 1; // Must be 1
         bool writable: 1; // Page is readonly if set to 0, also called Read/Write bit
@@ -97,5 +98,12 @@ namespace Paging {
     extern "C" void __enablePaging();
     extern "C" void __disablePaging();
 
+    static inline size_t Pml4IndexOf(uintptr_t addr) { return (addr >> 39) & 0x1FF; }
+    static inline size_t PdptIndexOf(uintptr_t addr) { return (addr >> 30) & 0x1FF; }
+    static inline size_t PdIndexOf(uintptr_t addr) { return (addr >> 21) & 0x1FF; }
+    static inline size_t PtIndexOf(uintptr_t addr) { return (addr >> 12) & 0x1FF; }
+
     void Initialize();
+    void MapAddress(PML4 *pml4, memory_range_t range, uintptr_t vaddr, memory_flags_t flags);
+    uintptr_t ConvertVirtToPhys(PML4 *pml4, uintptr_t vaddr);
 }

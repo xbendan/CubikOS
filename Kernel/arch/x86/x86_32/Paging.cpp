@@ -1,6 +1,6 @@
 #include <Paging.h>
 
-namespace Paging
+namespace Arch::x86_32::Paging
 {
     __attribute__((aligned(ARCH_PAGE_SIZE))) PageDirectory kpdir      = {};
     __attribute__((aligned(ARCH_PAGE_SIZE))) PageTable     kptab[256] = {};

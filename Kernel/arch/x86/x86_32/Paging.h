@@ -9,7 +9,7 @@
 #define SIZE_TO_PAGE(size) (size / ARCH_PAGE_SIZE)
 #define IS_PAGE_ALIGNED(addr) (addr % ARCH_PAGE_SIZE == 0)
 
-namespace Paging {
+namespace Arch::x86_32::Paging {
     union PageTableEntry
     {
         struct

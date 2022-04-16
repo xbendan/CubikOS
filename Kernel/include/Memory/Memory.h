@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <MemoryRange.h>
 #define MEMORY_MAP_LIMIT    64
 #ifndef ARCH_PAGE_SIZE
 #define ARCH_PAGE_SIZE (4096)
@@ -69,18 +70,6 @@ typedef struct ProcessMemoryRecord
 } memory_record_t;
 
 namespace Memory {
-    typedef struct MemoryRange {
-        /**
-         * @brief The start address of the memory range
-         */
-        uint64_t base;
-        /**
-         * @brief The length of the range.
-         * Equals to "end address" - "start address (base)"
-         */
-        uint64_t size;
-    } memory_range_t;
-
     enum MemoryMapEntryType
     {
         MEMORY_MAP_ENTRY_AVAILABLE,
@@ -92,7 +81,7 @@ namespace Memory {
     };
 
     typedef struct MemoryMapEntry {
-        MemoryRange range {};
+        memory_range_t range {};
         MemoryMapEntryType type;
     } memory_map_entry_t;
 

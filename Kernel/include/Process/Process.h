@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+#include <LinkedList.h>
+
 #define PROCESS_PRIORITY_AMOUNT 6
 
 namespace Process

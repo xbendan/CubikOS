@@ -39,7 +39,7 @@ namespace Boot
 
         Paging::Initialize();
 
-        if(bootInfo->memory.memTotalSize < 255 * 1024)
+        if(bootInfo->memory.memTotalSize < 127 * 1024)
         {
             Panic("Not enough memory.");
         }

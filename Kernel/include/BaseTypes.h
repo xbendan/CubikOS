@@ -1,5 +1,5 @@
 #ifndef BASE_TYPE
-#define BASE_TYPE 1
+#define BASE_TYPE
 
 typedef void* IntPtr;
 
