@@ -98,4 +98,5 @@ namespace Memory {
      * @param mapEntries storage the entries for initialize
      */
     void Initialize(uint64_t totalSize, size_t mapSize, memory_map_entry_t* mapEntries);
+    memory_range_t KernelMemoryRange();
 }

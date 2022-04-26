@@ -45,4 +45,9 @@ namespace Memory
 
         Memory::Allocation::MmMarkRangeUsed((uintptr_t)__kmstart__, (size_t)(__kmend__ - __kmstart__));
     }
+
+    memory_range_t KernelMemoryRange()
+    {
+        return MemoryRange::AroundNonAlignedStartEnd(__kmstart__, __kmend__);
+    }
 }

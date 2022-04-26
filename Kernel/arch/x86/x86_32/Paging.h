@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <Misc.h>
+#include <MemoryRange.h>
 #define ARCH_PAGE_SIZE       4096
 #define PAGE_DIRECTORY_INDEX(vaddr) ((vaddr) >> 22)
 #define PAGE_TABLE_INDEX(vaddr) (((vaddr) >> 12) & 0x03ff)
@@ -60,7 +61,7 @@ namespace Arch::x86_32::Paging {
     extern "C" void __enablePaging();
     extern "C" void __disablePaging();
 
-    void Initialize();
+    void InitializeVirtualMemory();
     void Enable();
     void Disable();
 }

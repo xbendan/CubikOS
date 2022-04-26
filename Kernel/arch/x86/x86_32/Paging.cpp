@@ -5,7 +5,7 @@ namespace Arch::x86_32::Paging
     __attribute__((aligned(ARCH_PAGE_SIZE))) PageDirectory kpdir      = {};
     __attribute__((aligned(ARCH_PAGE_SIZE))) PageTable     kptab[256] = {};
 
-    void Initialize()
+    void InitializeVirtualMemory()
     {
         for (size_t i = 0; i < 256; i++)
         {

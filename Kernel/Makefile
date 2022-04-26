@@ -118,4 +118,4 @@ run-x86:
 	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_32/cubik.iso
 
 run-x64:
-	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_64/cubik.iso -m 1G
+	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_64/cubik.iso -m 256m

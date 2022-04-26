@@ -37,9 +37,9 @@ namespace Boot
         SetupGDT();
         SetupIDT();
 
-        //Paging::Initialize();
+        //Paging::InitializeVirtualMemory();
 
-        if(bootInfo->memory.memTotalSize < 127 * 1024)
+        if(bootInfo->memory.memTotalSize < 255 * 1024)
         {
             //Panic("Not enough memory.");
         }
