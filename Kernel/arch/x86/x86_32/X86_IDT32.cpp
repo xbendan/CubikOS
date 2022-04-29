@@ -59,7 +59,7 @@ namespace Arch::x86_32
         idt[127] = IDT32Entry(isrTable[48], 0x08, IDT_FLAGS_INTGATE);
         idt[128] = IDT32Entry(isrTable[49], 0x08, IDT_FLAGS_INTGATE | IDT_FLAGS_USER);
         
-        __flushIDT((uint32_t) &idtr);
+        asmw_flush_idt((uint32_t) &idtr);
     }
 
     void RegInterrupt(uint8_t intr, isr_t func, void* data)

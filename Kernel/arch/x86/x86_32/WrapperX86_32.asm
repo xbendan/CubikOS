@@ -1,7 +1,7 @@
 section .text
 
-global __flushGDT
-__flushGDT:
+global asmw_flush_gdt
+asmw_flush_gdt:
     mov eax, [esp + 4]
     lgdt [eax]
 
@@ -18,8 +18,8 @@ __flushGDT:
     ltr ax
     ret
 
-global __flushIDT
-__flushIDT:
+global asmw_flush_idt
+asmw_flush_idt:
     mov eax, [esp + 4]
     lidt [eax]
     ret

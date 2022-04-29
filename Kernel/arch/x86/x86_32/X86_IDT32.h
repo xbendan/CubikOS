@@ -67,7 +67,7 @@ namespace Arch::x86_32 {
         void* data;
     } isr_handler_t;
 
-    extern "C" void __flushIDT(uint32_t);
+    extern "C" void asmw_flush_idt(uint32_t);
 
     void SetupIDT();
     void RegisterService(uint8_t intr, isr_t func, void* data = nullptr);

@@ -100,9 +100,7 @@ namespace Paging {
         PML1Entry entries[PAGES_PER_TABLE];
     } __attribute__((packed)) page_table_t;
 
-    extern "C" void __loadPaging(uintptr_t addr);
-    extern "C" void __enablePaging();
-    extern "C" void __disablePaging();
+    extern "C" void asmw_load_paging(uintptr_t addr);
 
     static inline size_t Pml4IndexOf(uintptr_t addr) { return (addr >> 39) & 0x1FF; }
     static inline size_t PdptIndexOf(uintptr_t addr) { return (addr >> 30) & 0x1FF; }
@@ -117,5 +115,5 @@ namespace Paging {
     void VirtualMemAlloc(pml4_t* pml4, memory_range_t range, memory_flags_t flags);
     void VirtualMemFree(pml4_t* pml4, memory_range_t range);
     uintptr_t ConvertVirtToPhys(pml4_t* pml4, uintptr_t vaddr);
-    void LoadPml4(pml4_t* pml4);
+    void SwitchPml4(pml4_t* pml4);
 }

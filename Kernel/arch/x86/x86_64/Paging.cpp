@@ -2,10 +2,10 @@
 
 namespace Paging
 {
-    PML4        kpml4       __attribute__((aligned(4096)));
-    PML3        kpml3       __attribute__((aligned(4096)));
-    PML2        kpml2       __attribute__((aligned(4096)));
-    PML1        kpml1[512]  __attribute__((aligned(4096)));
+    PML4        kpml4           __attribute__((aligned(4096)));
+    PML3        kpml3           __attribute__((aligned(4096)));
+    PML2        kpml2[8]        __attribute__((aligned(4096)));
+    PML1        kpml1[8][512]   __attribute__((aligned(4096)));
 
     void InitializeVirtualMemory()
     {
@@ -21,20 +21,24 @@ namespace Paging
         pml4_entry.present = 1;
         pml4_entry.addr = (uint64_t)&kpml3 / ARCH_PAGE_SIZE;
 
-        auto &pml3_entry = kpml3.entries[0];
-        pml3_entry.usr = 0;
-        pml3_entry.writable = 1;
-        pml3_entry.present = 1;
-        pml3_entry.addr = (uint64_t)&kpml2 / ARCH_PAGE_SIZE;
-
-        for (size_t i = 0; i < 512; i++)
+        for (size_t var0 = 0; var0 < 8; var++)
         {
-            auto &pml2_entry = kpml2.entries[i];
-            pml2_entry.usr = 0;
-            pml2_entry.writable = 1;
-            pml2_entry.present = 1;
-            pml2_entry.addr = (uint64_t)&kpml1[i] / ARCH_PAGE_SIZE;
+            auto &pml3_entry = kpml3.entries[var0];
+            pml3_entry.usr = 0;
+            pml3_entry.writable = 1;
+            pml3_entry.present = 1;
+            pml3_entry.addr = (uint64_t)&kpml2[var0] / ARCH_PAGE_SIZE;
+
+            for (size_t var1 = 0; var1 < 512; var1++)
+            {
+                auto &pml2_entry = kpml2[var0].entries[i];
+                pml2_entry.usr = 0;
+                pml2_entry.writable = 1;
+                pml2_entry.present = 1;
+                pml2_entry.addr = (uint64_t)&kpml1[var0][var1] / ARCH_PAGE_SIZE;
+            } 
         }
+        
         //Interrupts::RegisterInterruptHandler(14, InterruptHandler_PageFault);
     }
 
@@ -84,7 +88,7 @@ namespace Paging
 
             ptEntry->present = 1;
             ptEntry->writable = 1;
-            ptEntry->usr = MemoryFlagUser & flags;
+            ptEntry->usr = MEMORY_FLAG_USER & flags;
             ptEntry->addr = (range.base + (idx * ARCH_PAGE_SIZE)) / ARCH_PAGE_SIZE;
         }
     }

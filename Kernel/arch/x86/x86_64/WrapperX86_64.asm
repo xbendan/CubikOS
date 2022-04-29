@@ -1,8 +1,8 @@
-global __flushGDT
-global __flushIDT
-global __loadPaging
+global asmw_flush_gdt
+global asmw_flush_idt
+global asmw_load_paging
 
-__flushGDT:
+asmw_flush_gdt:
     lgdt [rdi]
     push rbp
     mov rbp, rsp
@@ -29,11 +29,11 @@ __flushGDT:
 
     ret
 
-__flushIDT:
+asmw_flush_idt:
     lidt [rdi]
     ret
 
 
-__loadPaging:
+asmw_load_paging:
     mov cr3, rdi
     ret

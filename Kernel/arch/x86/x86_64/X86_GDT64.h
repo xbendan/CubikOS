@@ -83,7 +83,7 @@ namespace Arch::x86_64
         GDT64TssEntry tss = {0};
     } __attribute__((packed)) gdt_pack_t;
 
-    extern "C" void __flushGDT(uint64_t);
+    extern "C" void asmw_flush_gdt(uint64_t);
 
     void SetupGDT();
 }

@@ -72,7 +72,7 @@ namespace Arch::x86_32
             baseHigh((uint8_t)(((base) >> 24) & 0xff)) {}
     } __attribute__((packed));
 
-    extern "C" void __flushGDT(uint32_t);
+    extern "C" void asmw_flush_gdt(uint32_t);
 
     void SetupGDT();
 }

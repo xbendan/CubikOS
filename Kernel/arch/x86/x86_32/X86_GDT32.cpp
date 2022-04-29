@@ -81,6 +81,6 @@ namespace Arch::x86_32
             TSS_FLAGS
         );
 
-        __flushGDT((uint32_t) &gdtr);
+        asmw_flush_gdt((uint32_t) &gdtr);
     }
 }

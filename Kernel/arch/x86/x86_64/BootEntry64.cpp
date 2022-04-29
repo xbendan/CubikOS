@@ -41,7 +41,7 @@ namespace Boot
 
         if(bootInfo->memory.memTotalSize < 255 * 1024)
         {
-            //Panic("Not enough memory.");
+            Panic("Not enough memory.");
         }
         else
             Memory::Initialize(
