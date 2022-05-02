@@ -98,7 +98,7 @@ build-x64: $(x86_64_object) $(shared_object)
 	mkdir -p ./dist/x86_64 && \
 	mkdir -p ./build/x86_64 && \
 	mkdir -p ./build/share && \
-	$(linktool) -n -o ./dist/x86_64/atrikrnl.elf $(ldflags) -O2 -T ./arch/x86/x86_64/LinkerScript-x86_64.ld $(x86_64_object) $(shared_object)
+	x86_64-elf-gcc -march=x86-64 -m64 -mcmodel=kernel -n -o ./dist/x86_64/atrikrnl.elf $(ldflags) -O2 -T ./arch/x86/x86_64/LinkerScript-x86_64.ld $(x86_64_object) $(shared_object)
 	cp ./dist/x86_64/atrikrnl.elf ./targets/x86_64/iso_limine/atrikrnl.elf
 	xorriso -as mkisofs -b limine-cd.bin \
         -no-emul-boot -boot-load-size 4 -boot-info-table \

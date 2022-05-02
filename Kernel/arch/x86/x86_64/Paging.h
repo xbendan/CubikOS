@@ -80,21 +80,33 @@ namespace Paging {
         bool disableExecution: 1;
     } __attribute__((packed)) pt_entry_t;
 
+    /**
+     * 512GiB * 512 = 256TiB
+     */
     typedef struct PML4
     {
         PML4Entry entries[PDPTS_PER_PML4];
     } __attribute__((packed)) pml4_t;
 
+    /**
+     * 1GiB * 512 = 512GiB
+     */
     typedef struct PML3
     {
         PML3Entry entries[DIRS_PER_PDPT];
     } __attribute__((packed)) pdpt_t;
 
+    /**
+     * 2MiB * 512 = 1GiB
+     */
     typedef struct PML2
     {
         PML2Entry entries[TABLES_PER_DIR];
     } __attribute__((packed)) page_dir_t;
 
+    /**
+     * 4KiB * 512 = 2MiB
+     */
     typedef struct PML1
     {
         PML1Entry entries[PAGES_PER_TABLE];
@@ -108,7 +120,7 @@ namespace Paging {
     static inline size_t PtIndexOf(uintptr_t addr) { return (addr >> 12) & 0x1FF; }
 
     void InitializeVirtualMemory();
-    pml4_t* NewVirtualMemoryMap();
+    pml4_t* CreateVirtualMemoryMap();
     void DestoryVirtualMemoryMap(pml4_t* pml4);
     bool IsVirtualPagePresent(pml4_t* pml4, uintptr_t vaddr);
     void VirtualMemMapAddress(pml4_t* pml4, memory_range_t range, uintptr_t vaddr, memory_flags_t flags);
