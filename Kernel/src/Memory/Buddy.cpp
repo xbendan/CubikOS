@@ -23,7 +23,6 @@ namespace Memory::Allocation
         count = ALIGN_UP((_end - blockStart), 4096) / BUDDY_NODE_SIZE;
         if(!count)
             return;
-        
 
         nodes[maxNodeIndex] = {
             .count = count,

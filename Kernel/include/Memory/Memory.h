@@ -10,6 +10,8 @@
  */
 
 #pragma once
+#ifndef HEADER_FILE_MEMORY
+#define HEADER_FILE_MEMORY
 
 #include <stdint.h>
 #include <stddef.h>
@@ -19,9 +21,12 @@
 #define ARCH_PAGE_SIZE (4096)
 #endif
 
-extern "C" void* memset(void* src, int c, size_t count);
-extern "C" void* memcpy(void* dest, const void* src, size_t count);
-extern "C" int memcmp(const void* s1, const void* s2, size_t n);
+extern uint32_t __kmstart__;
+extern uint32_t __kmend__;
+
+void* memset(void* addr, int val, size_t count);
+void* memcpy(void* dest, const void* addr, size_t count);
+int memcmp(const void* s1, const void* s2, size_t n);
 
 extern "C" void LoadPageMaps(uintptr_t ptr);
 
@@ -100,3 +105,5 @@ namespace Memory {
     void Initialize(uint64_t totalSize, size_t mapSize, memory_map_entry_t* mapEntries);
     memory_range_t KernelMemoryRange();
 }
+
+#endif

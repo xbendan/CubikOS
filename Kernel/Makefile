@@ -83,8 +83,8 @@ $(shared_cpp_object): build/shared/%.o : src/%.cpp
 	mkdir -p $(dir $@) && \
 	x86_64-elf-g++ -march=x86-64 -m64 $(shared_include) $(cppflags) $(patsubst build/shared/%.o, src/%.cpp, $@) -o $@
 
-.PHONY: build-x86
-build-x86: $(x86_32_object) $(shared_object)
+.PHONY: bx86
+bx86: $(x86_32_object) $(shared_object)
 	mkdir -p ./dist/x86_32 && \
 	mkdir -p ./build/x86_32 && \
 	mkdir -p ./build/share && \
@@ -93,8 +93,8 @@ build-x86: $(x86_32_object) $(shared_object)
 	grub-mkrescue /usr/lib/grub/i386-pc -o dist/x86_32/cubik.iso targets/x86_32/iso
 	cp ./dist/x86_32/cubik.iso /mnt/f/CubikOSProject/dist/x86_32
 
-.PHONY: build-x64
-build-x64: $(x86_64_object) $(shared_object)
+.PHONY: bx64
+bx64: $(x86_64_object) $(shared_object)
 	mkdir -p ./dist/x86_64 && \
 	mkdir -p ./build/x86_64 && \
 	mkdir -p ./build/share && \
@@ -106,7 +106,7 @@ build-x64: $(x86_64_object) $(shared_object)
         -efi-boot-part --efi-boot-image --protective-msdos-label \
         ./targets/x86_64/iso_limine -o ./dist/x86_64/cubik.iso
 	../../limine/bin/limine-deploy ./dist/x86_64/cubik.iso
-	cp ./dist/x86_64/cubik.iso /mnt/f/CubikOSProject/dist/x86_64/cubik.iso
+	cp ./dist/x86_64/cubik.iso "/mnt/f/CubikOSProject/dist/x86_64/cubik.iso"
 
 .PHONY: clean
 clean: 
@@ -114,8 +114,8 @@ clean:
 	rm -rf ./dist
 
 .PHONY: run-x86
-run-x86:
+rx86:
 	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_32/cubik.iso
 
-run-x64:
-	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_64/cubik.iso -m 256m
+rx64:
+	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_64/cubik.iso -m 128m

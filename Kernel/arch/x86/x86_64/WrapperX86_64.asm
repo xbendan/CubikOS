@@ -33,7 +33,6 @@ asmw_flush_idt:
     lidt [rdi]
     ret
 
-
 asmw_load_paging:
     mov cr3, rdi
     ret

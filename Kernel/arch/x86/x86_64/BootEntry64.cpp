@@ -37,7 +37,7 @@ namespace Boot
         SetupGDT();
         SetupIDT();
 
-        //Paging::InitializeVirtualMemory();
+        Paging::InitializeVirtualMemory();
 
         if(bootInfo->memory.memTotalSize < 255 * 1024)
         {

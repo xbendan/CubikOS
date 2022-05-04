@@ -31,26 +31,35 @@ SECTIONS {
 
     .text ALIGN(4K) :
     {
-        KEEP(*(.text*))
+        KEEP(*(.text))
+        . = ALIGN(4096);
     }
 
     .rodata ALIGN(4K) :
     {
-        KEEP(*(.rodata*))
+        KEEP(*(.rodata))
+        . = ALIGN(4096);
     }
 
     .data ALIGN(4K) :
     {
-        KEEP(*(.data*))
+        KEEP(*(.data))
+        . = ALIGN(4096);
     }
 
     .bss ALIGN(4K) :
     {
         __bss = .;
         KEEP(*(COMMON))
-        KEEP(*(.bss*))
+        KEEP(*(.bss))
+        . = ALIGN(4096);
         __bss_end = .;
     }
 
     __kmend__ = .;
+
+    /DISCARD/ :
+    {
+        *(.comment)
+    }
 }
