@@ -1,0 +1,8 @@
+Kernel/build
+Kernel/dist
+Kernel/targets
+Kernel/backup
+.vscode
+backup
+Kernel/targets/x86_32/iso/boot/atrikrnl.elf
+Kernel/dump.mem
