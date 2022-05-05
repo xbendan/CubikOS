@@ -106,4 +106,7 @@ namespace Memory {
     memory_range_t KernelMemoryRange();
 }
 
+void* kmalloc(size_t size);
+void kfree(void* p);
+
 #endif

@@ -92,6 +92,16 @@ namespace Paging {
     using page_dir_t = pd_entry_t[TABLES_PER_DIR]; /* 2MiB -> 1GiB */
     using page_table_t = page_t[PAGES_PER_TABLE]; /* 4KiB -> 2MiB */
 
+    typedef struct PageMapCollections
+    {
+        pml4_t pml4;
+        pml4_entry_t pml4Entry;
+        pdpt_entry_t pdptEntries[PDPTS_PER_PML4]; /* 8bytes * 512entries = 4096bytes = 4KiB */
+        pd_entry_t* pageDirEntries[PDPTS_PER_PML4]; /* pointer * 512entries = 4096bytes = 4KiB */
+        page_t** pages[PDPTS_PER_PML4]; /* pointer * 512entries = 4096bytes = 4KiB */
+        uint64_t count; /* Mapped page amount */
+    } page_map_t;
+
     static inline void asmi_load_paging(uintptr_t addr) { asm("mov %%rax, %%cr3" ::"a"((uint64_t)addr)); }
     static inline void asmi_invlpg(uintptr_t addr) { asm volatile("invlpg (%0)"::"r"(addr)); }
     static inline size_t Pml4IndexOf(uintptr_t addr) { return (addr >> 39) & 0x1FF; }
@@ -100,16 +110,18 @@ namespace Paging {
     static inline size_t PtIndexOf(uintptr_t addr) { return (addr >> 12) & 0x1FF; }
 
     void InitializeVirtualMemory();
-    pml4_t* CreateVirtualMemoryMap();
-    void DestoryVirtualMemoryMap(pml4_t* pml4);
-    bool IsVirtualPagePresent(pml4_t* pml4, uintptr_t vaddr);
+    page_map_t* CreateVirtualMemoryMap();
+    void DestoryVirtualMemoryMap(page_map_t* map);
+    bool IsVirtualPagePresent(page_map_t* map, uintptr_t vaddr);
     void KernelMapVirtualMemoryAddress(uint64_t phys, uint64_t virt, size_t amount, page_flags_t flags);
     void KernelMapVirtualMemoryAddress(uint64_t phys, uint64_t virt, size_t amount);
-    void MapVirtualMemoryAddress(pml4_t* pml4, uint64_t phys, uint64_t virt, size_t amount, page_flags_t flags);
-    void MapVirtualMemoryAddress(pml4_t* pml4, uint64_t phys, uint64_t virt, size_t amount);
+    void MapVirtualMemoryAddress(page_map_t* map, uint64_t phys, uint64_t virt, size_t amount, page_flags_t flags);
+    void MapVirtualMemoryAddress(page_map_t* map, uint64_t phys, uint64_t virt, size_t amount);
+    void ValidateVirtualAddress(page_map_t* map, uint64_t addr);
     void AllocatePages(pml4_t* pml4, uint64_t phys, size_t amount, page_flags_t flags);
     void AllocatePages(pml4_t* pml4, size_t amount, page_flags_t flags);
     void FreePages(pml4_t* pml4, uint64_t virt, size_t amount);
     uintptr_t ConvertVirtToPhys(pml4_t* pml4, uintptr_t vaddr);
+    void ValidateVirtualAddress(page_map_t* map, uintptr_t addr);
     void SwitchPml4(pml4_t* pml4);
 }

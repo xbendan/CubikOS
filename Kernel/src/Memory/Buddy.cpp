@@ -155,8 +155,13 @@ nextNode:
             goto search;
         }
 
-        page->free = false;
-        return page;
+        if(page != nullptr)
+        {
+            page->free = false;
+            return page;
+        }
+        else
+            return nullptr;
     }
 
     void MmBuddyFree(uintptr_t addr)
