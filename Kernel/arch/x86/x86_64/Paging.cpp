@@ -90,6 +90,8 @@ namespace Paging
                 .addr = (uint64_t) &map->pageDirEntries[idx] / ARCH_PAGE_SIZE
             };
         }
+
+        return map;
     }
 
     void DestoryVirtualMemoryMap(page_map_t* pml4)
