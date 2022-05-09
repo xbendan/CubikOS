@@ -28,16 +28,7 @@ shared_cpp_object = $(patsubst ./src/%.cpp, build/shared/%.o, $(shared_cpp_sourc
 
 shared_object = $(shared_asm_object) $(shared_cpp_object)
 
-shared_include = -Iinclude \
-	-Iinclude/Memory \
-	-Iinclude/Graphic \
-	-Iinclude/FileSystem \
-	-Iinclude/Process  \
-	-Iinclude/SecurityControl \
-	-Iinclude/Device \
-	-Iinclude/Interrupts \
-	-Iinclude/System \
-	-Iinclude/Utils
+shared_include = -Iinclude
 
 cppflags = -ffreestanding \
 	-fomit-frame-pointer \
@@ -98,7 +89,7 @@ bx64: $(x86_64_object) $(shared_object)
 	mkdir -p ./dist/x86_64 && \
 	mkdir -p ./build/x86_64 && \
 	mkdir -p ./build/share && \
-	x86_64-elf-gcc -march=x86-64 -m64 -mcmodel=kernel -n -o ./dist/x86_64/atrikrnl.elf $(ldflags) -O2 -T ./arch/x86/x86_64/LinkerScript-x86_64.ld $(x86_64_object) $(shared_object)
+	x86_64-elf-gcc -march=x86-64 -m64 -mcmodel=large -n -o ./dist/x86_64/atrikrnl.elf $(ldflags) -O2 -T ./arch/x86/x86_64/LinkerScript-x86_64.ld $(x86_64_object) $(shared_object)
 	cp ./dist/x86_64/atrikrnl.elf ./targets/x86_64/iso_limine/atrikrnl.elf
 	xorriso -as mkisofs -b limine-cd.bin \
         -no-emul-boot -boot-load-size 4 -boot-info-table \
@@ -118,4 +109,4 @@ rx86:
 	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_32/cubik.iso
 
 rx64:
-	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_64/cubik.iso -m 128m
+	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_64/cubik.iso -m 256m

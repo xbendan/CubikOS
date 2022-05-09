@@ -1,5 +1,5 @@
 /**
- * @file Memory.h
+ * @file memory
  * @author RainbowMeowCat ()
  * @brief 
  * @version 0.1
@@ -15,7 +15,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <MemoryRange.h>
+#include <Memory/MemoryRange.h>
 #define MEMORY_MAP_LIMIT    64
 #ifndef ARCH_PAGE_SIZE
 #define ARCH_PAGE_SIZE (4096)

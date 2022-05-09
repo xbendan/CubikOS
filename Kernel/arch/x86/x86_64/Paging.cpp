@@ -1,6 +1,6 @@
 #include <Paging.h>
-#include <Buddy.h>
-#include <GraphicsDevice.h>
+#include <Memory/Buddy.h>
+#include <Graphic/GraphicsDevice.h>
 
 using namespace Memory::Allocation;
 
@@ -19,6 +19,7 @@ namespace Paging
      * 
      */
     page_t kHeapPages[TABLES_PER_DIR][PAGES_PER_TABLE] __attribute__((aligned(ARCH_PAGE_SIZE)));
+    uint64_t pageMarkers[4096];
     //page_table_t kHeapTables[TABLES_PER_DIR] __attribute__((aligned(ARCH_PAGE_SIZE)));
 
 
@@ -32,38 +33,26 @@ namespace Paging
             memset(&kHeapPages[idx][0], 0, sizeof(page_t) * PAGES_PER_TABLE);
         }
 
-        auto &pml4Entry = kpml4[0];
-        pml4Entry.usr = 0;
-        pml4Entry.writable = 1;
-        pml4Entry.present = 1;
-        pml4Entry.addr = (uint64_t)&kpml3 / ARCH_PAGE_SIZE;
+        pml4_entry_t* pml4Entry = &kpml4[0];
+        pml4Entry->usr = 0;
+        pml4Entry->writable = 1;
+        pml4Entry->present = 1;
+        pml4Entry->addr = (uint64_t)&kpml3 / ARCH_PAGE_SIZE;
 
-        auto &pdptEntry = kpml3[0];
-        pdptEntry.usr = 0;
-        pdptEntry.writable = 1;
-        pdptEntry.present = 1;
-        pdptEntry.addr = (uint64_t)&kHeapDir / ARCH_PAGE_SIZE;
+        pdpt_entry_t* pdptEntry = &kpml3[0];
+        pdptEntry->usr = 0;
+        pdptEntry->writable = 1;
+        pdptEntry->present = 1;
+        pdptEntry->addr = (uint64_t)&kHeapDir / ARCH_PAGE_SIZE;
 
         for (size_t var1 = 0; var1 < 512; var1++)
         {
-            auto &pdEntry = kHeapDir[var1];
-            pdEntry.usr = 0;
-            pdEntry.writable = 1;
-            pdEntry.present = 1;
-            pdEntry.addr = (uint64_t)&kHeapPages[var1][0] / ARCH_PAGE_SIZE;
+            pd_entry_t* pdEntry = &kHeapDir[var1];
+            pdEntry->usr = 0;
+            pdEntry->writable = 1;
+            pdEntry->present = 1;
+            pdEntry->addr = (uint64_t)&kHeapPages[var1][0] / ARCH_PAGE_SIZE;
         }
-
-        uint64_t kernelAddress = ALIGN_DOWN((uintptr_t)&__kmstart__, ARCH_PAGE_SIZE);
-        uint64_t pageAmount = (ALIGN_UP((uintptr_t)&__kmend__, ARCH_PAGE_SIZE) - kernelAddress) / ARCH_PAGE_SIZE;
-        KernelMapVirtualMemoryAddress(
-            kernelAddress,
-            kernelAddress,
-            pageAmount,
-            PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE
-        );
-
-        //asm("mov %%rax, %%cr3" ::"a"((uint64_t)kpml4));
-        SwitchPml4(&kpml4);
         
         //Interrupts::RegisterInterruptHandler(14, InterruptHandler_PageFault);
     }
@@ -117,7 +106,7 @@ namespace Paging
         return true;
     }
 
-    void KernelMapVirtualMemoryAddress(uint64_t phys, uint64_t virt, size_t amount, page_flags_t flags)
+    void KernelMapVirtualAddress(uint64_t phys, uint64_t virt, size_t amount, page_flags_t flags)
     {
         uint64_t pdIndex, pageIndex;
 
@@ -129,7 +118,7 @@ namespace Paging
             page_t* pg = &kHeapPages[pdIndex][pageIndex];
             pg->present = 1;
             pg->writable = 1;
-            pg->addr = phys;
+            pg->addr = phys / ARCH_PAGE_SIZE;
             //*reinterpret_cast<uint64_t*>(&pg) |= (flags | phys << 12);
             //pg.addr = phys;
 
@@ -138,11 +127,11 @@ namespace Paging
         }
     }
 
-    void KernelMapVirtualMemoryAddress(uint64_t phys, uint64_t virt, size_t amount){
-        KernelMapVirtualMemoryAddress(phys, virt, amount, PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE);
+    void KernelMapVirtualAddress(uint64_t phys, uint64_t virt, size_t amount){
+        KernelMapVirtualAddress(phys, virt, amount, PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE);
     }
 
-    void MapVirtualMemoryAddress(page_map_t *map, uint64_t phys, uint64_t virt, size_t amount, page_flags_t flags)
+    void MapVirtualAddress(page_map_t *map, uint64_t phys, uint64_t virt, size_t amount, page_flags_t flags)
     {
         size_t pml4Index, pdptIndex, pdIndex, pageIndex;
 
@@ -245,8 +234,8 @@ namespace Paging
         }
     }
 
-    void MapVirtualMemoryAddress(page_map_t *map, uint64_t phys, uint64_t virt, size_t amount){
-        MapVirtualMemoryAddress(map, phys, virt, amount, PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE | PAGE_FLAG_USER);
+    void MapVirtualAddress(page_map_t *map, uint64_t phys, uint64_t virt, size_t amount){
+        MapVirtualAddress(map, phys, virt, amount, PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE | PAGE_FLAG_USER);
     }
 
     void ValidateVirtualAddress(page_map_t* map, uint64_t addr)
@@ -293,14 +282,13 @@ namespace Paging
         }
     }
 
-    void AllocatePages(pml4_t* pml4, uint64_t phys, size_t amount, memory_flags_t flags)
+    uintptr_t AllocatePages(page_map_t* map, size_t amount, memory_flags_t flags)
     {
-        
-    }
-
-    void AllocatePages(pml4_t* pml4, size_t amount, memory_flags_t flags)
-    {
-
+        uintptr_t vaddr = 0;
+        for(size_t idx = 0; idx < 256 * 1024; idx++)
+        {
+            
+        }
     }
 
     void FreePages(pml4_t* pml4, uint64_t virt, size_t amount)
@@ -308,12 +296,46 @@ namespace Paging
         
     }
 
-    uintptr_t ConvertVirtToPhys(pml4_t *pml4, uintptr_t vaddr)
+    uintptr_t ConvertVirtToPhys(pml4_t *pml4, uintptr_t addr)
     {
+        pml4_entry_t* pml4_entry = &(*pml4[Pml4IndexOf(addr)]);
+        if (!pml4_entry->present)
+        {
+            return 0;
+        }
 
+        pdpt_t* pml3 = reinterpret_cast<pdpt_t*>(pml4_entry->addr * ARCH_PAGE_SIZE);
+        pdpt_entry_t* pml3_entry = &(*pml3[PdptIndexOf(addr)]);
+
+        if (!pml3_entry->present)
+        {
+            return 1;
+        }
+
+        page_dir_t* pml2 = reinterpret_cast<page_dir_t*>(pml3_entry->addr * ARCH_PAGE_SIZE);
+        pd_entry_t* pml2_entry = &(*pml2[PdIndexOf(addr)]);
+
+        if (!pml2_entry->present)
+        {
+            return 2;
+        }
+
+        page_table_t* pml1 = reinterpret_cast<page_table_t*>(pml2_entry->addr * ARCH_PAGE_SIZE);
+        page_t* pml1_entry = &(*pml1[PtIndexOf(addr)]);
+
+        if (!pml1_entry->present)
+        {
+            return 3;
+        }
+
+        return (pml1_entry->addr * ARCH_PAGE_SIZE) + (addr & 0xfff);
     }
 
     void SwitchPml4(pml4_t* pml4) {
         asmi_load_paging((uint64_t)pml4);
     }
+
+    void EnablePaging() { SwitchPml4(&kpml4); }
+
+    pml4_t* Current() { return asmw_get_pagemap(); }
 }

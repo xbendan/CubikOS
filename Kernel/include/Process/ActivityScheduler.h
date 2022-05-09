@@ -1,5 +1,5 @@
-#include <Process.h>
-#include <Activity.h>
+#include <Process/Process.h>
+#include <Process/Activity.h>
 
 namespace Process
 {

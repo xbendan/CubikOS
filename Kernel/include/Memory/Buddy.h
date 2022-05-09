@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
-#include <Memory.h>
-#include <LinkedList.h>
-#include <Spinlock.h>
+#include <Memory/Memory.h>
+#include <Utils/LinkedList.h>
+#include <Utils/Spinlock.h>
 /**
  * Each buddy node manages 16MiB memory
  */
@@ -77,6 +77,13 @@ namespace Memory::Allocation
          */
         buddy_area_t freeAreaList[BUDDY_TREE_DEPTH];
     } buddy_node_t;
+
+    typedef struct _BuddyNode
+    {
+        uint32_t count;
+        uintptr_t addr;
+        buddy_area_t freelist[BUDDY_TREE_DEPTH];
+    } _buddy_node_t;
 
     static constexpr size_t ToPowerOf2(size_t size)
     {

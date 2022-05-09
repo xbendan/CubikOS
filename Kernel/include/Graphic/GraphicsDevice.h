@@ -52,7 +52,7 @@ namespace Graphics
     void DrawChar(Point point, PixelColor color, char c);
     void DrawText(Point point, PixelColor color, const char* str);
 
-    screen_t* _screen();
+    screen_t* GetScreen();
 
     void Initialize(framebuffer_t fbt);
 }

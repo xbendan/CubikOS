@@ -1,6 +1,7 @@
 global asmw_flush_gdt
 global asmw_flush_idt
 global asmw_load_paging
+global asmw_get_pagemap
 
 asmw_flush_gdt:
     lgdt [rdi]
@@ -35,4 +36,9 @@ asmw_flush_idt:
 
 asmw_load_paging:
     mov cr3, rdi
+    ret
+
+bits 32
+asmw_get_pagemap:
+    mov eax, cr3
     ret

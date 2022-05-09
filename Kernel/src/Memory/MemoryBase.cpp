@@ -1,6 +1,6 @@
-#include <Memory.h>
-#include <Buddy.h>
-#include <GraphicsDevice.h>
+#include <Memory/Memory.h>
+#include <Memory/Buddy.h>
+#include <Graphic/GraphicsDevice.h>
 
 #define CHECK_RANGE(x)
 
@@ -64,12 +64,13 @@ namespace Memory
     void Initialize(uint64_t _totalSize, size_t _mapSize, memory_map_entry_t* _mapEntries)
     {
         totalSize = _totalSize;
+
         for (int index = 0; index < _mapSize; index++)
         {
             if(_mapEntries[index].type == MEMORY_MAP_ENTRY_AVAILABLE &&
                 _mapEntries[index].range.size >= BUDDY_NODE_SIZE)
             {
-                Graphics::DrawRect({0,0}, {50, 50}, {127, 127, 127}, 0);
+                //Graphics::DrawRect({0,0}, {50, 50}, {127, 127, 127}, 0);
 
                 uintptr_t start = _mapEntries[index].range.base;
                 uintptr_t end = start + _mapEntries[index].range.size;
@@ -80,8 +81,8 @@ namespace Memory
                     continue;
                 else if(__kmstart__ > start && __kmend__ < end)
                 {
-                    Memory::Allocation::MmBuddyCreateNode(start, __kmstart__  - 1);
-                    Memory::Allocation::MmBuddyCreateNode(__kmend__ + 1, end);
+                    //Memory::Allocation::MmBuddyCreateNode(start, __kmstart__  - 1);
+                    //Memory::Allocation::MmBuddyCreateNode(__kmend__ + 1, end);
                     continue;
                 }
                 else if(__kmstart__ == start && __kmend__ < end)
@@ -90,11 +91,11 @@ namespace Memory
                     end -= (__kmend__ - __kmstart__);
                 
 
-                Memory::Allocation::MmBuddyCreateNode(start, end);
+                //Memory::Allocation::MmBuddyCreateNode(start, end);
             }
         }
 
-        Memory::Allocation::MmMarkRangeUsed((uintptr_t)__kmstart__, (size_t)(__kmend__ - __kmstart__));
+        //Memory::Allocation::MmMarkRangeUsed((uintptr_t)__kmstart__, (size_t)(__kmend__ - __kmstart__));
     }
 
     memory_range_t KernelMemoryRange()

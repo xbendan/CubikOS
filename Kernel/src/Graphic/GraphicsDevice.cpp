@@ -1,9 +1,8 @@
-#include <GraphicsDevice.h>
-#include <GConsole.h>
+#include <Graphic/GraphicsDevice.h>
+#include <Graphic/GConsole.h>
 
 namespace Graphics
 {
-    color_t* address;
     screen_t screen;
 
     void DrawPoint(Point point, PixelColor color)
@@ -29,7 +28,7 @@ namespace Graphics
             int row = defaultFont[(int)c][i];
             for (unsigned j = 0; j < 8; j++) {
                 if ((row & (1 << j)) >> j) {
-                    address[((point.y + i) * screen.width) + point.x + j] = color;
+                    screen.buffer[((point.y + i) * screen.width) + point.x + j] = color;
                 }
             }
         }
@@ -45,10 +44,7 @@ namespace Graphics
         }
     }
 
-    screen_t* _screen()
-    {
-        return &screen;
-    }
+    screen_t* GetScreen() { return &screen; }
 
     void Initialize(framebuffer_t fbt)
     {

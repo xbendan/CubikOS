@@ -796,8 +796,8 @@ struct stivale2_struct_tag_hhdm {
 
 #endif
 
-#include <Memory.h>
-#include <GraphicsDevice.h>
+#include <Memory/Memory.h>
+#include <Graphic/GraphicsDevice.h>
 #include <Macros.h>
 
 typedef struct BootMemoryDetail
