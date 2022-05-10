@@ -28,6 +28,7 @@ typedef struct FramebufferDetail
     uint64_t addr;
     uint32_t pitch, height, width;
     uint8_t depth; // 32 in QEMU
+    bool linear;
 } framebuffer_t;
 
 class GraphicsDevice

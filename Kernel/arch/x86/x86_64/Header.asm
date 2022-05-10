@@ -46,9 +46,13 @@ stivale2header:
     dq kload_stivale2
     dq stack_top
     dq 0
-    dq stivale2framebuffer
+    dq stivale2linearframebuffer
 
 section .data
+stivale2linearframebuffer:
+    dq 0xc75c9fa92a44c4db
+    dq stivale2framebufferWctag
+    dq 0
 stivale2framebuffer: ; Framebuffer
     dq 0x3ecc1bc43d0f7971
     dq stivale2framebufferWctag ; Next tag

@@ -109,4 +109,4 @@ rx86:
 	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_32/cubik.iso
 
 rx64:
-	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_64/cubik.iso -m 256m
+	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/x86_64/cubik.iso -m 512m

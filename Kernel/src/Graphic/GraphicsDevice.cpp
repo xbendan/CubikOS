@@ -56,7 +56,8 @@ namespace Graphics
             .pitch = fbt.pitch,
             .depth = fbt.depth
         };
-        if(fbt.depth == 32)
-            DrawRect((point_t){10, 10}, (struct Size){200, 100}, color_t(255, 255, 255), 0);
+        DrawRect({0, 0}, {1024, 768}, {255, 255, 255}, 0);
+        //if(fbt.depth == 32)
+        //    DrawRect((point_t){10, 10}, (struct Size){200, 100}, color_t(255, 255, 255), 0);
     }
 }

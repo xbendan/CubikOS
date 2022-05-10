@@ -981,6 +981,13 @@ namespace Boot
                     buffer->pitch = fbTag->framebuffer_pitch;
                     break;
                 }
+                case STIVALE2_HEADER_TAG_ANY_VIDEO_ID: {
+                    stivale2_header_tag_any_video* fbpTag = reinterpret_cast<stivale2_header_tag_any_video*>(tag);
+                    framebuffer_t* buffer = &_bootInfo->graphic;
+                    
+                    buffer->linear = fbpTag->preference == 0;
+                    break;
+                }
                 case STIVALE2_STRUCT_TAG_MODULES_ID: {
                     break;
                 }

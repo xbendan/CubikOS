@@ -42,54 +42,33 @@ namespace Boot
 
         uint64_t kernelAddress = ALIGN_DOWN((uintptr_t)&__kmstart__, ARCH_PAGE_SIZE);
         uint64_t pageAmount = (ALIGN_UP((uintptr_t)&__kmend__, ARCH_PAGE_SIZE) - kernelAddress) / ARCH_PAGE_SIZE;
-        uint64_t fbPhys = Paging::ConvertVirtToPhys(Paging::Current(), bootInfo->graphic.addr);
+        uint64_t fbPhys = 0xA0000;//Paging::ConvertVirtToPhys(Paging::Current(), bootInfo->graphic.addr);
         uint16_t offset = fbPhys % ARCH_PAGE_SIZE;
+        const uint64_t fbPhysBase = 0x4000000;
+
         Paging::KernelMapVirtualAddress(
             kernelAddress,
             kernelAddress,
             pageAmount
         );
-        uint64_t fbPhysBase = 0x4000000;
-        uint64_t fbPageAmount = bootInfo->graphic.width * bootInfo->graphic.height * bootInfo->graphic.depth / 8 / ARCH_PAGE_SIZE;
-        pml4_t* pagemap = Paging::Current();
-        /*
         Paging::KernelMapVirtualAddress(
-            Paging::ConvertVirtToPhys(pagemap, bootInfo->graphic.addr + (fbPageIndex * ARCH_PAGE_SIZE)),
-            fbPhysBase + (fbPageIndex * ARCH_PAGE_SIZE),
-            1
+            bootInfo->graphic.addr,
+            fbPhysBase,
+            bootInfo->graphic.width * bootInfo->graphic.height * bootInfo->graphic.depth / 8 / ARCH_PAGE_SIZE
         );
-        */
-            
-        for(uint32_t fbPageIndex = 0; fbPageIndex < 32; fbPageIndex++)
-        {
-            Paging::KernelMapVirtualAddress(
-                Paging::ConvertVirtToPhys(pagemap, bootInfo->graphic.addr) + (fbPageIndex * 256 * ARCH_PAGE_SIZE),
-                fbPhysBase + (fbPageIndex * 256 * ARCH_PAGE_SIZE),
-                256
-            );
-        }
         //bootInfo->graphic.addr = fbPhysBase;
         // 0xFF88000
-        if(bootInfo->graphic.addr > 0x80000000)
-        {
-            Graphics::Initialize(bootInfo->graphic);
-        }
-        
-        __asm__("hlt");
-        bool con = Paging::ConvertVirtToPhys(Paging::Current(), bootInfo->graphic.addr + 65536) - 65536 == fbPhys;
+        Graphics::Initialize(bootInfo->graphic);
 
         Paging::EnablePaging();
         Graphics::GetScreen()->buffer = (color_t*) fbPhysBase;
 
-        if(fbPhys < 0x8000)
-        {
-            Graphics::DrawRect(
+        Graphics::DrawRect(
             {0, 0},
             {1024, 768},
             {255, 0, 255},
             0
         );
-        }
         
 
         __asm__("hlt");
