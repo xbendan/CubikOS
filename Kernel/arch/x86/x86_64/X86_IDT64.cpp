@@ -28,5 +28,7 @@ namespace Arch::x86_64
 
     }
 
-    void SetIDTEntry(uint8_t vec, uint64_t base, uint16_t selector, uint8_t flags);
+    idt_ptr_t* GetIdtTables() {
+        return &idtr;
+    }
 }

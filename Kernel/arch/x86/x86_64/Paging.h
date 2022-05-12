@@ -117,15 +117,18 @@ namespace Paging {
     bool IsVirtualPagePresent(page_map_t* map, uintptr_t vaddr);
     void KernelMapVirtualAddress(uint64_t phys, uint64_t virt, size_t amount, page_flags_t flags);
     void KernelMapVirtualAddress(uint64_t phys, uint64_t virt, size_t amount);
+    uintptr_t KernelAllocatePages(size_t amount);
+    void KernelFreePages(uint64_t virt, size_t amount);
+    void KernelMarkPagesIdentity(uint64_t virt, size_t amount);
     void MapVirtualAddress(page_map_t* map, uint64_t phys, uint64_t virt, size_t amount, page_flags_t flags);
     void MapVirtualAddress(page_map_t* map, uint64_t phys, uint64_t virt, size_t amount);
-    void ValidateVirtualAddress(page_map_t* map, uint64_t addr);
-    void AllocatePages(page_map_t* pml4, size_t amount, page_flags_t flags);
+    uintptr_t AllocatePages(page_map_t* pml4, size_t amount);
     void FreePages(page_map_t* pml4, uint64_t virt, size_t amount);
+    void MarkPagesIdentity(page_map_t* map, uint64_t virt, size_t amount);
     uintptr_t ConvertVirtToPhys(pml4_t* pml4, uintptr_t addr);
-    void ValidateVirtualAddress(page_map_t* map, uintptr_t addr);
     void SwitchPml4(pml4_t* pml4);
     void EnablePaging();
     pml4_t* Current();
+    pml4_t* KernelPages();
     
 }

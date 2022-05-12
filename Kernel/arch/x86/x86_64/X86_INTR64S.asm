@@ -5,24 +5,28 @@ dd __interrupt%1
 
 %macro INTR_ERR 1
 __interrupt%1:
+    cli
     hlt
     push %1
-    jmp __IntrCommonHandler
+    jmp _commonInterrupt
 %endmacro
 
 %macro INTR_NO_ERR 1
 __interrupt%1:
+    cli
     hlt
     push 0
     push %1
-    jmp __IntrCommonHandler
+    jmp _commonInterrupt
 %endmacro
 
 %macro INTR_SYSCALL 1
 __interrupt%1:
+    cli
+    hlt
     push 0
     push %1
-    jmp __IntrCommonHandler
+    jmp _commonInterrupt
 %endmacro
 
 %macro _PUSHA_ 0
@@ -63,7 +67,7 @@ __interrupt%1:
 
 extern DispatchInterrupt
 
-__IntrCommonHandler:
+_commonInterrupt:
     cld
 
     _PUSHA_

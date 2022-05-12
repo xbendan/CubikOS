@@ -53,6 +53,8 @@ namespace Paging
             pdEntry->present = 1;
             pdEntry->addr = (uint64_t)&kHeapPages[var1][0] / ARCH_PAGE_SIZE;
         }
+
+        KernelMarkPagesIdentity(0, 256);
         
         //Interrupts::RegisterInterruptHandler(14, InterruptHandler_PageFault);
     }
@@ -131,6 +133,67 @@ namespace Paging
         KernelMapVirtualAddress(phys, virt, amount, PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE);
     }
 
+    uintptr_t KernelAllocatePages(size_t amount)
+    {
+        uintptr_t vaddr = 0;
+        size_t amountLeft;
+
+        for(uint16_t idx = 0; idx < 4096; idx++)
+        {
+            if(pageMarkers[idx] == 0xFFFFFFFFFFFFFFFF)
+                continue;
+
+            for(uint8_t bitIndex = 0; bitIndex < 64; bitIndex++)
+            {
+                if(!(pageMarkers[idx] & (1 << (63 - bitIndex))))
+                {
+                    if(!vaddr)
+                    {
+                        vaddr = (idx * 64 + bitIndex) * ARCH_PAGE_SIZE;
+                        amountLeft = amount;
+                    }
+
+                    amountLeft--;
+                    if(!amountLeft)
+                    {
+                        KernelMarkPagesIdentity(vaddr, amount);
+                        return vaddr;
+                    }
+                }
+                else
+                    vaddr = 0;
+            }
+        }
+
+        /* Panic! Out of address spaces */
+        return 0;
+    }
+
+    void KernelFreePages(uint64_t virt, size_t amount)
+    {
+        
+    }
+
+    void KernelMarkPagesIdentity(uint64_t virt, size_t amount)
+    {
+        virt /= ARCH_PAGE_SIZE;
+        for(uint16_t idx = virt / 64; idx < 4096; idx++)
+        {
+            for(uint8_t bitIndex = 0; bitIndex < 64; bitIndex++)
+            {
+                if(idx * 64 + bitIndex != virt)
+                    continue;
+                
+                pageMarkers[idx] |= (1 << (63 - bitIndex));
+                virt++;
+                amount--;
+
+                if(amount <= 0)
+                    return;
+            }
+        }
+    }
+
     void MapVirtualAddress(page_map_t *map, uint64_t phys, uint64_t virt, size_t amount, page_flags_t flags)
     {
         size_t pml4Index, pdptIndex, pdIndex, pageIndex;
@@ -186,51 +249,6 @@ namespace Paging
                 page->usr = 1;
             }
             map->pages[pdptIndex][pdIndex][pageIndex].addr = phys  / ARCH_PAGE_SIZE;
-
-            /*
-            pml4_entry_t* pml4Entry = &(*pml4[pml4Index]);
-            pdpt_t* pdpt = reinterpret_cast<pdpt_t*>(pml4Entry->addr * ARCH_PAGE_SIZE);
-            if(!pml4Entry->present)
-            {
-                pdpt = (pdpt_t*)MmBuddyAllocatePage(0)->addr;
-
-                pml4Entry->present = 1;
-                pml4Entry->writable = 1;
-                pml4Entry->usr = 1;
-                pml4Entry->addr = (uintptr_t)pdpt / ARCH_PAGE_SIZE;
-            }
-
-            pdpt_entry_t* pdptEntry = &(*pdpt[pdptIndex]);
-            page_dir_t* pd = reinterpret_cast<page_dir_t*>(pdptEntry->addr * ARCH_PAGE_SIZE);
-            if(!pdptEntry->present)
-            {
-                pd = (pdpt_t*)MmBuddyAllocatePage(0)->addr;
-
-                pdptEntry->present = 1;
-                pdptEntry->writable = 1;
-                pdptEntry->usr = 1;
-                pdptEntry->addr = (uintptr_t)pd / ARCH_PAGE_SIZE;
-            }
-
-            pd_entry_t* pdEntry = &(*pd[pdIndex]);
-            page_table_t* pt = reinterpret_cast<page_table_t*>(pdEntry->addr * ARCH_PAGE_SIZE);
-            if(!pdEntry->present)
-            {
-                pt = (pdpt_t*)MmBuddyAllocatePage(0)->addr;
-
-                pdEntry->present = 1;
-                pdEntry->writable = 1;
-                pdEntry->usr = 1;
-                pdEntry->addr = (uintptr_t)pt / ARCH_PAGE_SIZE;
-            }
-
-            page_t* pageEntry = &(*pt[pageIndex]);
-
-            pageEntry->present = 1;
-            pageEntry->writable = 1;
-            pageEntry->usr = MEMORY_FLAG_USER & flags;
-            pageEntry->addr = phys / ARCH_PAGE_SIZE;
-            */
         }
     }
 
@@ -238,66 +256,132 @@ namespace Paging
         MapVirtualAddress(map, phys, virt, amount, PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE | PAGE_FLAG_USER);
     }
 
-    void ValidateVirtualAddress(page_map_t* map, uint64_t addr)
-    {
-        size_t pdptIndex = PdptIndexOf(addr);
-        size_t pdIndex = PdIndexOf(addr);
-        size_t pageIndex = PtIndexOf(addr);
-
-        pdpt_entry_t* pdpt = &map->pdptEntries[pdptIndex];
-
-        if(!pdpt->present)
-        {
-            pdpt->present = 1;
-            pdpt->writable = 1;
-            pdpt->usr = 1;
-
-            pd_entry_t* pd = (pd_entry_t*)MmBuddyAllocatePage(0)->addr;
-
-            pdpt->addr = (uint64_t) pd / ARCH_PAGE_SIZE;
-            map->pageDirEntries[pdptIndex] = pd;
-        }
-
-        pd_entry_t* pd = &map->pageDirEntries[pdptIndex][pdIndex];
-
-        if(!pd->present)
-        {
-            pd->present = 1;
-            pd->writable = 1;
-            pd->usr = 1;
-
-            page_t* page = (page_t*)MmBuddyAllocatePage(0)->addr;
-
-            pd->addr = (uint64_t) page / ARCH_PAGE_SIZE;
-            map->pages[pdptIndex][pdIndex] = page;
-        }
-
-        page_t* page = &map->pages[pdptIndex][pdIndex][pageIndex];
-
-        if(!page->present)
-        {
-            page->present = 1;
-            page->writable = 1;
-            page->usr = 1;
-        }
-    }
-
     uintptr_t AllocatePages(page_map_t* map, size_t amount, memory_flags_t flags)
     {
         uintptr_t vaddr = 0;
-        for(size_t idx = 0; idx < 256 * 1024; idx++)
+        size_t amountLeft;
+        /* 
+         * Each process can take upto 512 GiB virtual address
+         * which is 512GiB / 128MiB = 8 * 512 = 4096
+         */
+        for(size_t idx = 0; idx < 8 * 512; idx++)
         {
-            
+            if(map->pageMarks[idx] == nullptr)
+            {
+                uint64_t virt = KernelAllocatePages(1);
+            }
+
+            /* Scan 128 MiB virtual address each time */
+            for(size_t subIndex = 0; subIndex < 512; subIndex++)
+            {
+                if(map->pageMarks[idx][subIndex] == 0xFFFFFFFFFFFFFFFF)
+                    continue;
+                
+                for(uint8_t bitIndex = 0; bitIndex < 64; bitIndex++)
+                {
+                    if(!(map->pageMarks[idx][subIndex] & 1 < (63 - bitIndex)))
+                    {
+                        if(!vaddr)
+                        {
+                            vaddr = ((idx * 32768) + (subIndex * 64)) * ARCH_PAGE_SIZE;
+                            amountLeft = amount;
+                        }
+                        
+                        if(!--amountLeft)
+                        {
+                            MarkPagesIdentity(map, vaddr, amount);
+                            return vaddr;
+                        }
+                    }
+                    else
+                        vaddr = 0;
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    void FreePages(page_map_t* map, uint64_t virt, size_t amount)
+    {
+        uint64_t index;
+        uint64_t subIndex;
+        uint8_t bitIndex;
+
+        virt /= ARCH_PAGE_SIZE;
+        while(amount)
+        {
+            index = virt / 32768;
+            subIndex = (virt % 32768) / 64;
+
+            if(amount >= 64 && !(virt % 64))
+            {
+                amount -= 64;
+                virt += 64;
+                map->pageMarks[index][subIndex] = 0x0;
+                continue;
+            }
+
+            for(bitIndex = (virt % 64); bitIndex < 64; bitIndex++)
+                map->pageMarks[index][subIndex] &= !(1 << bitIndex);
         }
     }
 
-    void FreePages(pml4_t* pml4, uint64_t virt, size_t amount)
+    void MarkPagesIdentity(page_map_t* map, uint64_t virt, size_t amount)
     {
-        
+        uint64_t index;
+        uint64_t subIndex;
+        uint8_t bitIndex;
+
+        virt /= ARCH_PAGE_SIZE;
+        while(amount)
+        {
+            index = virt / 32768;
+            subIndex = (virt % 32768) / 64;
+
+            if(amount >= 64 && !(virt % 64))
+            {
+                amount -= 64;
+                virt += 64;
+                map->pageMarks[index][subIndex] = 0x0;
+                continue;
+            }
+
+            for(bitIndex = (virt % 64); bitIndex < 64; bitIndex++)
+                map->pageMarks[index][subIndex] |= (1 << (63 - bitIndex));
+        }
     }
 
     uintptr_t ConvertVirtToPhys(pml4_t *pml4, uintptr_t addr)
     {
+        pml4_entry_t* pml4_entry = &(reinterpret_cast<pml4_entry_t*>(pml4))[Pml4IndexOf(addr)];
+        if (!pml4_entry->present)
+        {
+            return 0;
+        }
+
+        pdpt_entry_t* pdptEntry = &(reinterpret_cast<pdpt_entry_t*>(pml4_entry->addr * ARCH_PAGE_SIZE))[PdptIndexOf(addr)];
+        if (!pdptEntry->present)
+        {
+            return 0;
+        }
+
+        pd_entry_t* pdEntry = &(reinterpret_cast<pd_entry_t*>(pdptEntry->addr * ARCH_PAGE_SIZE))[PdIndexOf(addr)];
+        if (!pdEntry->present)
+        {
+            return 0;
+        }
+
+        page_t* page = &(reinterpret_cast<page_t*>(pdEntry->addr * ARCH_PAGE_SIZE))[PtIndexOf(addr)];
+
+        if (!page->present && !page->addr)
+        {
+            return 0;
+        }
+
+        return (page->addr * ARCH_PAGE_SIZE) + (addr & 0xfff);
+
+        /*
         pml4_entry_t* pml4_entry = &(*pml4[Pml4IndexOf(addr)]);
         if (!pml4_entry->present)
         {
@@ -309,7 +393,7 @@ namespace Paging
 
         if (!pml3_entry->present)
         {
-            return 1;
+            return 0;
         }
 
         page_dir_t* pml2 = reinterpret_cast<page_dir_t*>(pml3_entry->addr * ARCH_PAGE_SIZE);
@@ -317,7 +401,7 @@ namespace Paging
 
         if (!pml2_entry->present)
         {
-            return 2;
+            return 0;
         }
 
         page_table_t* pml1 = reinterpret_cast<page_table_t*>(pml2_entry->addr * ARCH_PAGE_SIZE);
@@ -325,17 +409,26 @@ namespace Paging
 
         if (!pml1_entry->present)
         {
-            return 3;
+            return 0;
         }
 
         return (pml1_entry->addr * ARCH_PAGE_SIZE) + (addr & 0xfff);
+        */
     }
 
     void SwitchPml4(pml4_t* pml4) {
         asmi_load_paging((uint64_t)pml4);
     }
 
-    void EnablePaging() { SwitchPml4(&kpml4); }
+    void EnablePaging() {
+        SwitchPml4(&kpml4);
+    }
 
-    pml4_t* Current() { return asmw_get_pagemap(); }
+    pml4_t* Current() {
+        return asmw_get_pagemap();
+    }
+
+    pml4_t* KernelPages() {
+        return &kpml4;
+    }
 }

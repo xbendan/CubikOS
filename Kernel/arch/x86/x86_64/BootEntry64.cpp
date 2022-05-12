@@ -40,38 +40,31 @@ namespace Boot
 
         Paging::InitializeVirtualMemory();
 
-        uint64_t kernelAddress = ALIGN_DOWN((uintptr_t)&__kmstart__, ARCH_PAGE_SIZE);
-        uint64_t pageAmount = (ALIGN_UP((uintptr_t)&__kmend__, ARCH_PAGE_SIZE) - kernelAddress) / ARCH_PAGE_SIZE;
-        uint64_t fbPhys = 0xA0000;//Paging::ConvertVirtToPhys(Paging::Current(), bootInfo->graphic.addr);
-        uint16_t offset = fbPhys % ARCH_PAGE_SIZE;
-        const uint64_t fbPhysBase = 0x4000000;
+        uint64_t krnlAddress = ALIGN_DOWN((uintptr_t)&__kmstart__, ARCH_PAGE_SIZE);
+        uint64_t krnlPageAmount = (ALIGN_UP((uintptr_t)&__kmend__, ARCH_PAGE_SIZE) - krnlAddress) / ARCH_PAGE_SIZE;
 
         Paging::KernelMapVirtualAddress(
-            kernelAddress,
-            kernelAddress,
-            pageAmount
+            krnlAddress,
+            krnlAddress,
+            krnlPageAmount
         );
+        Paging::KernelMarkPagesIdentity(
+            krnlAddress,
+            krnlPageAmount
+        );        
+
+        const uint64_t fbPageAmount = bootInfo->graphic.width * bootInfo->graphic.height * bootInfo->graphic.depth / 8 / ARCH_PAGE_SIZE;
+        const uint64_t fbVirtBase = Paging::KernelAllocatePages(fbPageAmount);
+
         Paging::KernelMapVirtualAddress(
             bootInfo->graphic.addr,
-            fbPhysBase,
-            bootInfo->graphic.width * bootInfo->graphic.height * bootInfo->graphic.depth / 8 / ARCH_PAGE_SIZE
+            fbVirtBase,
+            fbPageAmount
         );
-        //bootInfo->graphic.addr = fbPhysBase;
-        // 0xFF88000
+        bootInfo->graphic.addr = fbVirtBase;
+        Paging::EnablePaging();        
+
         Graphics::Initialize(bootInfo->graphic);
-
-        Paging::EnablePaging();
-        Graphics::GetScreen()->buffer = (color_t*) fbPhysBase;
-
-        Graphics::DrawRect(
-            {0, 0},
-            {1024, 768},
-            {255, 0, 255},
-            0
-        );
-        
-
-        __asm__("hlt");
 
         if(bootInfo->memory.memTotalSize < 255 * 1024)
         {
@@ -84,6 +77,8 @@ namespace Boot
                 bootInfo->memory.memEntries
             );
 
+        Graphics::DrawRect({0, 0}, {1024, 768}, {255, 0, 255}, 0);
+
         /**
          * @attention PIC and PIT are required before enable interrupts
          * @link https://forum.osdev.org/viewtopic.php?f=1&t=18932 @endlink
@@ -93,9 +88,9 @@ namespace Boot
          */
         LoadPic();
         LoadPit(1000);
-
-        __asm__("hlt");
-        EnableInterrupts();
+        
+        if((uint64_t)GetIdtTables() > 0x100000)
+            EnableInterrupts();
     }
 
     void KernelLoadMultiboot(multiboot2_info_header_t* mbInfo)

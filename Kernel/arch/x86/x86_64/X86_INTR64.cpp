@@ -6,5 +6,6 @@ using namespace Arch::x86_64;
 extern "C" uint32_t DispatchInterrupt(uintptr_t esp, RegisterContext regctx)
 {
     Panic("");
+    __asm__("hlt");
     return esp;
 }
