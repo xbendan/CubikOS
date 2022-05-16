@@ -32,7 +32,6 @@ namespace Boot
     {
         if(bootInfo == nullptr)
             return;
-        int i = 1 / 0;
         DisableInterrupts();
 
         SetupGDT();
@@ -62,7 +61,7 @@ namespace Boot
             fbPageAmount
         );
         bootInfo->graphic.addr = fbVirtBase;
-        Paging::EnablePaging();        
+        Paging::EnablePaging();
 
         Graphics::Initialize(bootInfo->graphic);
 
@@ -77,8 +76,6 @@ namespace Boot
                 bootInfo->memory.memEntries
             );
 
-        Graphics::DrawRect({0, 0}, {1024, 768}, {255, 0, 255}, 0);
-
         /**
          * @attention PIC and PIT are required before enable interrupts
          * @link https://forum.osdev.org/viewtopic.php?f=1&t=18932 @endlink
@@ -89,8 +86,8 @@ namespace Boot
         LoadPic();
         LoadPit(1000);
         
-        if((uint64_t)GetIdtTables() > 0x100000)
-            EnableInterrupts();
+        //if((uint64_t)GetIdtTables() > 0x100000)
+        EnableInterrupts();
     }
 
     void KernelLoadMultiboot(multiboot2_info_header_t* mbInfo)
@@ -128,7 +125,6 @@ extern "C" [[noreturn]] void kload_stivale2(void* addr)
     if(addr == nullptr)
     {
         __asm__("mov $0x32, %al");
-        int i = 1 / 0;
     }
 
     Boot::KernelLoadStivale2(reinterpret_cast<stivale2_struct_t *>(addr));

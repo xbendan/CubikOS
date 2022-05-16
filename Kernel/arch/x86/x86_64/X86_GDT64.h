@@ -41,7 +41,7 @@ namespace Arch::x86_64
             baseHigh((uint8_t)((base >> 24) & 0xFF)) {}
         constexpr GDT64Entry(uint8_t flags, uint8_t granularity)
           : GDT64Entry(0, 0, granularity, flags) {}
-    } __attribute__((packed)) GDT64Entry;
+    } __attribute__((packed)) gdt_entry_t;
 
     struct Tss64
     {

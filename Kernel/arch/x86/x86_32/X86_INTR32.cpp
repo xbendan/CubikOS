@@ -20,7 +20,7 @@ namespace Arch::x86_32
             handleIRQInterrupt(intNum - 32, &context);
         else {}
         
-        Arch::x86::PicRefreshState(context.intno);
+        Arch::x86::PicAck(context.intno);
         
         return esp;
     }

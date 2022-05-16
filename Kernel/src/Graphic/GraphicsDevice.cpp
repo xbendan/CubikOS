@@ -1,5 +1,5 @@
 #include <Graphic/GraphicsDevice.h>
-#include <Graphic/GConsole.h>
+#include <Graphic/GraphicsConsole.h>
 
 namespace Graphics
 {
@@ -7,7 +7,7 @@ namespace Graphics
 
     void DrawPoint(Point point, PixelColor color)
     {
-        
+        screen.buffer[(point.y * screen.width) + point.x] = color;
     }
 
     void DrawLine(Point startPoint, Point endPoint, PixelColor color);

@@ -70,19 +70,20 @@ namespace Memory
             if(_mapEntries[index].type == MEMORY_MAP_ENTRY_AVAILABLE &&
                 _mapEntries[index].range.size >= BUDDY_NODE_SIZE)
             {
-                //Graphics::DrawRect({0,0}, {50, 50}, {127, 127, 127}, 0);
+                Graphics::DrawRect({0,0}, {50, 50}, {127, 127, 127}, 0);
 
                 uintptr_t start = _mapEntries[index].range.base;
                 uintptr_t end = start + _mapEntries[index].range.size;
 
                 
+                /*
                 if((__kmstart__ <= start && __kmend__ >= end) || 
                     ((__kmend__ - __kmstart__) >= _mapEntries[index].range.size && (__kmstart__ == start || __kmend__ == end)))
                     continue;
                 else if(__kmstart__ > start && __kmend__ < end)
                 {
-                    //Memory::Allocation::MmBuddyCreateNode(start, __kmstart__  - 1);
-                    //Memory::Allocation::MmBuddyCreateNode(__kmend__ + 1, end);
+                    Memory::Allocation::MmBuddyCreateNode(start, __kmstart__  - 1);
+                    Memory::Allocation::MmBuddyCreateNode(__kmend__ + 1, end);
                     continue;
                 }
                 else if(__kmstart__ == start && __kmend__ < end)
@@ -91,7 +92,8 @@ namespace Memory
                     end -= (__kmend__ - __kmstart__);
                 
 
-                //Memory::Allocation::MmBuddyCreateNode(start, end);
+                Memory::Allocation::MmBuddyCreateNode(start, end);
+                */
             }
         }
 

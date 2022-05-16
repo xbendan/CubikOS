@@ -67,23 +67,14 @@ namespace Memory::Allocation
     {
         /* Node count (16MiBs) */
         uint32_t count;
-        /* Start and End address of actual blocks */
-        uintptr_t pgStart, pgEnd;
-        uintptr_t bkStart, bkEnd;
+        uintptr_t addr;
         /**
          * This array contains the areas struct
          * The lowest is 0, equals to 4KiB (1 page)
          * The highest is 11, equals to 16MiB (4096 pages)
          */
-        buddy_area_t freeAreaList[BUDDY_TREE_DEPTH];
-    } buddy_node_t;
-
-    typedef struct _BuddyNode
-    {
-        uint32_t count;
-        uintptr_t addr;
         buddy_area_t freelist[BUDDY_TREE_DEPTH];
-    } _buddy_node_t;
+    } buddy_node_t;
 
     static constexpr size_t ToPowerOf2(size_t size)
     {

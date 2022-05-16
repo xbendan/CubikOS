@@ -6,9 +6,9 @@ using namespace Graphics;
 void Panic(string msg)
 {
     DrawRect(
-        (Point){200, 200},
-        (Size){GetScreen()->width / 2, GetScreen()->height / 2},
-        (PixelColor){255, 0, 0},
+        {0, 0},
+        {GetScreen()->width / 2, GetScreen()->height / 2},
+        {255, 0, 0},
         0
     );
 

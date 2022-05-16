@@ -27,7 +27,7 @@ namespace Arch::x86
         PortWriteOutByte_8(0x21, 0xFF);
     }
 
-    void PicRefreshState(int i)
+    void PicAck(int i)
     {
         if (i >= 40)
         {

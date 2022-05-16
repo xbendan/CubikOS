@@ -27,5 +27,7 @@ namespace Arch::x86_64
         gdt.entries[4] = GDT64Entry(GDT_PRESENT | GDT_SEGMENT | GDT_READWRITE | GDT_USER, 0);
 
         gdt.tss = GDT64TssEntry((uintptr_t) &tss);
+
+        asmw_flush_gdt((uint64_t)&gdtr);
     }
 }

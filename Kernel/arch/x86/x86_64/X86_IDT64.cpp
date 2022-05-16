@@ -1,5 +1,25 @@
 #include <X86_IDT64.h>
 
+extern "C"
+{
+    void __irq0();
+    void __irq1();
+    void __irq2();
+    void __irq3();
+    void __irq4();
+    void __irq5();
+    void __irq6();
+    void __irq7();
+    void __irq8();
+    void __irq9();
+    void __irq10();
+    void __irq11();
+    void __irq12();
+    void __irq13();
+    void __irq14();
+    void __irq15();
+}
+
 namespace Arch::x86_64
 {
     extern "C" uintptr_t isrTable[];
@@ -14,11 +34,11 @@ namespace Arch::x86_64
     {
         for (uint8_t num = 0; num < 48; num++)
         {
-            idt[num] = IDT64Entry(isrTable[num], 0x08, IDT_FLAGS_INTGATE);
+            idt[num] = IDT64Entry(isrTable[num], 0x0, IDT_FLAGS_INTGATE);
         }
 
-        idt[127] = IDT64Entry(isrTable[48], 0x08, IDT_FLAGS_INTGATE);
-        idt[128] = IDT64Entry(isrTable[49], 0x08, IDT_FLAGS_INTGATE | IDT_FLAGS_USER);
+        idt[127] = IDT64Entry(isrTable[32], 0x0, IDT_FLAGS_INTGATE);
+        idt[128] = IDT64Entry(isrTable[33], 0x0, IDT_FLAGS_INTGATE | IDT_FLAGS_USER);
         
         asmw_flush_idt((uint64_t) &idtr);
     }
