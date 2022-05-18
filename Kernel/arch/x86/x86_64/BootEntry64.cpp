@@ -50,19 +50,24 @@ namespace Boot
         Paging::KernelMarkPagesIdentity(
             krnlAddress,
             krnlPageAmount
-        );        
+        );
 
         const uint64_t fbPageAmount = bootInfo->graphic.width * bootInfo->graphic.height * bootInfo->graphic.depth / 8 / ARCH_PAGE_SIZE;
         const uint64_t fbVirtBase = Paging::KernelAllocatePages(fbPageAmount);
+
+        //if(fbVirtBase == 4096)
+        //    asm("hlt");
+
+        //asm("hlt");
 
         Paging::KernelMapVirtualAddress(
             bootInfo->graphic.addr,
             fbVirtBase,
             fbPageAmount
         );
-        bootInfo->graphic.addr = fbVirtBase;
         Paging::EnablePaging();
 
+        bootInfo->graphic.addr = fbVirtBase;
         Graphics::Initialize(bootInfo->graphic);
 
         if(bootInfo->memory.memTotalSize < 255 * 1024)

@@ -54,7 +54,7 @@ namespace Paging
             pdEntry->addr = (uint64_t)&kHeapPages[var1][0] / ARCH_PAGE_SIZE;
         }
 
-        KernelMarkPagesIdentity(0, 256);
+        //KernelMarkPagesIdentity(0, 256);
         
         //Interrupts::RegisterInterruptHandler(14, InterruptHandler_PageFault);
     }
@@ -141,18 +141,23 @@ namespace Paging
         for(uint16_t idx = 0; idx < 4096; idx++)
         {
             if(pageMarkers[idx] == 0xFFFFFFFFFFFFFFFF)
+            {
+                vaddr = 0;
                 continue;
+            }
 
             for(uint8_t bitIndex = 0; bitIndex < 64; bitIndex++)
             {
-                if(!(pageMarkers[idx] & (1 << (63 - bitIndex))))
+                if(pageMarkers[idx] & (1 << bitIndex))
+                    vaddr = 0;
+                else
                 {
                     if(!vaddr)
                     {
                         vaddr = (idx * 64 + bitIndex) * ARCH_PAGE_SIZE;
                         amountLeft = amount;
                     }
-
+                    
                     amountLeft--;
                     if(!amountLeft)
                     {
@@ -160,8 +165,6 @@ namespace Paging
                         return vaddr;
                     }
                 }
-                else
-                    vaddr = 0;
             }
         }
 
@@ -171,12 +174,44 @@ namespace Paging
 
     void KernelFreePages(uint64_t virt, size_t amount)
     {
+        uint16_t pageIndex;
+        uint8_t bitIndex;
         
+        virt /= ARCH_PAGE_SIZE;
+        while (amount)
+        {
+            pageIndex = virt / 64;
+            bitIndex = virt % 64;
+
+            pageMarkers[pageIndex] &= (~(1 << bitIndex));
+            virt++;
+            amount--;
+
+            if(amount <= 0)
+                return;
+        }
     }
 
     void KernelMarkPagesIdentity(uint64_t virt, size_t amount)
     {
+        uint16_t pageIndex;
+        uint8_t bitIndex;
+        
         virt /= ARCH_PAGE_SIZE;
+        while (amount)
+        {
+            pageIndex = virt / 64;
+            bitIndex = virt % 64;
+
+            pageMarkers[pageIndex] |= (1 << bitIndex);
+            virt++;
+            amount--;
+
+            if(amount <= 0)
+                return;
+        }
+
+        /*
         for(uint16_t idx = virt / 64; idx < 4096; idx++)
         {
             for(uint8_t bitIndex = 0; bitIndex < 64; bitIndex++)
@@ -192,6 +227,7 @@ namespace Paging
                     return;
             }
         }
+        */
     }
 
     void MapVirtualAddress(page_map_t *map, uint64_t phys, uint64_t virt, size_t amount, page_flags_t flags)
@@ -279,7 +315,7 @@ namespace Paging
                 
                 for(uint8_t bitIndex = 0; bitIndex < 64; bitIndex++)
                 {
-                    if(!(map->pageMarks[idx][subIndex] & 1 < (63 - bitIndex)))
+                    if(!(map->pageMarks[idx][subIndex] & (1 < bitIndex)))
                     {
                         if(!vaddr)
                         {
@@ -348,7 +384,7 @@ namespace Paging
             }
 
             for(bitIndex = (virt % 64); bitIndex < 64; bitIndex++)
-                map->pageMarks[index][subIndex] |= (1 << (63 - bitIndex));
+                map->pageMarks[index][subIndex] |= (1 << bitIndex);
         }
     }
 
