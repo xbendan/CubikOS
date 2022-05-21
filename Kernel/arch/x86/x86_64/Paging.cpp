@@ -54,7 +54,19 @@ namespace Paging
             pdEntry->addr = (uint64_t)&kHeapPages[var1][0] / ARCH_PAGE_SIZE;
         }
 
-        //KernelMarkPagesIdentity(0, 256);
+        KernelMarkPagesIdentity(0, 256);
+
+        uint64_t krnlAddress = ALIGN_DOWN((uintptr_t)&__kmstart__, ARCH_PAGE_SIZE);
+        uint64_t krnlPageAmount = (ALIGN_UP((uintptr_t)&__kmend__, ARCH_PAGE_SIZE) - krnlAddress) / ARCH_PAGE_SIZE;
+        KernelMapVirtualAddress(
+            krnlAddress,
+            krnlAddress,
+            krnlPageAmount
+        );
+        KernelMarkPagesIdentity(
+            krnlAddress,
+            krnlPageAmount
+        );
         
         //Interrupts::RegisterInterruptHandler(14, InterruptHandler_PageFault);
     }

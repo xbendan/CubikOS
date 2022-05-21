@@ -72,11 +72,12 @@ namespace Memory
             {
                 Graphics::DrawRect({0,0}, {50, 50}, {127, 127, 127}, 0);
 
+                Memory::Allocation::MmBuddyCreateNode(_mapEntries[index].range);
+
+                /*
                 uintptr_t start = _mapEntries[index].range.base;
                 uintptr_t end = start + _mapEntries[index].range.size;
 
-                
-                /*
                 if((__kmstart__ <= start && __kmend__ >= end) || 
                     ((__kmend__ - __kmstart__) >= _mapEntries[index].range.size && (__kmstart__ == start || __kmend__ == end)))
                     continue;

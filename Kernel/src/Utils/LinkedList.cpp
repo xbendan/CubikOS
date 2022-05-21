@@ -17,8 +17,8 @@ namespace Utils::LinkedList
 
     void LlInsertAtNext(struct LinkedListNode* node0, struct LinkedListNode* node1)
     {
-        if(node0 == nullptr)
-            node0 = node1;
+        if(node0 == nullptr || node1 == nullptr)
+            return;
         else
         {
             node1->prev = node0;

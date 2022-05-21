@@ -39,19 +39,6 @@ namespace Boot
 
         Paging::InitializeVirtualMemory();
 
-        uint64_t krnlAddress = ALIGN_DOWN((uintptr_t)&__kmstart__, ARCH_PAGE_SIZE);
-        uint64_t krnlPageAmount = (ALIGN_UP((uintptr_t)&__kmend__, ARCH_PAGE_SIZE) - krnlAddress) / ARCH_PAGE_SIZE;
-
-        Paging::KernelMapVirtualAddress(
-            krnlAddress,
-            krnlAddress,
-            krnlPageAmount
-        );
-        Paging::KernelMarkPagesIdentity(
-            krnlAddress,
-            krnlPageAmount
-        );
-
         const uint64_t fbPageAmount = bootInfo->graphic.width * bootInfo->graphic.height * bootInfo->graphic.depth / 8 / ARCH_PAGE_SIZE;
         const uint64_t fbVirtBase = Paging::KernelAllocatePages(fbPageAmount);
 
