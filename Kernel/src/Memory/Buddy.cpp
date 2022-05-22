@@ -121,21 +121,22 @@ namespace Memory::Allocation
             if(node->freelist[order].count){}
             
             /* Create another order variable for detecting possible area lsit */
-            int8_t m_order = order - 1;
+            int8_t m_order = order;
             buddy_area_t* area;
-            do 
+            while (m_order <= BUDDY_HIGHEST_ORDER)
             {
-                m_order++;
-                if(m_order >= BUDDY_HIGHEST_ORDER + 1)
+                /* Search for  */
+                if(node->freelist[m_order].count)
                 {
-                    // Alerting Out Of Memory
-                    return nullptr;
+                    area = &node->freelist[m_order];
+                    break;
                 }
-                area = &node->freelist[m_order];
-                /* Goto next node nothing if area is nullptr. (It shouldn't be!) */ 
-                // if(area == nullptr)
-                //     goto nextNode;
-            } while (area->count == 0);
+                m_order++;
+            }
+
+            /* continue to next node if there is no fit page */
+            if(area == nullptr)
+                continue;
         }
     }
 

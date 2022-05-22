@@ -5,7 +5,7 @@ Cubik is full operating system project written in C/C++, and planned to write it
 Although there do have many existing operating system, not only some consumer grade system such as Windows, macOS and Linux (with it's branches), but also lots of amateurish projects. But they have lots of problem, I mean, most of them are affected by some problems left over by history or the concept of design.  
 For instance, many people are troubled with the terrible malware when you are using Windows. And there isn't a stable or safe software channel. MacOS restricts users while it provides a good daily use experience (for somebody). And the Linux is quite hard to use for many rookies.  
 That's why it comes. Even from my personal pov, there should be an operating system with stable permission control, easy-to-use logic and a beautiful UI. Everything above should be customizable, free and open-sourced.  
-***Notes:*** *This project is just in the beginning stage, I don't mind you laughing at it or do something else, but if it's possible, I hope you can join us♥*  
+***Notes:*** *This project is just in the beginning stage. It's possible for anyone to join us as long as you like.♥*  
 ## **Architecture**
 - [ ] X86 (32-bit)
 - [x] X86 (64-bit)
