@@ -28,8 +28,6 @@ void* memset(void* addr, int val, size_t count);
 void* memcpy(void* dest, const void* addr, size_t count);
 int memcmp(const void* s1, const void* s2, size_t n);
 
-extern "C" void LoadPageMaps(uintptr_t ptr);
-
 typedef struct MemoryInfo
 {
     /* data */

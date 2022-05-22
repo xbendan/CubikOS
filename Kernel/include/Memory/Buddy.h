@@ -28,7 +28,7 @@
 #define BUDDY_PAGE_EACH_BLOCK 4096
 #define IS_POWER_OF_2(x) (!((x) & ((x) - 1)))
 
-namespace Memory::Allocation
+namespace Memory
 {
     /**
      * @brief Buddy page is the main unit of buddy system
@@ -37,7 +37,7 @@ namespace Memory::Allocation
      */
     typedef struct BuddyPage
     {
-        struct LinkedListNode listNode;
+        struct LinkedListNode listnode;
         uint8_t order;
         uint8_t _reserved0;
         bool free;
@@ -58,7 +58,7 @@ namespace Memory::Allocation
          * any valid node in the actual list could be saved here
          * but usually the first one
          */
-        buddy_page_t* first;
+        linked_list_node_t first;
         uint32_t count; /* How many pages left in the list maximum at 32TiB */
     } buddy_area_t;
 
@@ -119,4 +119,7 @@ namespace Memory::Allocation
     void MmMarkPageFree(uintptr_t addr);
     buddy_page_t* GetPageStruct(uintptr_t addr);
     void BuddyDump();
+    buddy_page_t* Expand(buddy_node_t* node, buddy_page_t* page);
+    bool Combine(buddy_node_t* node, buddy_page_t* page);
+    void Combine(buddy_node_t* node, buddy_page_t* lpage, buddy_page_t* rpage);
 } // namespace Memory::Allocation

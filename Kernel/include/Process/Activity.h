@@ -14,6 +14,6 @@ namespace Process
     {
         char* name;
         uint8_t pAmount; /* Indicates the amount of processes currently contained */
-        process_t* pOwned; /*  */
+        process_t** pOwned; /*  */
     } activity_t;
 }

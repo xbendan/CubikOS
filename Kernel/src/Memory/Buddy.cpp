@@ -6,7 +6,7 @@
 using namespace Utils::Spinlock;
 using namespace Utils::LinkedList;
 
-namespace Memory::Allocation
+namespace Memory
 {
     uint8_t maxNodeIndex = 0;
     buddy_node_t nodes[BUDDY_MAX_NODE];
@@ -18,8 +18,6 @@ namespace Memory::Allocation
      * 2: 0~1023 index number to the address of 1, takes 4KiB (1 page)
      */
     buddy_page_t** pageIndexes[1024];
-
-    buddy_page_t* Expand(buddy_node_t* node, buddy_page_t* page);
 
     void MmBuddyCreateNode(memory_range_t range)
     {
@@ -43,7 +41,7 @@ namespace Memory::Allocation
                 .addr = currentAddress
             };
             currentAddress += BUDDY_NODE_SIZE;
-            nodes[maxNodeIndex].freelist[12].first = &bHeap[0];
+            nodes[maxNodeIndex].freelist[12].first.next = &bHeap[0];
             MmMarkRangeUsed((uintptr_t)&__kmstart__, (uintptr_t)&__kmend__ - (uintptr_t)&__kmstart__);
         }
 
@@ -58,11 +56,15 @@ namespace Memory::Allocation
                 .addr = currentAddress
             };
             //Utils::LinkedList::LlInsertAtNext(&nodes[maxIndexNode].freelist[BUDDY_HIGHEST_ORDER].first)
-            buddy_page_t** firstptr = &nodes[maxNodeIndex].freelist[BUDDY_HIGHEST_ORDER].first;
+            linked_list_node_t* head = &nodes[maxNodeIndex].freelist[BUDDY_HIGHEST_ORDER].first;
+            Utils::LinkedList::LlInsertAtNext(head, &page->listnode);
+            /*
+            buddy_page_t* firstptr = reinterpret_cast<buddy_page_t*>();
             if(*firstptr != nullptr)
-                Utils::LinkedList::LlInsertAtNext(&(*firstptr)->listNode, &page->listNode);
+                Utils::LinkedList::LlInsertAtNext(&(*firstptr)->listnode, &page->listnode);
             else
                 *firstptr = page;
+            */
 
             MmMarkRangeUsed((uintptr_t)&__kmstart__, (uintptr_t)&__kmend__ - (uintptr_t)&__kmstart__);
 
@@ -88,7 +90,12 @@ namespace Memory::Allocation
      */ 
     buddy_page_t* MmBuddyAllocate(size_t size)
     {
+        if(size > BUDDY_NODE_SIZE || size <= 0)
+            return nullptr;
 
+        uint8_t order = ToOrder(ToPowerOf2(size) / 4096);
+
+        return MmBuddyAllocatePage(order);
     }
 
     /**
@@ -118,14 +125,14 @@ namespace Memory::Allocation
             if(!node->count)
                 continue;
 
-            if(node->freelist[order].count){}
+            //if(node->freelist[order].count){}
             
             /* Create another order variable for detecting possible area lsit */
             int8_t m_order = order;
             buddy_area_t* area;
             while (m_order <= BUDDY_HIGHEST_ORDER)
             {
-                /* Search for  */
+                /* Search for area which contains free page */
                 if(node->freelist[m_order].count)
                 {
                     area = &node->freelist[m_order];
@@ -137,22 +144,58 @@ namespace Memory::Allocation
             /* continue to next node if there is no fit page */
             if(area == nullptr)
                 continue;
+
+            /* Get the first page in current area */
+            page = reinterpret_cast<buddy_page_t*>(area->first.next);
+            if(page->listnode.next != nullptr)
+            {
+                /* Remove current page from linked list */
+                //area->first = reinterpret_cast<buddy_page_t*>(page->listnode.next);
+                Utils::LinkedList::LlRemove(&page->listnode);
+            }
+
+            /* Check whether the page size is greater than goal */
+            if(m_order != order)
+            {
+                /* If so, loop and split the page util it matches size we need */
+                while(m_order > order)
+                {
+                    page = Expand(node, page);
+                }
+            }
+
+            return page;
         }
     }
 
     void MmBuddyFree(uintptr_t addr)
     {
-
+        buddy_node_t* current;
+        for(uint8_t idx = 0; idx < maxNodeIndex; idx++)
+        {
+            if(nodes[idx].addr >= addr && addr <= nodes[idx].addr + (nodes[idx].count * BUDDY_NODE_SIZE))
+            {
+                current = &nodes[idx];
+            }
+        }
+        if(current != nullptr)
+            MmBuddyFree(GetPageStruct(addr), current);
     }
 
     void MmBuddyFree(buddy_page_t* page, buddy_node_t* node)
     {
+        if(page == nullptr)
+            return;
 
+        page->free = true;
+        
+        while(page != nullptr)
+            page = Combine(node, page);
     }
 
     void MmMarkRangeUsed(uintptr_t addr, size_t size)
     {
-
+        
     }
 
     void MmMarkRangeFree(uintptr_t addr, size_t size)
@@ -186,7 +229,8 @@ namespace Memory::Allocation
     }
 
     /**
-     * @brief 
+     * @brief split an upper page into 2 small pages
+     * 
      * 
      * @param node node that the page belongs to
      * @param page the page that need to be expanded
@@ -194,8 +238,57 @@ namespace Memory::Allocation
      */
     buddy_page_t* Expand(buddy_node_t* node, buddy_page_t* page)
     {
+        /* check whether it's possible to split it */
+        if(!page->order)
+            return nullptr;
 
+        /* Remove this page from upper order list */
+        LlRemove(&page->listnode);
+        /* Decrease the order and find the lower tier list */
+        buddy_area_t* area = &node->freelist[--page->order];
+
+        /* Insert this page into the lower tier free list */
+        LlInsertAtNext(&area->first, &page->listnode);
+
+        /* Find another page descriptor and initialize it */
+        uintptr_t newAddress = page->addr + ((1 << page->order) * ARCH_PAGE_SIZE);
+        buddy_page_t* newPage = GetPageStruct(newAddress);
+        newPage->order = page->order;
+        newPage->addr = newAddress;
+        newPage->free = true;
+        area->count++;
+
+        return newPage;
     }
+
+    /**
+     * @brief 
+     * 
+     * @param node 
+     * @param page 
+     * @return buddy_page_t* pointer to new page
+     */
+    buddy_page_t* Combine(buddy_node_t* node, buddy_page_t* page)
+    {
+        uint32_t orderSize = (1 << page->order) * 4096;
+        bool isAligned = !((page->addr - node->addr) % orderSize);
+
+        buddy_page_t* nPage = (buddy_page_t*)(isAligned ? page->addr + orderSize : page->addr - orderSize);
+        if(nPage->free)
+        {
+            LlRemove(&nPage->listnode);
+            buddy_page_t* result = isAligned ? page : nPage;
+            LlInsertAtNext(&node->freelist[++result->order].first, &result->listnode);
+            return result;
+        }
+        else
+        {
+            LlInsertAtNext(&node->freelist[page->order].first, &page->listnode);
+            return nullptr;
+        }
+    }
+
+    void Combine(buddy_node_t* node, buddy_page_t* lpage, buddy_page_t* rpage);
 
     void BuddyDump();
 }

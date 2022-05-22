@@ -7,6 +7,7 @@ namespace Process
     void KillProcess(process_t* proc);
     process_t* GetProcessByName(const char* name);
     process_t* GetProcessByPid(uint32_t pid);
+    process_t* Current();
 
     void SetProcessPriority(process_t* proc, process_priority_t newPriority);
     process_priority_t GetProcessPriority(process_t* proc);

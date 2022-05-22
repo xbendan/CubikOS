@@ -20,22 +20,22 @@ namespace Process
 
     typedef enum ProcessState
     {
-        ProcessStateRunning,
-        ProcessStateIdle,
+        ProcessStateRunning = 0,
+        ProcessStateIdle = 1,
     } process_state_t;
 
     /**
      * @brief process model
      * 
-     * 522 bytes
+     * 44 bytes
      */
     typedef class Process
     {
-        linked_list_node_t listNode;
+        linked_list_node_t listnode;
         char* name;
         char* publisher; /* The name of publisher of this running */
         activity_t* owner; /* Pointer to the owner Activity */
-        uint32_t pid; /* Random process id 0~65535 */
+        uint16_t pid; /* Random process id 0~65535 */
         process_priority_t priority; /* Indicates the priority of this process (Will influence all threads under this process) */
         process_state_t state; /* Indicates whether this process is running or not */
     } process_t;
