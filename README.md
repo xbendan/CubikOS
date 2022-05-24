@@ -8,17 +8,16 @@ That's why it comes. Even from my personal pov, there should be an operating sys
 ***Notes:*** *This project is just in the beginning stage. It's possible for anyone to join us as long as you like.♥*  
 ## **Build**  
 *TODO*
-## **Architecture**
-- [ ] X86 (32-bit)
-- [x] X86 (64-bit)
-- [ ] ARM (32-bit)
+## **Architecture**  
+*The support of 32-bit kernel was given up, and there is no future plan for any 32-bit program.*  
+- [x] X86 (64-bit) **(In progress)**
 - [ ] ARM (64-bit)
 - [ ] RISC-V
 - [ ] LoongArch
 ## **Kernel Components**  
 - [ ] Memory management
 - [x] Memory alloc and free
-- [x] Basic graphics
+- [x] Basic graphics **(In progress)**
 - [ ] Extended graphics
 - [ ] Process and Thread
 - [ ] File System

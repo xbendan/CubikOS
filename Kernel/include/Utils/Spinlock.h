@@ -1,4 +1,6 @@
-typedef volatile uint32_t lock_t;
+#pragma once
+
+typedef volatile uint32_t spinlock_t;
 
 /*
 typedef struct Spinlocker
@@ -9,12 +11,12 @@ typedef struct Spinlocker
 
 namespace Utils::Spinlock
 {
-    static inline void LockInit(lock_t* lock)
+    static inline void LockInit(spinlock_t* lock)
     {
         lock = 0;
     }
 
-    static inline void AcquireLock(lock_t* lock)
+    static inline void AcquireLock(spinlock_t* lock)
     {
         int lockVal = 1; // From DPDK
         __asm__ volatile(
@@ -33,7 +35,7 @@ namespace Utils::Spinlock
                 : "memory");
     }
 
-    static inline void ReleaseLock(lock_t* lock)
+    static inline void ReleaseLock(spinlock_t* lock)
     {
         int unlockVal = 0;
         __asm__ volatile(

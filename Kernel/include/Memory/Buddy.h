@@ -6,7 +6,7 @@
 /**
  * Each buddy node manages 16MiB memory
  */
-#define BUDDY_NODE_SIZE 16 * 1024 * 1024
+#define BUDDY_NODE_SIZE 16777216
 /**
  * @deprecated Use linked list now rather than 
  * Each buddy node contains 4096 pages
@@ -41,7 +41,7 @@ namespace Memory
         uint8_t order;
         uint8_t _reserved0;
         bool free;
-        lock_t lock;
+        spinlock_t lock;
         uint32_t _reserved1;
         uintptr_t addr;
     } buddy_page_t;
@@ -110,7 +110,7 @@ namespace Memory
 
     void MmBuddyCreateNode(memory_range_t range);
     buddy_page_t* MmBuddyAllocate(size_t size);
-    buddy_page_t* MmBuddyAllocatePage(uint8_t order);
+    buddy_page_t* MmBuddyAllocatePages(uint8_t order);
     void MmBuddyFree(uintptr_t addr);
     void MmBuddyFree(buddy_page_t* page, buddy_node_t* node);
     void MmMarkRangeUsed(uintptr_t addr, size_t size);
@@ -120,6 +120,6 @@ namespace Memory
     buddy_page_t* GetPageStruct(uintptr_t addr);
     void BuddyDump();
     buddy_page_t* Expand(buddy_node_t* node, buddy_page_t* page);
-    bool Combine(buddy_node_t* node, buddy_page_t* page);
+    buddy_page_t* Combine(buddy_node_t* node, buddy_page_t* page);
     void Combine(buddy_node_t* node, buddy_page_t* lpage, buddy_page_t* rpage);
 } // namespace Memory::Allocation

@@ -1,4 +1,5 @@
 #include <Memory/Buddy.h>
+#include <Memory/MemoryAllocation.h>
 #include <Macros.h>
 #include <Panic.h>
 #include <GenericArch.h>
@@ -41,7 +42,7 @@ namespace Memory
                 .addr = currentAddress
             };
             currentAddress += BUDDY_NODE_SIZE;
-            nodes[maxNodeIndex].freelist[12].first.next = &bHeap[0];
+            nodes[maxNodeIndex].freelist[12].first.next = &bHeap[0].listnode;
             MmMarkRangeUsed((uintptr_t)&__kmstart__, (uintptr_t)&__kmend__ - (uintptr_t)&__kmstart__);
         }
 
@@ -49,7 +50,7 @@ namespace Memory
 
         while(addrEnd - currentAddress > BUDDY_NODE_SIZE)
         {
-            buddy_page_t* page = (buddy_page_t*)MmBuddyAllocatePage(5)->addr;
+            buddy_page_t* page = (buddy_page_t*)AllocatePages(32);
             *page = {
                 .order = BUDDY_HIGHEST_ORDER,
                 .free = true,
@@ -72,7 +73,7 @@ namespace Memory
             blockIdx = (currentAddress % 0x1000000000) / 0x1000000;
 
             if(pageIndexes[highIdx] == nullptr)
-                pageIndexes[highIdx] = (buddy_page_t**)MmBuddyAllocatePage(5)->addr;
+                pageIndexes[highIdx] = (buddy_page_t**)AllocatePages(32);
 
             pageIndexes[highIdx][blockIdx] = page;
 
@@ -95,7 +96,7 @@ namespace Memory
 
         uint8_t order = ToOrder(ToPowerOf2(size) / 4096);
 
-        return MmBuddyAllocatePage(order);
+        return MmBuddyAllocatePages(order);
     }
 
     /**
@@ -108,7 +109,7 @@ namespace Memory
      * @param order indicates the size of the page, and where should it be started to allocated from
      * @return buddy_page_t* the page pointer that is going to be allocated
      */
-    buddy_page_t* MmBuddyAllocatePage(uint8_t order)
+    buddy_page_t* MmBuddyAllocatePages(uint8_t order)
     {
         if(order > BUDDY_HIGHEST_ORDER || order < 0)
         {

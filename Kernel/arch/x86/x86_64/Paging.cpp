@@ -1,8 +1,8 @@
 #include <Paging.h>
 #include <Memory/Buddy.h>
+#include <Memory/MemoryAllocation.h>
 #include <Graphic/GraphicsDevice.h>
 
-using namespace Memory::Allocation;
 
 namespace Paging
 {
@@ -10,6 +10,7 @@ namespace Paging
     pml4_t kpml4 __attribute__((aligned(ARCH_PAGE_SIZE)));
     pdpt_t kpml3 __attribute__((aligned(ARCH_PAGE_SIZE)));
     page_dir_t kHeapDir __attribute__((aligned(ARCH_PAGE_SIZE)));
+    page_map_t* currentPages;
     //page_table_t kPageTable __attribute__((aligned(ARCH_PAGE_SIZE)));
     /* 
      * Kernel uses 4KiB * 512^2 = 1GiB
@@ -268,7 +269,7 @@ namespace Paging
                 pdpt->writable = 1;
                 pdpt->usr = 1;
 
-                pd_entry_t* pd = (pd_entry_t*)MmBuddyAllocatePage(0)->addr;
+                pd_entry_t* pd = (pd_entry_t*)MmBuddyAllocatePages(0)->addr;
 
                 pdpt->addr = (uint64_t) pd / ARCH_PAGE_SIZE;
                 map->pageDirEntries[pdptIndex] = pd;
@@ -282,7 +283,7 @@ namespace Paging
                 pd->writable = 1;
                 pd->usr = 1;
 
-                page_t* page = (page_t*)MmBuddyAllocatePage(0)->addr;
+                page_t* page = (page_t*)MmBuddyAllocatePages(0)->addr;
 
                 pd->addr = (uint64_t) page / ARCH_PAGE_SIZE;
                 map->pages[pdptIndex][pdIndex] = page;
@@ -304,7 +305,7 @@ namespace Paging
         MapVirtualAddress(map, phys, virt, amount, PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE | PAGE_FLAG_USER);
     }
 
-    uintptr_t AllocatePages(page_map_t* map, size_t amount, memory_flags_t flags)
+    uintptr_t AllocatePages(page_map_t* map, size_t amount)
     {
         uintptr_t vaddr = 0;
         size_t amountLeft;
@@ -472,8 +473,8 @@ namespace Paging
         SwitchPml4(&kpml4);
     }
 
-    pml4_t* Current() {
-        return asmw_get_pagemap();
+    page_map_t* Current() {
+        return currentPages;
     }
 
     pml4_t* KernelPages() {

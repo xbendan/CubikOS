@@ -28,7 +28,7 @@ shared_cpp_object = $(patsubst ./src/%.cpp, build/shared/%.o, $(shared_cpp_sourc
 
 shared_object = $(shared_asm_object) $(shared_cpp_object)
 
-shared_include = -Iinclude
+shared_include = -Iinclude -Iarch
 
 cppflags = -ffreestanding \
 	-fomit-frame-pointer \

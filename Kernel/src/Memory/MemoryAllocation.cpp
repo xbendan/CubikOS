@@ -1,6 +1,6 @@
 #include <GenericArch.h>
-#include <Buddy.h>
-#include <Slub.h>
+#include <Memory/Buddy.h>
+#include <Memory/Slub.h>
 #include <Memory/MemoryAllocation.h>
 
 namespace Memory
@@ -12,13 +12,15 @@ namespace Memory
 
     uintptr_t AllocatePages(size_t amount)
     {
-        uintptr_t phys = MmBuddyAllocatePages(amount);
-        uintptr_t virt = mm_KernelAllocatePages(amount);
+        amount = ToPowerOf2(amount);
+        
+        uintptr_t phys = MmBuddyAllocatePages(ToOrder(amount))->addr;
+        uintptr_t virt = Generic::mm_KernelAllocatePages(amount);
 
         if(phys || virt)
             return 0;
         
-        mm_KernelMapVirtualAddress(phys, virt, amount);
+        Generic::mm_KernelMapVirtualAddress(phys, virt, amount);
         return virt;
     }
 }
