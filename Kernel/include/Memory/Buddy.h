@@ -113,10 +113,7 @@ namespace Memory
     buddy_page_t* MmBuddyAllocatePages(uint8_t order);
     void MmBuddyFree(uintptr_t addr);
     void MmBuddyFree(buddy_page_t* page, buddy_node_t* node);
-    void MmMarkRangeUsed(uintptr_t addr, size_t size);
-    void MmMarkRangeFree(uintptr_t addr, size_t size);
-    void MmMarkPageUsed(uintptr_t addr);
-    void MmMarkPageFree(uintptr_t addr);
+    void MmMarkRangeUsed(uintptr_t start, uintptr_t end);
     buddy_page_t* GetPageStruct(uintptr_t addr);
     void BuddyDump();
     buddy_page_t* Expand(buddy_node_t* node, buddy_page_t* page);

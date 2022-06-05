@@ -78,8 +78,9 @@ namespace Boot
         LoadPic();
         LoadPit(1000);
         
-        //if((uint64_t)GetIdtTables() > 0x100000)
         EnableInterrupts();
+
+        
     }
 
     void KernelLoadMultiboot(multiboot2_info_header_t* mbInfo)
