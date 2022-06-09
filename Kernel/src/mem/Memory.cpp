@@ -1,6 +1,6 @@
-#include <Memory/Memory.h>
-#include <Memory/Buddy.h>
-#include <Graphic/GraphicsDevice.h>
+#include <mem/Memory.h>
+#include <mem/Buddy.h>
+#include <graphic/GraphicsDevice.h>
 
 #define CHECK_RANGE(x)
 

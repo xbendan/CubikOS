@@ -15,7 +15,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <Memory/MemoryRange.h>
+#include <mem/MemoryRange.h>
 #define MEMORY_MAP_LIMIT    64
 #ifndef ARCH_PAGE_SIZE
 #define ARCH_PAGE_SIZE (4096)

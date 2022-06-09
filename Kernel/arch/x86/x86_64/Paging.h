@@ -2,9 +2,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <Memory/MemoryFlags.h>
-#include <Memory/MemoryRange.h>
-#include <Memory/Memory.h>
+#include <mem/MemoryFlags.h>
+#include <mem/MemoryRange.h>
+#include <mem/Memory.h>
 
 #define ARCH_PAGE_SIZE      (4096)
 #define PAGES_PER_TABLE     512

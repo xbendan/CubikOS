@@ -1,5 +1,5 @@
-#include <Memory/Buddy.h>
-#include <Memory/MemoryAllocation.h>
+#include <mem/Buddy.h>
+#include <mem/MemoryAllocation.h>
 #include <Macros.h>
 #include <Panic.h>
 #include <GenericArch.h>

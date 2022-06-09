@@ -1,7 +1,7 @@
 #include <Paging.h>
-#include <Memory/Buddy.h>
-#include <Memory/MemoryAllocation.h>
-#include <Graphic/GraphicsDevice.h>
+#include <mem/Buddy.h>
+#include <mem/MemoryAllocation.h>
+#include <graphic/GraphicsDevice.h>
 
 
 namespace Paging

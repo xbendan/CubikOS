@@ -1,7 +1,7 @@
 #include <GenericArch.h>
-#include <Memory/Buddy.h>
-#include <Memory/Slub.h>
-#include <Memory/MemoryAllocation.h>
+#include <mem/Buddy.h>
+#include <mem/Slub.h>
+#include <mem/MemoryAllocation.h>
 
 namespace Memory
 {

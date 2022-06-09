@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include <Utils/LinkedList.h>
+#include <utils/LinkedList.h>
 
 #define PROCESS_PRIORITY_AMOUNT 6
 

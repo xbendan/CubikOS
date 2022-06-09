@@ -1,5 +1,5 @@
-#include <Graphic/GraphicsDevice.h>
-#include <Graphic/GraphicsConsole.h>
+#include <graphic/GraphicsDevice.h>
+#include <graphic/GraphicsConsole.h>
 
 namespace Graphics
 {

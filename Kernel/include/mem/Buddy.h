@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
-#include <Memory/Memory.h>
-#include <Utils/LinkedList.h>
-#include <Utils/Spinlock.h>
+#include <mem/Memory.h>
+#include <utils/LinkedList.h>
+#include <utils/Spinlock.h>
 /**
  * Each buddy node manages 16MiB memory
  */

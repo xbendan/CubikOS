@@ -1,5 +1,5 @@
 #include <Panic.h>
-#include <Graphic/GraphicsDevice.h>
+#include <graphic/GraphicsDevice.h>
 
 using namespace Graphics;
 
