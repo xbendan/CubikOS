@@ -31,12 +31,13 @@ namespace Process
      */
     typedef class Process
     {
-        linked_list_node_t listnode;
         char* name;
         char* publisher; /* The name of publisher of this running */
         activity_t* owner; /* Pointer to the owner Activity */
         uint16_t pid; /* Random process id 0~65535 */
         process_priority_t priority; /* Indicates the priority of this process (Will influence all threads under this process) */
         process_state_t state; /* Indicates whether this process is running or not */
+
+        void Exit(int exitValue);
     } process_t;
 }

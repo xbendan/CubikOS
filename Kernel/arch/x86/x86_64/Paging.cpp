@@ -75,6 +75,7 @@ namespace Paging
     page_map_t* CreateVirtualMemoryMap()
     {
         page_map_t* map;
+        // Incompleted
 
         map->pml4[0] = map->pml4Entry;
         map->pml4Entry = (pml4_entry_t)

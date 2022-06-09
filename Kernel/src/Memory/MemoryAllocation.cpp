@@ -7,7 +7,7 @@ namespace Memory
 {
     uintptr_t Allocate(size_t size)
     {
-        return AllocatePages(ToPowerOf2(size) / ARCH_PAGE_SIZE)
+        return AllocatePages(ToPowerOf2(size) / ARCH_PAGE_SIZE);
     }
 
     uintptr_t AllocatePages(size_t amount)
