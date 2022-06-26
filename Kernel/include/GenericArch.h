@@ -1,8 +1,11 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <proc/Task.h>
+#include <proc/Activity.h>
 #include <x86/x86_64/Paging.h>
 
 using namespace Paging;
+using namespace Process;
 
 namespace Generic
 {
@@ -15,4 +18,6 @@ namespace Generic
     void mm_MapVirtualAddress(page_map_t* map, uintptr_t phys, uintptr_t virt, size_t amount);
     uintptr_t mm_AllocatePages(page_map_t* map, size_t amount);
     void mm_FreePages(page_map_t* map, uintptr_t virt, size_t amount);
+
+    void SwitchContext(thread_t* oldThread, thread_t* newThread);
 }

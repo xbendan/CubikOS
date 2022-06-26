@@ -2,7 +2,7 @@
 
 namespace Utils::LinkedList
 {
-    void LlRemove(struct LinkedListNode* node)
+    void llRemove(struct LinkedListNode* node)
     {
         struct LinkedListNode* pNode = node->prev;
         struct LinkedListNode* nNode = node->next;
@@ -15,7 +15,7 @@ namespace Utils::LinkedList
         node->next = nullptr;
     }
 
-    void LlInsertAtNext(struct LinkedListNode* node0, struct LinkedListNode* node1)
+    void llInsertAtNext(struct LinkedListNode* node0, struct LinkedListNode* node1)
     {
         if(node0 == nullptr || node1 == nullptr)
             return;

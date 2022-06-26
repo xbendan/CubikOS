@@ -2,6 +2,8 @@
 #define BASE_TYPE
 
 typedef void* IntPtr;
+typedef int pid_t;
+typedef int tid_t;
 
 /**
  * @brief Common function delegate
