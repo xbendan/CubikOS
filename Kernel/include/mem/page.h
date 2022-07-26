@@ -21,12 +21,15 @@
 typedef struct pageframe
 {
     lklist_head_t listnode;
-    uint8_t order;
-    uint8_t rfcount;
-    bool free;
+    struct
+    {
+        uint8_t order: 4;
+        bool free: 1;
+        bool reserved: 1;
+        uint32_t ign: 26;
+    };
     spinlock_t lock;
     uintptr_t addr;
-    uint32_t ign_0;
 } page_t;
 
 /**
@@ -55,7 +58,7 @@ typedef struct pageframe_block
      * The lowest is 0, equals to 4KiB (1 page)
      * The highest is 12, equals to 16MiB (4096 pages)
      */
-    pageframe_list freelist[PAGE_MAX_ORDER + 1];
+    pageframe_list_t freelist[PAGE_MAX_ORDER + 1];
 } pageframe_node_t;
 
 static constexpr size_t page_size_align(size_t size)
@@ -81,7 +84,7 @@ static constexpr uint8_t page_size_order(size_t size)
     return order;
 }
 
-void pmm_create_node(memory_range_t range);
+void pmm_create_zone(range_t range);
 pageframe_t* pmm_alloc(size_t size);
 pageframe_t* pmm_alloc_page(uint8_t order);
 void pmm_free(uintptr_t addr);
