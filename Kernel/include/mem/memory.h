@@ -1,0 +1,1 @@
+#define MEM_PAGE_SIZE (4096)

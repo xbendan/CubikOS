@@ -1,4 +1,4 @@
-extern "C" uintptr_t isr_tables[];
+extern uintptr_t isr_tables[];
 static struct idt_entry idt_entry_list[IDT_ENTRY_COUNT];
 static struct idt_ptr idtr = {
     .size = sizeof(idt_entry) * IDT_ENTRY_COUNT,

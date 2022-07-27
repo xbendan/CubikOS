@@ -66,4 +66,4 @@ typedef struct registers
 typedef void (*isr_t)(void*, registers_t*);
 
 void lidt();
-extern "C" void asmw_flush_idt(uint64_t);
+extern void asmw_flush_idt(uint64_t);

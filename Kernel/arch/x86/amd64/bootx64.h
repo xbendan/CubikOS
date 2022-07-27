@@ -796,3 +796,96 @@ struct stivale2_struct_tag_hhdm {
 
 #endif
 
+#include <boot/bootinfo.h>
+
+void parse_multiboot2_info(boot_info_t *boot_info, multiboot2_info_header_t *mb_info)
+{
+
+}
+
+void parse_stivale2_info(boot_info_t *boot_info, stivale2_struct_t *st_info)
+{
+    stivale2_tag* tag = reinterpret_cast<stivale2_tag*>(stInfo->tags);
+    struct boot_mem *mem_info = &boot_info->mem;
+    while (tag)
+    {
+        switch (tag->identifier)
+        {
+        case STIVALE2_STRUCT_TAG_MEMMAP_ID:
+        {
+            stivale2_struct_tag_memmap *st2_mem_tag = reinterpret_cast<stivale2_struct_tag_memmap *>(tag);
+            for (uint64_t idx = 0; idx < st2_mem_tag->entries; idx++)
+            {
+                stivale2_mmap_entry *from_entry = &st2_mem_tag->memmap[idx];
+                struct memory_map_entry *new_entry = &mem_info->entries[mem_info->map_size];
+
+                if (from_entry->base > UINTPTR_MAX ||
+                    from_entry->base + from_entry->length > UINTPTR_MAX)
+                {
+                    continue;
+                }
+/*
+                if (currentEntry->type == STIVALE2_MMAP_USABLE ||
+                    currentEntry->type == STIVALE2_MMAP_KERNEL_AND_MODULES)
+                {
+
+                }
+*/
+
+                mem_info->total_size += from_entry->length;
+                new_entry->range = {
+                    .base = from_entry->base,
+                    .size = from_entry->length
+                };
+                switch (entry->type)
+                {
+                case STIVALE2_MMAP_USABLE:
+                case STIVALE2_MMAP_KERNEL_AND_MODULES:
+                    mem_info->usable += from_entry->length;
+                    from_entry->type = MemoryMapEntryTypeAvailable;
+                    break;
+                case STIVALE2_MMAP_ACPI_RECLAIMABLE:
+                    from_entry->type = MemoryMapEntryTypeAcpiReclaimable;
+                    break;
+                case STIVALE2_MMAP_ACPI_NVS:
+                    from_entry->type = MemoryMapEntryTypeNvs;
+                    break;
+                case STIVALE2_MMAP_BAD_MEMORY:
+                    from_entry->type = MemoryMapEntryTypeBadRam;
+                    break;
+                default:
+                    from_entry->type = MemoryMapEntryTypeReserved;
+                    break;
+                }
+                mem_info->map_size++;
+            }
+            break;
+        }
+        case STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID:
+        {
+            /*
+            stivale2_struct_tag_framebuffer *fbTag = reinterpret_cast<stivale2_struct_tag_framebuffer *>(tag);
+            framebuffer_t *buffer = &_bootInfo->graphic;
+
+            buffer->addr = fbTag->framebuffer_addr;
+            buffer->height = fbTag->framebuffer_height;
+            buffer->width = fbTag->framebuffer_width;
+            buffer->depth = fbTag->framebuffer_bpp;
+            buffer->pitch = fbTag->framebuffer_pitch;
+            */
+            break;
+        }
+        case STIVALE2_STRUCT_TAG_MODULES_ID:
+        {
+            break;
+        }
+        case STIVALE2_STRUCT_TAG_RSDP_ID:
+        {
+            break;
+        }
+        }
+        tag = reinterpret_cast<stivale2_tag *>(tag->next);
+    }
+
+    boot_info->check = 0xDEADC0DE;
+}

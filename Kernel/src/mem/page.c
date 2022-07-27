@@ -68,7 +68,7 @@ pageframe_t* pmm_alloc_page(uint8_t order)
 
 void pmm_free(uintptr_t addr)
 {
-    for(uint8_t )
+    
 }
 
 void pmm_free(pageframe_t* pf)

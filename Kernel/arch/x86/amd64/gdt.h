@@ -78,4 +78,4 @@ struct gdt_pack
 } __attribute__((packed));
 
 void lgdt();
-extern "C" void asmw_flush_gdt(uint64_t);
+extern void asmw_flush_gdt(uint64_t);

@@ -46,7 +46,7 @@ stivale2header:
     dq kload_stivale2
     dq stack_top
     dq 0
-    dq stivale2linearframebuffer
+    dq 0
 
 section .data
 stivale2linearframebuffer:
