@@ -11,8 +11,10 @@
 pageframe_list_t pf_freelist[PAGE_MAX_ORDER + 1];
 pageframe_t pf_heap[4096];
 
+void pmm_create_zone(range_t range)
+{
 
-void pmm_create_zone(range_t range) {}
+}
 
 pageframe_t* pmm_alloc(size_t size)
 {
@@ -21,7 +23,7 @@ pageframe_t* pmm_alloc(size_t size)
         return nullptr;
     }
 
-    uint8_t order = page_size_order(page_size_aligned(size) / 4096);
+    uint8_t order = page_size_order(page_size_align(size) / 4096);
 
     return pmm_alloc_page(order);
 }
@@ -54,7 +56,7 @@ pageframe_t* pmm_alloc_page(uint8_t order)
         return nullptr;
     }
 
-    page = reinterpret_cast<pageframe_t*>(pf_list->first.next);
+    page = (pageframe_t*)(pf_list->handle.next);
     pf_list->count--;
     lklist_remove(&page->listnode);
 
@@ -71,10 +73,25 @@ void pmm_free(uintptr_t addr)
     
 }
 
-void pmm_free(pageframe_t* pf)
+void pmm_free_page(pageframe_t* pf)
+{
+
+}
+
 void pmm_mark_used(range_t range);
 pageframe_t* pageframe_struct(uintptr_t addr);
 void pmm_dump_memory();
-pageframe_t* pmm_struct_expand(pageframe_t* pf);
-pageframe_t* pmm_struct_combine(pageframe_t* pf);
-void pmm_struct_combine(pageframe_t* lpage, pageframe_t* rpage);
+pageframe_t* pmm_struct_expand(pageframe_t* pf)
+{
+
+}
+
+pageframe_t* pmm_struct_combine(pageframe_t* pf)
+{
+
+}
+
+void pmm_struct_combine_pages(pageframe_t* lpage, pageframe_t* rpage)
+{
+
+}

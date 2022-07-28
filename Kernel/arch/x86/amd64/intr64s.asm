@@ -67,7 +67,7 @@ intrid%1:
     pop rax
 %endmacro
 
-extern DispatchInterrupt
+extern dispatch_interrupts
 
 _commonInterrupt:
     cld
@@ -75,7 +75,7 @@ _commonInterrupt:
     _PUSHA_
 
     mov rdi, rsp
-    call DispatchInterrupt
+    call dispatch_interrupts
     mov rsp, rax
 
     _POPA_
@@ -139,7 +139,7 @@ INTR_SYSCALL 128
 
 global isr_tables
 
-isrTable:
+isr_tables:
     INTR_NAME 0
     INTR_NAME 1
     INTR_NAME 2

@@ -1,3 +1,5 @@
+#pragma once
+
 typedef struct range
 {
     uintptr_t start, end;

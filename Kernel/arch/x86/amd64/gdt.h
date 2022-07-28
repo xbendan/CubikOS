@@ -20,12 +20,12 @@ struct gdt_entry
     uint16_t limit_low;
     uint16_t base_low;
     uint8_t base_medium;
-    uint8_t flags;
-    uint8_t limit_medium;
+    uint8_t access;
     uint8_t granularity;
     uint8_t base_high;
 
-    constexpr gdt_entry(uint32_t base, uint32_t limit, uint8_t gra, uint8_t flags)
+    /*
+    gdt_entry(uint32_t base, uint32_t limit, uint8_t gra, uint8_t flags)
       : limit_low((uint16_t)(limit & 0xffff)),
         base_low((uint16_t)(base & 0xffff)),
         base_medium((uint8_t)((base >> 16) & 0xff)),
@@ -33,11 +33,27 @@ struct gdt_entry
         granularity(gra),
         base_high((uint8_t)((base >> 24) & 0xff)) {}
 
-    constexpr gdt_entry(uint8_t flags, uint8_t gra)
+    gdt_entry(uint8_t flags, uint8_t gra)
       : gdt_entry(0, 0, gra, flags) {}
+    */
 } __attribute__((packed));
 
-struct task_state_segment
+/*
+inline gdt_entry build_gdt_entry(uint32_t base, uint32_t limit, uint8_t gra, uint8_t flags)
+{
+    return gdt_entry
+    {
+        .limit_low = ((uint16_t)(limit & 0xffff)),
+        .base_low = ((uint16_t)(base & 0xffff)),
+        .base_medium = ((uint8_t)((base >> 16) & 0xff)),
+        .flags = flags,
+        .granularity = gra,
+        .base_high = ((uint8_t)((base >> 24) & 0xff))
+    };
+}
+*/
+
+typedef struct task_state_segment
 {
     uint32_t ign_0;
     uint64_t rsp[3];
@@ -47,7 +63,7 @@ struct task_state_segment
     uint32_t ign_3;
     uint16_t ign_4;
     uint16_t iopb_offset;
-} __attribute__((packed));
+} __attribute__((packed)) tss_t;
 
 struct gdt_tss_entry
 {
@@ -60,7 +76,8 @@ struct gdt_tss_entry
     uint32_t base_upper;
     uint32_t ign;
 
-    constexpr gdt_tss_entry(uintptr_t addr)
+    /*
+    gdt_tss_entry(uintptr_t addr)
       : len(sizeof(task_state_segment)),
         base_low(addr & 0xffff),
         base_medium((addr >> 16) & 0xff),
@@ -69,12 +86,13 @@ struct gdt_tss_entry
         base_high((addr >> 24) & 0xff),
         base_upper((addr >> 32)),
         ign(0) {}
+    */
 } __attribute__((packed));
 
 struct gdt_pack
 {
-    struct gdt_entry entries[GDT_ENTRY_COUNT] = {};
-    struct gdt_tss_entry tss = {0};
+    struct gdt_entry entries[GDT_ENTRY_COUNT];
+    struct gdt_tss_entry tss;
 } __attribute__((packed));
 
 void lgdt();

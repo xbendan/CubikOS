@@ -805,7 +805,7 @@ void parse_multiboot2_info(boot_info_t *boot_info, multiboot2_info_header_t *mb_
 
 void parse_stivale2_info(boot_info_t *boot_info, stivale2_struct_t *st_info)
 {
-    stivale2_tag* tag = reinterpret_cast<stivale2_tag*>(stInfo->tags);
+    struct stivale2_tag* tag = (struct stivale2_tag*)(st_info->tags);
     struct boot_mem *mem_info = &boot_info->mem;
     while (tag)
     {
@@ -813,10 +813,10 @@ void parse_stivale2_info(boot_info_t *boot_info, stivale2_struct_t *st_info)
         {
         case STIVALE2_STRUCT_TAG_MEMMAP_ID:
         {
-            stivale2_struct_tag_memmap *st2_mem_tag = reinterpret_cast<stivale2_struct_tag_memmap *>(tag);
+            struct stivale2_struct_tag_memmap *st2_mem_tag = (struct stivale2_struct_tag_memmap*)(tag);
             for (uint64_t idx = 0; idx < st2_mem_tag->entries; idx++)
             {
-                stivale2_mmap_entry *from_entry = &st2_mem_tag->memmap[idx];
+                struct stivale2_mmap_entry *from_entry = &st2_mem_tag->memmap[idx];
                 struct memory_map_entry *new_entry = &mem_info->entries[mem_info->map_size];
 
                 if (from_entry->base > UINTPTR_MAX ||
@@ -833,11 +833,11 @@ void parse_stivale2_info(boot_info_t *boot_info, stivale2_struct_t *st_info)
 */
 
                 mem_info->total_size += from_entry->length;
-                new_entry->range = {
-                    .base = from_entry->base,
-                    .size = from_entry->length
+                new_entry->range = (range_t){
+                    .start = from_entry->base,
+                    .end = from_entry->base + from_entry->length
                 };
-                switch (entry->type)
+                switch (from_entry->type)
                 {
                 case STIVALE2_MMAP_USABLE:
                 case STIVALE2_MMAP_KERNEL_AND_MODULES:
@@ -884,7 +884,7 @@ void parse_stivale2_info(boot_info_t *boot_info, stivale2_struct_t *st_info)
             break;
         }
         }
-        tag = reinterpret_cast<stivale2_tag *>(tag->next);
+        tag = (struct stivale2_tag*)(tag->next);
     }
 
     boot_info->check = 0xDEADC0DE;

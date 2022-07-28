@@ -1,4 +1,5 @@
 #include <utils/list.h>
+#include <macros.h>
 
 void lklist_remove(lklist_head_t* node)
 {

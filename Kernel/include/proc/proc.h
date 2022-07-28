@@ -48,9 +48,9 @@ typedef struct process
     {
         uint64_t total;
         uint64_t allocated;
-        uint32_t present;
         uint32_t cached;
-        uint32_t swapped;
+        uint32_t present_pages;
+        uint32_t swapped_pages;
     };
 } proc_t;
 

@@ -1,5 +1,4 @@
-#include <stdint.h>
-#include <stddef.h>
+#include <macros.h>
 #include <mem/mflags.h>
 #include <mem/memory.h>
 #include <utils/range.h>
@@ -20,7 +19,7 @@
 #define PAGE_FLAG_NOCACHE           (1 << 4)
 #define IS_PAGE_ALIGNED(addr)       (addr % ARCH_PAGE_SIZE == 0)
 
-struct pml4_entry
+typedef struct pml4_entry
 {
     bool present : 1;       // Must be 1
     bool writable : 1;      // Page is readonly if set to 0, also called Read/Write bit
@@ -32,9 +31,9 @@ struct pml4_entry
     uint64_t addr : 36;     // Physical Address
     int ign_48_62 : 15;     // Ignored
     bool disable_exec: 1;
-} __attribute__((packed))
+} __attribute__((packed)) vm_pml4_entry_t;
 
-struct pml3_entry
+typedef struct pml3_entry
 {
     bool present : 1;       // Must be 1
     bool writable : 1;      // Page is readonly if set to 0, also called Read/Write bit
@@ -48,9 +47,9 @@ struct pml3_entry
     uint64_t addr : 36;
     int ign_48_62 : 15;
     bool disable_exec : 1;
-} __attribute__((packed))
+} __attribute__((packed)) vm_pdpt_entry_t;
 
-struct pml2_entry
+typedef struct pml2_entry
 {
     bool present : 1;       // Must be 1
     bool writable : 1;      // Page is readonly if set to 0, also called Read/Write bit
@@ -64,9 +63,9 @@ struct pml2_entry
     uint64_t addr : 36;
     int ign_48_62 : 15;
     bool disable_exec : 1;
-} __attribute__((packed))
+} __attribute__((packed)) vm_pd_entry_t;
 
-struct pml1_entry
+typedef struct page_entry
 {
     bool present : 1;      // Must be 1
     bool writable : 1;     // Page is readonly if set to 0, also called Read/Write bit
@@ -80,27 +79,43 @@ struct pml1_entry
     int ign_9_11 : 3;
     uint64_t addr : 36;
     int ign_48_57 : 10;
-    bool key : 5;
+    uint8_t key : 5;
     bool disable_exec : 1;
-}
+} __attribute__((packed)) vm_page_t;
+
+typedef struct pml4
+{
+    vm_pml4_entry_t entries[PDPTS_PER_PML4];
+} pml4_t; /* 512GiB -> 256TiB */
+
+typedef struct pdpt
+{
+    vm_pdpt_entry_t entries[DIRS_PER_PDPT];
+} pdpt_t; /* 1GiB -> 512GiB */
+
+typedef struct page_dir
+{
+    vm_pd_entry_t entries[TABLES_PER_DIR];
+} page_dir_t; /* 2MiB -> 1GiB */
+
+typedef struct page_table
+{
+    vm_page_t entries[PAGES_PER_TABLE];
+} page_table_t; /* 4KiB -> 2MiB */
 
 typedef uint64_t page_flags_t;
-using pml4_t = pml4_entry_t[PDPTS_PER_PML4]; /* 512GiB -> 256TiB */
-    using pdpt_t = pdpt_entry_t[DIRS_PER_PDPT]; /* 1GiB -> 512GiB */
-    using page_dir_t = pd_entry_t[TABLES_PER_DIR]; /* 2MiB -> 1GiB */
-    using page_table_t = page_t[PAGES_PER_TABLE]; /* 4KiB -> 2MiB */
 
 extern pml4_t* asmw_get_pagemap(void);
 static inline void asmi_load_paging(uintptr_t addr) { asm("mov %%rax, %%cr3" ::"a"((uint64_t)addr)); }
 static inline void asmi_invlpg(uintptr_t addr) { asm volatile("invlpg (%0)"::"r"(addr)); }
-static inline size_t pml4_index_of(uintptr_t addr) { return (addr >> 39) & 0x1ff; }
-static inline size_t pdpt_index_of(uintptr_t addr) { return (addr >> 30) & 0x1ff; }
-static inline size_t pd_index_of(uintptr_t addr) { return (addr >> 21) & 0x1ff; }
-static inline size_t pt_index_of(uintptr_t addr) { return (addr >> 12) & 0x1ff; }
+static inline size_t pml4_indexof(uintptr_t addr) { return (addr >> 39) & 0x1ff; }
+static inline size_t pdpt_indexof(uintptr_t addr) { return (addr >> 30) & 0x1ff; }
+static inline size_t pd_indexof(uintptr_t addr) { return (addr >> 21) & 0x1ff; }
+static inline size_t page_indexof(uintptr_t addr) { return (addr >> 12) & 0x1ff; }
 /**
  * @brief Initialize kernel page map and virtual memory management
  */
-void vmm_init();
+void vmm_init(void);
 /**
  * @brief 
  * 
@@ -137,7 +152,5 @@ uintptr_t virt_to_phys(
     uintptr_t addr
 );
 void switch_page_tables(pml4_t *map);
-void disable_paging();
-void enable_paging();
 pml4_t* current_page_map();
 pml4_t* get_kernel_pages();

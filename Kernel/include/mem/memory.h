@@ -1,1 +1,1 @@
-#define MEM_PAGE_SIZE (4096)
+#define ARCH_PAGE_SIZE (4096)

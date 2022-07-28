@@ -17,28 +17,28 @@ void kernel_init()
         // stop running.
     }
 
-    disable_interrupts();
+    cli();
     lgdt();
     lidt();
 
     vmm_init();
 }
 
-extern [[noreturn]] void kload_multiboot2(void *addr)
+void kload_multiboot2(void *addr)
 {
 hang:
     __asm__("hlt");
     goto hang;
 }
 
-extern [[noreturn]] void kload_stivale2(void *addr)
+void kload_stivale2(void *addr)
 {
     if(addr == nullptr)
         __asm__("mov $0x32, %al");
 
     parse_stivale2_info(
         &boot_info,
-        reinterpret_cast<stivale2_struct_t*>(addr)
+        (stivale2_struct_t*)(addr)
     );
     kernel_init();
 

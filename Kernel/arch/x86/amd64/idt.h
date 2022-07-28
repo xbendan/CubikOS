@@ -45,6 +45,7 @@ struct idt_entry
     uint32_t base_high;
     uint32_t ign;
 
+    /*
     constexpr idt_entry(uintptr_t base, uint16_t ist, uint8_t flags)
       : base_low(base & 0xffff),
         selector(0x08),
@@ -53,17 +54,8 @@ struct idt_entry
         base_med((base >> 16) & 0xffff),
         base_high((base >> 32) & 0xffffffff),
         ign(0) {}
+    */
 } __attribute__((packed));
-
-typedef struct registers
-{
-    uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
-    uint64_t rbp, rdi, rsi, rdx, rcx, rbx, rax;
-    uint64_t intno, err;
-    uint64_t rip, cs, rflags, rsp, ss;
-} __attribute__((packed)) registers_t;
-
-typedef void (*isr_t)(void*, registers_t*);
 
 void lidt();
 extern void asmw_flush_idt(uint64_t);

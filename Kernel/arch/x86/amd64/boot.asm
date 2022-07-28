@@ -1,12 +1,16 @@
+BITS 32
+
 global start_mb32
 global start_st64
 global _boot_fatal
 extern kload_stivale2
-extern __bss
-extern __bss_end
+extern _bss
+extern _bss_end
 
 
-section .text
+section .boot.text
+extern _boot_fatal
+
 start_mb32:
     cli ; Disable interrupts
 
@@ -52,7 +56,6 @@ check_long_mode:
 .fail:
 	mov al, "1"
 	jmp _boot_fatal
-
 _boot_fatal:
     mov dword [0xb8000], 0x4f524f45
 	mov dword [0xb8004], 0x4f3a4f52
@@ -60,7 +63,7 @@ _boot_fatal:
 	mov byte  [0xb800a], al
 	hlt
 
-bits 64
+BITS 64
 mb_addr:
     dd 0
     dd 0
@@ -72,11 +75,12 @@ start_jmp64:
     hlt
 
 start_st64:
+    hlt
     mov qword [st_addr], rdi ; Save RDI as it contains bootloader information
 
-    mov rdi, __bss
-    mov rcx, __bss_end
-    sub rcx, __bss
+    mov rdi, _bss
+    mov rcx, _bss_end
+    sub rcx, _bss
     xor rax, rax
     rep stosb
 
