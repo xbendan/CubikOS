@@ -1,7 +1,7 @@
 Backup
 Kernel/build
 Kernel/dist
-Kernel/targets
+Kernel/target
 Kernel/backup
 .vscode
 backup
