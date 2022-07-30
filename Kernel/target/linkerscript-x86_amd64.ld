@@ -16,6 +16,8 @@ SECTIONS
     }
 
     . += KERNEL_VMA;
+    KERNEL_START_ADDR = .;
+    KERNEL_END_ADDR = .;
 
     .stivale2hdr : AT(ADDR(.stivale2hdr) - KERNEL_VMA)
     {

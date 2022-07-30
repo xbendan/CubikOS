@@ -1,3 +1,6 @@
+#include <macros.h>
+#include <mem/bitmap.h>
+
 typedef uint16_t pid_t;
 typedef uint32_t tid_t;
 
@@ -25,7 +28,7 @@ enum task_type
     TaskTypeApplication = 2,
     TaskTypeService = 3,
     TaskTypeBackground = 4
-}
+};
 
 typedef struct process
 {
@@ -42,16 +45,15 @@ typedef struct process
     uint16_t threads;
     uint16_t handles;
     uint16_t cores;
-    uint32_t m_used;
-    uint32_t m_pages;
     struct mem
     {
-        uint64_t total;
         uint64_t allocated;
         uint32_t cached;
+        uint32_t pages;
         uint32_t present_pages;
         uint32_t swapped_pages;
     };
+    bitmap_t vmap;
 } proc_t;
 
 typedef struct Thread

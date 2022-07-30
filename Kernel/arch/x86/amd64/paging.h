@@ -31,7 +31,7 @@ typedef struct pml4_entry
     uint64_t addr : 36;     // Physical Address
     int ign_48_62 : 15;     // Ignored
     bool disable_exec: 1;
-} __attribute__((packed)) vm_pml4_entry_t;
+} __attribute__((packed)) pml4_entry_t;
 
 typedef struct pml3_entry
 {
@@ -47,7 +47,7 @@ typedef struct pml3_entry
     uint64_t addr : 36;
     int ign_48_62 : 15;
     bool disable_exec : 1;
-} __attribute__((packed)) vm_pdpt_entry_t;
+} __attribute__((packed)) pdpt_entry_t;
 
 typedef struct pml2_entry
 {
@@ -63,7 +63,7 @@ typedef struct pml2_entry
     uint64_t addr : 36;
     int ign_48_62 : 15;
     bool disable_exec : 1;
-} __attribute__((packed)) vm_pd_entry_t;
+} __attribute__((packed)) pd_entry_t;
 
 typedef struct page_entry
 {
@@ -81,26 +81,26 @@ typedef struct page_entry
     int ign_48_57 : 10;
     uint8_t key : 5;
     bool disable_exec : 1;
-} __attribute__((packed)) vm_page_t;
+} __attribute__((packed)) page_t;
 
 typedef struct pml4
 {
-    vm_pml4_entry_t entries[PDPTS_PER_PML4];
+    pml4_entry_t entries[PDPTS_PER_PML4];
 } pml4_t; /* 512GiB -> 256TiB */
 
 typedef struct pdpt
 {
-    vm_pdpt_entry_t entries[DIRS_PER_PDPT];
+    pdpt_entry_t entries[DIRS_PER_PDPT];
 } pdpt_t; /* 1GiB -> 512GiB */
 
 typedef struct page_dir
 {
-    vm_pd_entry_t entries[TABLES_PER_DIR];
+    pd_entry_t entries[TABLES_PER_DIR];
 } page_dir_t; /* 2MiB -> 1GiB */
 
 typedef struct page_table
 {
-    vm_page_t entries[PAGES_PER_TABLE];
+    page_t entries[PAGES_PER_TABLE];
 } page_table_t; /* 4KiB -> 2MiB */
 
 typedef uint64_t page_flags_t;
@@ -129,21 +129,28 @@ bool vmm_page_present(
     uint64_t addr
 );
 void map_virtual_address(
+    pml4_t *map,
     uint64_t phys,
     uint64_t virt,
     size_t amount,
     page_flags_t flags
 );
-uintptr_t vmm_alloc_pages(size_t amount);
+uintptr_t vmm_alloc_pages(
+    pml4_t *map,
+    size_t amount
+);
 void vmm_free_pages(
+    pml4_t *map,
     uint64_t virt,
     size_t amount
 );
 void mark_pages_used(
+    pml4_t *map,
     uint64_t virt, 
     size_t amount
 );
 void mark_pages_free(
+    pml4_t *map,
     uint64_t virt,
     size_t amount
 );
