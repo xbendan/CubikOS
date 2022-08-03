@@ -1,6 +1,6 @@
 #include <macros.h>
-#include <x86/amd64/idt.h>
-#include <x86/amd64/interrupts.h>
+#include <x86_64/idt.h>
+#include <x86_64/interrupts.h>
 
 void cli() { __asm__("cli"); }
 void sti() { __asm__("sti"); }

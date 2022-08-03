@@ -1,4 +1,4 @@
-#include <x86/amd64/gdt.h>
+#include <x86_64/gdt.h>
 
 static struct task_state_segment tss = {
     .ign_0 = 0,

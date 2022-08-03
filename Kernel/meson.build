@@ -31,18 +31,18 @@ KERNEL_CFILES = [
 ]
 
 KERNEL_CFILES_AMD64 = [
-    'arch/x86/amd64/bootx64.c',
-    'arch/x86/amd64/gdt.c',
-    'arch/x86/amd64/idt.c',
-    'arch/x86/amd64/paging.c'
+    'arch/x86_64/bootx64.c',
+    'arch/x86_64/gdt.c',
+    'arch/x86_64/idt.c',
+    'arch/x86_64/paging.c'
 ]
 
 KERNEL_ASMFILES_AMD64 = [
-    'arch/x86/amd64/boot.asm',
-    'arch/x86/amd64/header.asm',
-    'arch/x86/amd64/interrupts.asm',
-    'arch/x86/amd64/stack.asm',
-    'arch/x86/amd64/wrapper.asm'
+    'arch/x86_64/boot.asm',
+    'arch/x86_64/header.asm',
+    'arch/x86_64/interrupts.asm',
+    'arch/x86_64/stack.asm',
+    'arch/x86_64/wrapper.asm'
 ]
 
 KERNEL_LDFLAGS = [

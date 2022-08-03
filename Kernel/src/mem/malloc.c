@@ -1,10 +1,12 @@
 #include <mem/page.h>
 #include <mem/malloc.h>
 #ifdef ARCH_X86_64
-#include <x86/amd64/paging.h>
+#include <x86_64/paging.h>
 #endif
 
-uintptr_t alloc_pages(size_t amount)
+uintptr_t alloc_pages(
+    proc_t *process, 
+    size_t amount)
 {
     amount = page_size_align(amount);
 
@@ -15,9 +17,9 @@ uintptr_t alloc_pages(size_t amount)
         return 0;
     }
 
-    uintptr_t virt = vmm_alloc_pages(amount);
+    uintptr_t virt = vmm_alloc_pages(process, amount);
 
-    map_virtual_address()
+    //map_virtual_address()
 }
 
 uintptr_t kmalloc(size_t size)

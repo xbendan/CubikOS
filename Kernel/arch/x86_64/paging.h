@@ -1,6 +1,9 @@
+#pragma once
+
 #include <macros.h>
 #include <mem/mflags.h>
 #include <mem/memory.h>
+#include <proc/proc.h>
 #include <utils/range.h>
 
 #define ARCH_PAGE_SIZE              (4096)
@@ -136,21 +139,21 @@ void map_virtual_address(
     page_flags_t flags
 );
 uintptr_t vmm_alloc_pages(
-    pml4_t *map,
+    proc_t *process,
     size_t amount
 );
 void vmm_free_pages(
-    pml4_t *map,
+    proc_t *process,
     uint64_t virt,
     size_t amount
 );
 void mark_pages_used(
-    pml4_t *map,
+    proc_t *process,
     uint64_t virt, 
     size_t amount
 );
 void mark_pages_free(
-    pml4_t *map,
+    proc_t *process,
     uint64_t virt,
     size_t amount
 );

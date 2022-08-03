@@ -1,3 +1,5 @@
+#pragma once
+
 #include <macros.h>
 #include <mem/bitmap.h>
 
@@ -36,23 +38,27 @@ typedef struct process
     char *publisher;
     char *filename;
     pid_t pid;
-    uint8_t type;
-    struct
+    enum task_type type;
+    union
     {
-        bool focus: 1;
-        
-    } __attribute__((packed)) flags;
+        uint32_t size;
+        struct
+        {
+            bool focus: 1;
+            uint32_t reserved: 31;
+        } __attribute__((packed));
+    };
     uint16_t threads;
     uint16_t handles;
     uint16_t cores;
-    struct mem
+    struct
     {
         uint64_t allocated;
         uint32_t cached;
         uint32_t pages;
         uint32_t present_pages;
         uint32_t swapped_pages;
-    };
+    } mem;
     bitmap_t vmap;
 } proc_t;
 

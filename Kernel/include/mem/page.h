@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -13,6 +15,8 @@
 #define PAGE_NODE_TOTAL_SIZE ((4 * 1024 * 1024) + (1024 * sizeof(buddy_page_t)))
 #define EQUALS_POWER_TWO(x) (!((x) & ((x) - 1)))
 
+
+
 /**
  * @brief Buddy page is the main unit of buddy system
  * It will be saved into the free area.
@@ -21,13 +25,13 @@
 typedef struct pageframe
 {
     lklist_head_t listnode;
-    struct
+    struct pf_flags
     {
         uint8_t order: 4;
         bool free: 1;
         bool reserved: 1;
         uint32_t ign: 26;
-    };
+    } __attribute__((packed)) flags;
     spinlock_t lock;
     uintptr_t addr;
 } pageframe_t;
@@ -61,35 +65,12 @@ typedef struct pageframe_block
     pageframe_list_t freelist[PAGE_MAX_ORDER + 1];
 } pageframe_node_t;
 
-size_t page_size_align(size_t size)
-{
-    size--;
-    size |= size >> 1;
-    size |= size >> 2;
-    size |= size >> 4;
-    size |= size >> 8;
-    size |= size >> 16;
-    return size + 1;
-}
-
-uint8_t page_size_order(size_t size)
-{
-    uint8_t order = PAGE_MAX_ORDER - 1;
-    size_t m_size = PAGE_MAX_SIZE / ARCH_PAGE_SIZE;
-    while (m_size != size)
-    {
-        m_size /= 2;
-        order--;
-    }
-    return order;
-}
-
-void pmm_create_zone(range_t range);
+void pmm_init_zone(range_t range);
 pageframe_t* pmm_alloc(size_t size);
-pageframe_t* pmm_alloc_page(uint8_t order);
+pageframe_t* pmm_alloc_pages(uint8_t order);
 void pmm_free(uintptr_t addr);
 void pmm_free_page(pageframe_t* pf);
-void pmm_mark_used(range_t range);
+void pmm_mark_pages_used(range_t range);
 pageframe_t* pageframe_struct(uintptr_t addr);
 void pmm_dump_memory();
 pageframe_t* pmm_struct_expand(pageframe_t* pf);

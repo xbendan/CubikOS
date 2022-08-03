@@ -1,15 +1,17 @@
+#pragma once
+
 #include <utils/range.h>
 #include <macros.h>
 #define MEMORY_MAP_LIMIT 64
 
 enum memory_map_entry_type
 {
-    MemoryMapEntryTypeAvailable,
-    MemoryMapEntryTypeReserved,
-    MemoryMapEntryTypeAcpiReclaimable,
-    MemoryMapEntryTypeNvs,
-    MemoryMapEntryTypeBadRam,
-    MemoryMapEntryTypeKernel
+    MemoryMapEntryTypeAvailable = 0,
+    MemoryMapEntryTypeReserved = 1,
+    MemoryMapEntryTypeAcpiReclaimable = 2,
+    MemoryMapEntryTypeNvs = 3,
+    MemoryMapEntryTypeBadRam = 4,
+    MemoryMapEntryTypeKernel = 5
 };
 
 struct memory_map_entry
@@ -25,16 +27,11 @@ struct boot_mem
     size_t map_size;
     struct memory_map_entry entries[MEMORY_MAP_LIMIT];
 };
-
-struct boot_graphic_framebuffer
-{
-    
-};
-
-
 struct boot_graphic
 {
-    
+    struct {
+
+    } framebuffer;
 };
 
 typedef struct boot_info
@@ -44,3 +41,5 @@ typedef struct boot_info
     struct boot_mem mem;
     struct boot_graphic graphic;
 } boot_info_t;
+
+boot_info_t* get_boot_info();

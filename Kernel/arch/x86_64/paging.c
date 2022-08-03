@@ -1,7 +1,8 @@
-#include <x86/amd64/paging.h>
+#include <x86_64/paging.h>
 #include <mem/memory.h>
 #include <mem/malloc.h>
 #include <proc/sched.h>
+#include <macros.h>
 
 pml4_t kernel_page_map __attribute__((aligned(ARCH_PAGE_SIZE)));
 pdpt_t kernel_pdpts __attribute__((aligned(ARCH_PAGE_SIZE)));
@@ -50,9 +51,25 @@ void vmm_init()
 
     proc_t *kproc = get_kernel_process();
     for (size_t idx = 0; idx < 16; idx++)
-        kproc->vmap->buffer_marks[idx] = &kvm_marks[idx * 512];
+        kproc->vmap.buffer_marks[idx] = &kvm_marks[idx * 512];
 
-    mark_pages_used(0x0, 256);
+    uint64_t kernel_address = ALIGN_DOWN((uintptr_t) &KERNEL_START_ADDR, ARCH_PAGE_SIZE);
+    uint64_t kernel_page_amount = (ALIGN_UP((uintptr_t) &KERNEL_END_ADDR, ARCH_PAGE_SIZE) - kernel_address) / ARCH_PAGE_SIZE;
+
+    map_virtual_address(
+        &kernel_page_map,
+        kernel_address,
+        kernel_address + KERNEL_VIRTUAL_BASE,
+        kernel_page_amount,
+        0
+    );
+    mark_pages_used(
+        kproc,
+        kernel_address,
+        kernel_page_amount
+    );
+
+    //mark_pages_used(0x0, 256);
 }
 
 bool vmm_page_present(
@@ -115,12 +132,12 @@ void map_virtual_address(
             pml4_entry->writable = 1;
             pml4_entry->usr = usr;
             
-            pdpt_entry_t *pdpt_entry = (pdpt_entry_t*) alloc_pages(1);
+            pdpt_entry_t *pdpt_entry = (pdpt_entry_t*) alloc_pages(kproc, 1);
 
-            pml4_entry->addr = (uint64_t) / ARCH_PAGE_SIZE;
+            pml4_entry->addr = (uint64_t)pdpt_entry / ARCH_PAGE_SIZE;
         }
 
-        pdpt_entry_t *pdpt_entry = &map->pdptEntries[pdptIndex];
+        pdpt_entry_t *pdpt_entry = &(((pdpt_entry_t*)(pml4_entry->addr * ARCH_PAGE_SIZE))[pdpt_index]);
 
         if(!pdpt_entry->present)
         {
@@ -128,12 +145,12 @@ void map_virtual_address(
             pdpt_entry->writable = 1;
             pdpt_entry->usr = usr;
 
-            pd_entry_t *pd_entry = (pd_entry_t*) alloc_pages(1);
+            pd_entry_t *pd_entry = (pd_entry_t*) alloc_pages(kproc, 1);
 
-            pdpt->addr = (uint64_t) pd_entry / ARCH_PAGE_SIZE;
+            pdpt_entry->addr = (uint64_t)pd_entry / ARCH_PAGE_SIZE;
         }
 
-        pd_entry_t *pd_entry = &map->pageDirEntries[pdptIndex][pdIndex];
+        pd_entry_t *pd_entry = &(((pd_entry_t*)(pdpt_entry->addr * ARCH_PAGE_SIZE))[pd_index]);
 
         if (!pd_entry->present)
         {
@@ -141,7 +158,7 @@ void map_virtual_address(
             pd_entry->writable = 1;
             pd_entry->usr = usr;
 
-            page_t *page = (page_t *) alloc_pages(1);
+            page_t *page = (page_t *) alloc_pages(kproc, 1);
 
             pd_entry->addr = (uint64_t)page / ARCH_PAGE_SIZE;
         }
@@ -152,14 +169,14 @@ uintptr_t vmm_alloc_pages(
     proc_t *process,
     size_t amount)
 {
-    if(process == null)
+    if(process == nullptr)
         process = get_current_process();
 
     uintptr_t virt = 0;
     bool is_kernel_space = (process == get_kernel_process());
     size_t amount_left;
     size_t space_limit = (is_kernel_space ? 16 : 16 * 256);
-    uint64_t** marks = process->vmap->buffer_marks;
+    uint64_t** marks = process->vmap.buffer_marks;
     /*
      * Each process can take upto 512 GiB virtual address
      * which is 512GiB / 128MiB = 8 * 512 = 4096
@@ -175,7 +192,9 @@ uintptr_t vmm_alloc_pages(
         if (marks[idx] == nullptr)
         {
             /* Try to allocate and map 1 page (4096 KiB) for saving marks. */
-            uint64_t virt = alloc_pages(1);
+            uint64_t virt = alloc_pages(
+                get_kernel_process(),
+                1);
             if(virt)
                 marks[idx] = virt;
             else
@@ -212,9 +231,9 @@ uintptr_t vmm_alloc_pages(
                      * If the virtual address is empty, set a new address and
                      * start to count the pages left.
                      */
-                    if (!vaddr)
+                    if (!virt)
                     {
-                        vaddr = ((idx * 32768) + (sub_index * 64) + bit_index) * ARCH_PAGE_SIZE;
+                        virt = ((idx * 32768) + (sub_index * 64) + bit_index) * ARCH_PAGE_SIZE;
                         amount_left = amount;
                     }
 
@@ -229,12 +248,12 @@ uintptr_t vmm_alloc_pages(
                      */
                     if (!--amount_left)
                     {
-                        mark_pages_used(map, vaddr, amount);
-                        return is_kernel_space ? vaddr : vaddr + KERNEL_VIRTUAL_BASE;
+                        mark_pages_used(process, virt, amount);
+                        return is_kernel_space ? virt : virt + KERNEL_VIRTUAL_BASE;
                     }
                 }
                 else
-                    vaddr = 0;
+                    virt = 0;
             }
         }
     }
@@ -243,19 +262,19 @@ uintptr_t vmm_alloc_pages(
 }
 
 void vmm_free_pages(
-    pml4_t *map,
+    proc_t *process,
     uint64_t virt,
     size_t amount)
 {
-
+    mark_pages_free(process, virt, amount);
 }
 
 void mark_pages_used(
-    pml4_t *map,
+    proc_t *process,
     uint64_t virt, 
     size_t amount)
 {
-    if(map == get_kernel_pages())
+    if(process == get_kernel_process())
         virt -= KERNEL_VIRTUAL_BASE;
 
     uint16_t page_index, ptr_index;
@@ -268,7 +287,7 @@ void mark_pages_used(
         page_index = virt / 64;
         bit_index = virt % 64;
 
-        map->vmap->buffer_masks[ptr_index][page_index] |= (1 << bit_index);
+        process->vmap.buffer_marks[ptr_index][page_index] |= (1 << bit_index);
         virt++;
         amount--;
 
@@ -278,11 +297,11 @@ void mark_pages_used(
 }
 
 void mark_pages_free(
-    pml4_t *map,
+    proc_t *process,
     uint64_t virt,
     size_t amount)
 {
-    if(map == get_kernel_pages())
+    if(process == get_kernel_process())
         virt -= KERNEL_VIRTUAL_BASE;
 
     uint16_t page_index, ptr_index;
@@ -295,7 +314,7 @@ void mark_pages_free(
         page_index = virt / 64;
         bit_index = virt % 64;
 
-        map->vmap->buffer_masks[ptr_index][page_index] &= ~(1 << bit_index);
+        process->vmap.buffer_marks[ptr_index][page_index] &= ~(1 << bit_index);
         virt++;
         amount--;
 
