@@ -20,7 +20,7 @@ KERNEL_CFLAGS = -ffreestanding \
 	-mfsgsbase \
 	-mgeneral-regs-only \
 	-z max-page-size=0x1000 \
-	-nostdlib
+	-nostdlib 
 
 KERNEL_LDFLAGS = -nostdlib \
 	-O2 \
