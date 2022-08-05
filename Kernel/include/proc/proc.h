@@ -38,7 +38,7 @@ typedef struct process
     char *publisher;
     char *filename;
     pid_t pid;
-    enum task_type type;
+    uint8_t type;
     union
     {
         uint32_t size;

@@ -169,7 +169,7 @@ void pmm_free_page(pageframe_t* pf)
 
 void pmm_mark_pages_used(range_t range)
 {
-
+    
 }
 
 pageframe_t* pageframe_struct(uintptr_t addr)

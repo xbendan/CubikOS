@@ -4,6 +4,7 @@ Kernel/dist
 Kernel/target
 Kernel/backup
 .vscode
+.VSCodeCounter
 backup
 Kernel/targets/x86_32/iso/boot/atrikrnl.elf
 Kernel/dump.mem

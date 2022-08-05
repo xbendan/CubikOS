@@ -32,7 +32,7 @@ ARCH_C_FILES_X64_IN 			:=  $(shell find ./arch/x86_64 -name *.c)
 ARCH_ASM_FILES_X64_OUT			:=  $(patsubst ./arch/x86_64/%.asm, ./build/x86_64/%.o, $(ARCH_ASM_FILES_X64_IN))
 ARCH_C_FILES_X64_OUT			:=  $(patsubst ./arch/x86_64/%.c, ./build/x86_64/%.o, $(ARCH_C_FILES_X64_IN))
 
-ARCH_x86_64_OUTPUT 			= 	$(ARCH_ASM_FILES_X64_OUT) $(ARCH_C_FILES_X64_OUT)
+ARCH_x86_64_OUTPUT 				= 	$(ARCH_ASM_FILES_X64_OUT) $(ARCH_C_FILES_X64_OUT)
 
 KERNEL_INCLUDES = -Iinclude -Iarch
 

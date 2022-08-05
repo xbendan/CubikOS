@@ -1,4 +1,4 @@
-typedef volatile uint32_t spinlock_t;
+typedef volatile uint16_t spinlock_t;
 
 static inline void spinlock_init(spinlock_t* lock)
 {

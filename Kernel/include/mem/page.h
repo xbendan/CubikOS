@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <mem/memory.h>
+#include <mem/slub.h>
 #include <utils/list.h>
 #include <utils/spinlock.h>
 #include <utils/range.h>
@@ -25,13 +26,29 @@
 typedef struct pageframe
 {
     lklist_head_t listnode;
-    struct pf_flags
+    struct
     {
         uint8_t order: 4;
         bool free: 1;
-        bool reserved: 1;
-        uint32_t ign: 26;
-    } __attribute__((packed)) flags;
+        bool kmem: 1;
+        uint32_t __ign: 10;
+    } __attribute__((packed));
+    struct
+    {
+        struct
+        {
+            uint32_t slab_inuse: 16;
+            uint32_t slab_objects: 15;
+            uint32_t slab_frozen: 1;
+        };
+        union
+        {
+            uint64_t private;
+            struct slab_mem_cache *slab_cache;
+            struct pageframe *first_page;
+        }
+        void *freelist;
+    };
     spinlock_t lock;
     uintptr_t addr;
 } pageframe_t;
