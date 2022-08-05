@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <mem/memory.h>
-#include <mem/slub.h>
 #include <utils/list.h>
 #include <utils/spinlock.h>
 #include <utils/range.h>
@@ -46,7 +45,7 @@ typedef struct pageframe
             uint64_t private;
             struct slab_mem_cache *slab_cache;
             struct pageframe *first_page;
-        }
+        };
         void *freelist;
     };
     spinlock_t lock;

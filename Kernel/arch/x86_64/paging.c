@@ -1,6 +1,7 @@
 #include <x86_64/paging.h>
 #include <mem/memory.h>
 #include <mem/malloc.h>
+#include <mem/address.h>
 #include <proc/sched.h>
 #include <macros.h>
 
@@ -51,7 +52,7 @@ void vmm_init()
 
     proc_t *kproc = get_kernel_process();
     for (size_t idx = 0; idx < 16; idx++)
-        kproc->vmap.buffer_marks[idx] = &kvm_marks[idx * 512];
+        kproc->vmmap[idx] = &kvm_marks[idx * 512];
 
     uint64_t kernel_address = ALIGN_DOWN((uintptr_t) &KERNEL_START_ADDR, ARCH_PAGE_SIZE);
     uint64_t kernel_page_amount = (ALIGN_UP((uintptr_t) &KERNEL_END_ADDR, ARCH_PAGE_SIZE) - kernel_address) / ARCH_PAGE_SIZE;
@@ -106,7 +107,8 @@ void map_virtual_address(
     size_t amount,
     page_flags_t flags)
 {
-    bool usr = (map != get_kernel_pages());
+    bool writable = flags & PAGE_FLAG_WRITABLE;
+    bool usr = flags & PAGE_FLAG_USER;
     proc_t *kproc = get_kernel_process();
     size_t pml4_index, pdpt_index, pd_index, page_index;
 
@@ -117,19 +119,12 @@ void map_virtual_address(
         pd_index = pd_indexof(virt);
         page_index = page_indexof(virt);
 
-        /*
-        if(pml4_index == PDPTS_PER_PML4 - 1 && map != get_kernel_pages())
-        {
-            return;
-        }
-        */
-
         pml4_entry_t *pml4_entry = &map->entries[pml4_index];
         
         if(!pml4_entry->present)
         {
             pml4_entry->present = 1;
-            pml4_entry->writable = 1;
+            pml4_entry->writable = writable;
             pml4_entry->usr = usr;
             
             pdpt_entry_t *pdpt_entry = (pdpt_entry_t*) alloc_pages(kproc, 1);
@@ -142,7 +137,7 @@ void map_virtual_address(
         if(!pdpt_entry->present)
         {
             pdpt_entry->present = 1;
-            pdpt_entry->writable = 1;
+            pdpt_entry->writable = writable;
             pdpt_entry->usr = usr;
 
             pd_entry_t *pd_entry = (pd_entry_t*) alloc_pages(kproc, 1);
@@ -155,13 +150,24 @@ void map_virtual_address(
         if (!pd_entry->present)
         {
             pd_entry->present = 1;
-            pd_entry->writable = 1;
+            pd_entry->writable = writable;
             pd_entry->usr = usr;
 
             page_t *page = (page_t *) alloc_pages(kproc, 1);
 
             pd_entry->addr = (uint64_t)page / ARCH_PAGE_SIZE;
         }
+
+        page_t *page = &(((page_t*)(pd_entry->addr * ARCH_PAGE_SIZE))[page_index]);
+
+        page->present = 1;
+        page->writable = writable;
+        page->usr = usr;
+
+        page->addr = phys / ARCH_PAGE_SIZE;
+
+        phys += ARCH_PAGE_SIZE;
+        virt += ARCH_PAGE_SIZE;
     }
 }
 
@@ -176,7 +182,7 @@ uintptr_t vmm_alloc_pages(
     bool is_kernel_space = (process == get_kernel_process());
     size_t amount_left;
     size_t space_limit = (is_kernel_space ? 16 : 16 * 256);
-    uint64_t** marks = process->vmap.buffer_marks;
+    uint64_t** marks = process->vmmap;
     /*
      * Each process can take upto 512 GiB virtual address
      * which is 512GiB / 128MiB = 8 * 512 = 4096
@@ -287,7 +293,7 @@ void mark_pages_used(
         page_index = virt / 64;
         bit_index = virt % 64;
 
-        process->vmap.buffer_marks[ptr_index][page_index] |= (1 << bit_index);
+        process->vmmap[ptr_index][page_index] |= (1 << bit_index);
         virt++;
         amount--;
 
@@ -302,7 +308,7 @@ void mark_pages_free(
     size_t amount)
 {
     if(process == get_kernel_process())
-        virt -= KERNEL_VIRTUAL_BASE;
+        virt -= KERNEL_ADDR_SPACE;
 
     uint16_t page_index, ptr_index;
     uint8_t bit_index;
@@ -314,7 +320,7 @@ void mark_pages_free(
         page_index = virt / 64;
         bit_index = virt % 64;
 
-        process->vmap.buffer_marks[ptr_index][page_index] &= ~(1 << bit_index);
+        process->vmmap[ptr_index][page_index] &= ~(1 << bit_index);
         virt++;
         amount--;
 

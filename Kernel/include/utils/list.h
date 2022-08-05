@@ -1,3 +1,5 @@
+#pragma once
+
 typedef struct linked_list_node
 {
     struct linked_list_node *prev;

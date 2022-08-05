@@ -1,6 +1,9 @@
 #pragma once
 
 #include <macros.h>
+#include <mem/page.h>
+#include <utils/list.h>
+#include <utils/spinlock.h>
 #define SLAB_MAX_BLOCK_ORDER        16
 #define SLAB_MAX_STRUCT_ORDER       1
 #define SLAB_MAX_CPU_COUNT          256

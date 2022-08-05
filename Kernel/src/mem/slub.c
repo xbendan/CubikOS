@@ -1,8 +1,6 @@
 #include <mem/slub.h>
 #include <mem/malloc.h>
 
-#include <proc/proc.h>
-
 const uint16_t struct_size[] = {
     sizeof(thread_t)
 };
@@ -33,13 +31,13 @@ uint8_t get_struct_order(size_t size)
     return 0;
 }
 
-uintptr_t __alloc_block(uint8_t index, size_t size, )
+//uintptr_t __alloc_block(uint8_t index, size_t size, )
 
 uintptr_t alloc_block(size_t size)
 {
     uint8_t order = get_block_order(size);
 
-    if(order >= SLAB_MAX_ORDER)
+    if(order >= SLAB_MAX_BLOCK_ORDER)
     {
         // try to allocate from buddy allocator
         return nullptr;

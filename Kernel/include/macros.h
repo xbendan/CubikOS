@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -13,3 +15,6 @@
 // ex: 9 with align = 8 -> 16
 // ex: 7 with align = 8 -> 8
 #define ALIGN_UP(__addr, __align) (((__addr) + (__align)-1) & ~((__align)-1))
+
+
+

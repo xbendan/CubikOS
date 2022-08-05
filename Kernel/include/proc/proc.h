@@ -1,8 +1,9 @@
 #pragma once
 
 #include <macros.h>
-#include <mem/bitmap.h>
 
+
+;
 typedef uint16_t pid_t;
 typedef uint32_t tid_t;
 
@@ -58,8 +59,8 @@ typedef struct process
         uint32_t pages;
         uint32_t present_pages;
         uint32_t swapped_pages;
-    } mem;
-    bitmap_t vmap;
+    };
+    uint64_t** vmmap;
 } proc_t;
 
 typedef struct Thread
