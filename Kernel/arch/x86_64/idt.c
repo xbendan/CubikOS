@@ -9,6 +9,7 @@ static struct idt_pack idtr = {
 
 void lidt()
 {
+    /*
     for (uint8_t num = 0; num < 48; num++)
         idt_entry_list[num] = (struct idt_entry){
             .base_low = (isr_tables[num] & 0xffff),
@@ -18,6 +19,7 @@ void lidt()
             .base_med = ((isr_tables[num] >> 16) & 0xffff),
             .base_high = ((isr_tables[num] >> 32) & 0xffffffff)
         };
+    */
         
 
     idt_entry_list[127] = (struct idt_entry){

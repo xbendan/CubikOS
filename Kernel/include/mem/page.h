@@ -88,7 +88,6 @@ void pmm_free(uintptr_t addr);
 void pmm_free_page(pageframe_t* pf);
 void pmm_mark_pages_used(range_t range);
 pageframe_t* pageframe_struct(uintptr_t addr);
-void pmm_dump_memory();
 pageframe_t* pmm_struct_expand(pageframe_t* pf);
 pageframe_t* pmm_struct_combine(pageframe_t *pf);
 void pmm_struct_combine_pages(pageframe_t *lpage, pageframe_t *rpage);

@@ -1,5 +1,6 @@
 #include <mem/page.h>
 #include <mem/malloc.h>
+#include <graphic/terminal.h>
 #ifdef ARCH_X86_64
 #include <x86_64/paging.h>
 #endif
@@ -14,6 +15,7 @@ uintptr_t alloc_pages(
     if(!phys)
     {
         // out of memory, try to swap page
+        print_string("OOM");
         return 0;
     }
 

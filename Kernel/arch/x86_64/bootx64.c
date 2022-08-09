@@ -6,6 +6,7 @@
 #include <x86_64/interrupts.h>
 #include <x86_64/pic.h>
 #include <x86_64/pit.h>
+#include <mem/address.h>
 #include <panic.h>
 
 static boot_info_t boot_info;
@@ -18,16 +19,42 @@ void kernel_init()
     }
 
     // load x86 features
-    cli();
+    //cli();
     lgdt();
     lidt();
+
+    //set_framebuffer(boot_info.graphic.buffer_address);
 
     // load memory management
     init_mem();
 
-    switch_page_tables(
-        get_kernel_pages()
+    struct boot_graphic *graphic = &boot_info.graphic;
+
+    uint64_t framebuffer_pages = graphic->width * graphic->height * graphic->bytes_per_pixel / 8 / ARCH_PAGE_SIZE;
+
+/*
+    map_virtual_address(
+        get_kernel_pages(),
+        graphic->buffer_address,
+        KERNEL_FRAMEBUFFER_BASE,
+        framebuffer_pages,
+        PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE
     );
+*/
+
+    //switch_page_tables(
+    //    get_kernel_pages()
+    //);
+/*
+    uint32_t *buffer = (uint32_t *) graphic->buffer_address;//KERNEL_FRAMEBUFFER_BASE;
+    for (unsigned i = 0; i < graphic->height; i++)
+    {
+        for (unsigned j = 0; j < graphic->width; j++)
+        {
+            buffer[(i * graphic->width) + j] = 0xCCCCCCCC;
+        }
+    }
+*/
 
     /**
      * @attention PIC and PIT are required before enable interrupts

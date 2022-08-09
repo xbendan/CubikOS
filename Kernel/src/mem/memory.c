@@ -1,5 +1,7 @@
 #include <mem/memory.h>
 #include <boot/bootinfo.h>
+#include <graphic/terminal.h>
+#include <panic.h>
 
 #ifdef ARCH_X86_64
 #include <x86_64/paging.h>
@@ -63,12 +65,40 @@ void init_mem()
 {
     vmm_init();
 
+    uint64_t t_addr = vmm_alloc_pages(
+        get_kernel_process(),
+        1
+    );
+    map_virtual_address(
+        get_kernel_pages(),
+        0xb8000,
+        t_addr,
+        1,
+        PAGE_FLAG_WRITABLE
+    );
+    //print_long(t_addr);
+    switch_page_tables(
+        get_kernel_pages()
+    );
+    //triple_fault();
+    set_t_buffer(t_addr);
+    print_string("HELLO");
+
+    
+
     struct boot_mem *mem = &get_boot_info()->mem;
 
+    int count = 0;
     mem_stats = (struct mem_stats){
         .total = mem->total_size,
     };
+    for(int i = 0; i < mem->map_size; i++)
+    {
+        if(mem->entries[i].type == 0)
+            count++;
+    }
     for (size_t type = 0; type < 6; type++)
+    {
         for (size_t idx = 0; idx < mem->map_size; idx++)
         {
             struct memory_map_entry *entry = &mem->entries[idx];
@@ -84,19 +114,30 @@ void init_mem()
             switch (entry->type)
             {
             case MemoryMapEntryTypeAvailable:
+                print_string("Load memory free entry.");
                 pmm_init_zone(entry->range);
                 mem_stats.available += size;
                 break;
             case MemoryMapEntryTypeKernel:
+                /*
+                print_string("Load memory kernel entry.");
                 pmm_init_zone(entry->range);
                 pmm_mark_pages_used((range_t){
                     .start = ALIGN_DOWN(entry->range.start, ARCH_PAGE_SIZE),
                     .end = ALIGN_UP(entry->range.end, ARCH_PAGE_SIZE)
                 });
+                */
                 mem_stats.allocated += size;
                 mem_stats.inuse += size;
             default:
+                print_string("Skip memory entry.");
                 break;
             }
+            
         }
+    }
+    asm("hlt");
+
+    print_string("Memory initialized.");
+    panic("");
 }

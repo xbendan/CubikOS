@@ -29,9 +29,13 @@ struct boot_mem
 };
 struct boot_graphic
 {
+    uint16_t width;
+    uint16_t height;
     struct {
-
-    } framebuffer;
+        uint64_t buffer_address;
+        uint16_t pitch;
+        uint16_t bytes_per_pixel;
+    };
 };
 
 typedef struct boot_info

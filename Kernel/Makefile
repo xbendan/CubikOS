@@ -20,7 +20,7 @@ KERNEL_CFLAGS = -ffreestanding \
 	-mfsgsbase \
 	-mgeneral-regs-only \
 	-z max-page-size=0x1000 \
-	-nostdlib -c
+	-nostdlib
 
 KERNEL_LDFLAGS = -nostdlib \
 	-O2 \
@@ -44,11 +44,11 @@ $(ARCH_ASM_FILES_X64_OUT): build/x86_64/%.o : arch/x86_64/%.asm
 	$(NASM) $(patsubst build/x86_64/%.o, arch/x86_64/%.asm, $@) -o $@
 $(ARCH_C_FILES_X64_OUT): build/x86_64/%.o : arch/x86_64/%.c
 	mkdir -p $(dir $@) && \
-	$(CC) $(KERNEL_INCLUDES) $(KERNEL_CFLAGS) $(patsubst build/x86_64/%.o, arch/x86_64/%.c, $@) -o $@
+	$(CC) $(KERNEL_INCLUDES) $(KERNEL_CFLAGS) -c $(patsubst build/x86_64/%.o, arch/x86_64/%.c, $@) -o $@
 
 $(KERNEL_FILES_OUT): build/kernel/%.o : src/%.c
 	mkdir -p $(dir $@) && \
-	$(CC) $(KERNEL_INCLUDES) $(KERNEL_CFLAGS) $(patsubst build/kernel/%.o, src/%.c, $@) -o $@
+	$(CC) $(KERNEL_INCLUDES) $(KERNEL_CFLAGS) -c $(patsubst build/kernel/%.o, src/%.c, $@) -o $@
 
 .PHONY: build
 build: $(ARCH_x86_64_OUTPUT) $(KERNEL_FILES_OUT)

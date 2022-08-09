@@ -3,7 +3,6 @@
 #include <macros.h>
 #include <boot/bootinfo.h>
 #define ARCH_PAGE_SIZE (4096)
-#define KERNEL_VIRTUAL_BASE 0xffffffff80000000
 
 extern uint64_t KERNEL_START_ADDR;
 extern uint64_t KERNEL_END_ADDR;

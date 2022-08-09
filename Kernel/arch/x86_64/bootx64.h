@@ -833,28 +833,28 @@ void parse_stivale2_info(boot_info_t *boot_info, stivale2_struct_t *st_info)
 */
 
                 mem_info->total_size += from_entry->length;
-                new_entry->range = (range_t){
-                    .start = from_entry->base,
-                    .end = from_entry->base + from_entry->length
-                };
+                new_entry->range.start = from_entry->base;
+                new_entry->range.end = from_entry->base + from_entry->length;
                 switch (from_entry->type)
                 {
                 case STIVALE2_MMAP_USABLE:
-                case STIVALE2_MMAP_KERNEL_AND_MODULES:
                     mem_info->usable += from_entry->length;
-                    from_entry->type = MemoryMapEntryTypeAvailable;
+                    new_entry->type = 0;
+                    break; 
+                case STIVALE2_MMAP_KERNEL_AND_MODULES:
+                    new_entry->type = 5;
                     break;
                 case STIVALE2_MMAP_ACPI_RECLAIMABLE:
-                    from_entry->type = MemoryMapEntryTypeAcpiReclaimable;
+                    new_entry->type = 2;
                     break;
                 case STIVALE2_MMAP_ACPI_NVS:
-                    from_entry->type = MemoryMapEntryTypeNvs;
+                    new_entry->type = 3;
                     break;
                 case STIVALE2_MMAP_BAD_MEMORY:
-                    from_entry->type = MemoryMapEntryTypeBadRam;
+                    new_entry->type = 4;
                     break;
                 default:
-                    from_entry->type = MemoryMapEntryTypeReserved;
+                    new_entry->type = 1;
                     break;
                 }
                 mem_info->map_size++;
@@ -863,16 +863,15 @@ void parse_stivale2_info(boot_info_t *boot_info, stivale2_struct_t *st_info)
         }
         case STIVALE2_STRUCT_TAG_FRAMEBUFFER_ID:
         {
-            /*
-            stivale2_struct_tag_framebuffer *fbTag = reinterpret_cast<stivale2_struct_tag_framebuffer *>(tag);
-            framebuffer_t *buffer = &_bootInfo->graphic;
+            struct stivale2_struct_tag_framebuffer *framebuffer_tag = (struct stivale2_struct_tag_framebuffer *) tag;
+            struct boot_graphic *graphic = &boot_info->graphic;
 
-            buffer->addr = fbTag->framebuffer_addr;
-            buffer->height = fbTag->framebuffer_height;
-            buffer->width = fbTag->framebuffer_width;
-            buffer->depth = fbTag->framebuffer_bpp;
-            buffer->pitch = fbTag->framebuffer_pitch;
-            */
+            graphic->width = framebuffer_tag->framebuffer_width;
+            graphic->height = framebuffer_tag->framebuffer_height;
+
+            graphic->buffer_address = framebuffer_tag->framebuffer_addr;
+            graphic->pitch = framebuffer_tag->framebuffer_pitch;
+            graphic->bytes_per_pixel = framebuffer_tag->framebuffer_bpp;
             break;
         }
         case STIVALE2_STRUCT_TAG_MODULES_ID:
