@@ -127,7 +127,7 @@ void vmm_init(void);
  * @return true If the page is present (in the memory)
  * @return false If the page does not exist or be swapped into disks.
  */
-bool vmm_page_present(
+bool is_page_present(
     pml4_t *map, 
     uint64_t addr
 );

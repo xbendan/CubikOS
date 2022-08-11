@@ -1,5 +1,7 @@
 #include <mem/page.h>
 #include <mem/malloc.h>
+#include <proc/sched.h>
+#include <proc/proc.h>
 #include <graphic/terminal.h>
 #ifdef ARCH_X86_64
 #include <x86_64/paging.h>
@@ -11,17 +13,35 @@ uintptr_t alloc_pages(
 {
     amount = page_size_align(amount);
 
-    uintptr_t phys = pmm_alloc_pages(page_size_order(amount))->addr;
-    if(!phys)
+    pageframe_t *phys_page = pmm_alloc_pages(page_size_order(amount));
+    if(phys_page == nullptr)
     {
         // out of memory, try to swap page
-        print_string("OOM");
+        print_string("OUT OF MEMORY!");
         return 0;
     }
-
+    uintptr_t phys = phys_page->addr;
     uintptr_t virt = vmm_alloc_pages(process, amount);
 
-    //map_virtual_address()
+    print_string("ALLOCATING");
+    print_long(phys);
+    print_long(virt);
+
+    page_flags_t flags = PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE;
+    if(process == get_kernel_process())
+    {
+        flags |= PAGE_FLAG_USER;
+    }
+
+    map_virtual_address(
+        process->page_map,
+        phys,
+        virt,
+        amount,
+        flags
+    );
+
+    return virt;
 }
 
 uintptr_t kmalloc(size_t size)

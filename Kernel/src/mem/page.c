@@ -56,9 +56,9 @@ size_t page_size_align(size_t size)
  */
 uint8_t page_size_order(size_t size)
 {
-    uint8_t order = PAGE_MAX_ORDER - 1;
+    uint8_t order = PAGE_MAX_ORDER;
     size_t m_size = PAGE_MAX_SIZE / ARCH_PAGE_SIZE;
-    while (m_size != size)
+    while (m_size > size)
     {
         m_size /= 2;
         order--;
@@ -76,13 +76,22 @@ void write_pages(
     pageframe_t *pages,
     uintptr_t address)
 {
+    //print_long(virt_to_phys(get_kernel_pages(), (uint64_t) &pages[0]));
+    if((uint64_t) pages == 0xFFFF808000020000)
+    {
+        virt_to_phys(get_kernel_pages(), 0xFFFF808000020000);
+        uint64_t *u64 = (uint64_t *) 0xFFFF808000020000;
+        *u64 = 0xFFFFFFFFFFFFFFFF;
+        asm("hlt");
+    }
     for (size_t idx = 0; idx < 1024; idx++)
     {
         pages[idx].free = 1;
         pages[idx].addr = address + (idx * ARCH_PAGE_SIZE);
         pages[idx].first_page = pages;
     }
-
+    
+    
     pages->order = PAGE_MAX_ORDER;
     lklist_append(
         &pf_freelist[PAGE_MAX_ORDER - 1].handle,
@@ -113,9 +122,11 @@ void pmm_init_zone(range_t range)
     uintptr_t current = start_address;
 
     /* Loop until all the addresses are initialized */
-    while (current < end_address)
+    while (current < end_address - PAGE_MAX_SIZE)
     {
-        if(current >= (&KERNEL_START_ADDR - KERNEL_VIRTUAL_BASE) && current <= (&KERNEL_END_ADDR - KERNEL_VIRTUAL_BASE))
+        //if(current >= (&KERNEL_START_ADDR - KERNEL_VIRTUAL_BASE) && current <= (&KERNEL_END_ADDR - KERNEL_VIRTUAL_BASE))
+        //    continue;
+        if(current < 0x100000)
             continue;
         /* 
          * Try to allocate 8 pages (order 4) for storing [struct pageframe]
@@ -127,7 +138,6 @@ void pmm_init_zone(range_t range)
          * The maximum size of the page can describe is 1024 * 4 KiB = 4096 KiB = 4 MiB
          */
         pageframe_t *alloc_space = pmm_alloc_pages(4);
-        size_t vma_offset = current / ARCH_PAGE_SIZE;
         /*  */
         if(alloc_space == nullptr)
         {
@@ -140,31 +150,26 @@ void pmm_init_zone(range_t range)
             uintptr_t virt = vmm_alloc_pages(
                 get_kernel_process(),
                 16);
-            print_long(virt);
             map_virtual_address(
                 get_kernel_pages(),
                 current,
                 virt,
                 16,
-                0);
+                PAGE_FLAG_WRITABLE);
 ///
             alloc_space = (pageframe_t *)virt;
-            print_string("LINE 151");
             write_pages(
                 alloc_space,
                 current);
-            print_string("LINE 155");
-            pmm_mark_pages_used((range_t){
-                current,
-                current + (16 * ARCH_PAGE_SIZE)});
+            uintptr_t phys = pmm_alloc_pages(4)->addr;
 
             int64_t offset = current - KERNEL_PHYSICAL_PAGES;
             map_virtual_address(
                 get_kernel_pages(),
                 current,
-                KERNEL_PHYSICAL_PAGES + (vma_offset * sizeof(pageframe_t)),
-                16, 0);
-            asm("hlt");
+                KERNEL_PHYSICAL_PAGES + (current / ARCH_PAGE_SIZE * sizeof(pageframe_t)),
+                16,
+                PAGE_FLAG_WRITABLE);
             
             /// ISSUE HERE
             
@@ -188,8 +193,7 @@ void pmm_init_zone(range_t range)
                 }
             }
             */
-            print_string("LINE 190");
-
+           
             /*
             vmm_free_pages(
                 get_kernel_process(),
@@ -199,23 +203,38 @@ void pmm_init_zone(range_t range)
         }
         else
         {
-            print_string("LINE 201");
-            uintptr_t virt = KERNEL_PHYSICAL_PAGES + (vma_offset * sizeof(pageframe_t));
+            uintptr_t pages = (current / ARCH_PAGE_SIZE * sizeof(pageframe_t)) + KERNEL_PHYSICAL_PAGES;
+            uintptr_t temp = vmm_alloc_pages(
+                get_kernel_process(),
+                16);
+            pageframe_t *map_to = pmm_alloc_pages(4);
+            if(map_to == nullptr)
+            {
+                // panic
+                return;
+            }
             map_virtual_address(
                 get_kernel_pages(),
-                current,
-                virt,
-                16, 0
-            );
+                map_to->addr,
+                temp,
+                16,
+                PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE);
+            map_virtual_address(
+                get_kernel_pages(),
+                map_to->addr,
+                pages,
+                
+            )
+            print_long(sizeof(pageframe_t));
+            print_long(map_to->addr);
+            print_long(temp);
             write_pages(
-                (pageframe_t*)virt,
-                current
-            );
+                temp,
+                current);
+            asm("hlt");
         }
 
-        vma_offset += 1024;
         current += PAGE_MAX_SIZE;
-        print_string("LINE 217");
     }
 
     print_string("Entry loaded");
@@ -295,8 +314,6 @@ SELECT_PAGE:
         goto SELECT_PAGE;
     }
 
-    print_string("LINE 300");
-
     pf_list->count--;
     lklist_remove(&page->listnode);
 
@@ -304,7 +321,6 @@ SELECT_PAGE:
 
     while(m_order > order)
     {
-        print_string("LINE 309 TRY EXPAND");
         page = pmm_struct_expand(page);
         m_order--;
     }
@@ -351,25 +367,19 @@ void pmm_mark_pages_used(range_t range)
         if(page == nullptr)
             continue;
 
-        print_string("LINE 353");
-
         acquire_spinlock(&page->lock);
 
         page->free = false;
         lklist_remove(&page->listnode);
-        print_string("LINE 352");
 
         release_spinlock(&page->lock);
 
         current += ARCH_PAGE_SIZE;
     }
-
-    print_string("LINE 358");
 }
 
 pageframe_t* pageframe_struct(uintptr_t addr)
 {
-    print_long(addr);
     return (pageframe_t *)(KERNEL_PHYSICAL_PAGES + (addr / ARCH_PAGE_SIZE * sizeof(pageframe_t)));
 }
 
@@ -393,26 +403,24 @@ pageframe_t* pmm_struct_expand(pageframe_t* page)
     lklist_remove(&page->listnode);
     /* Decrease the order and find the lower tier list */
     struct pageframe_list *freelist = &pf_freelist[--page->order];
-
-    /* Insert this page into the lower tier free list */
-    lklist_append(&freelist->handle, &page->listnode);
     
     /* Find another page descriptor and initialize it */
-    uintptr_t new_address = page->addr + ((1 << page->order) * ARCH_PAGE_SIZE);
-    pageframe_t *new_page = pageframe_struct(new_address);
-    print_long((uint64_t)new_page);
+    // uintptr_t new_address = page->addr + ((1 << page->order) * ARCH_PAGE_SIZE);
+    pageframe_t *new_page = ((uintptr_t) page) + ((1 << page->order) * sizeof(pageframe_t));
+    //pageframe_t *new_page = pageframe_struct(new_address);
+
     new_page->order = page->order;
-    print_string("LINE 403");
-    new_page->addr = new_address;
+    new_page->addr = page->addr + ((1 << page->order) * ARCH_PAGE_SIZE);
     new_page->free = true;
+
+    /* Insert this page into the lower tier free list */
+    lklist_append(&freelist->handle, &new_page->listnode);
 
     freelist->count++;
 
-    print_string("LINE 408");
-
     release_spinlock(&page->lock);
 
-    return new_page;
+    return page;
 }
 
 /**

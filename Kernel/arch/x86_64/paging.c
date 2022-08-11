@@ -80,9 +80,7 @@ void vmm_init()
     kproc->vmmap = &kvm_marks;
     for (size_t idx = 0; idx < 16; idx++)
         kproc->vmmap[idx] = &kvm_marks[idx * 512];
-
-    print_string("Initialized kernel page markers");
-    print_long(kproc->vmmap);
+    kproc->page_map = get_kernel_pages();
 
     uint64_t kernel_address = ALIGN_DOWN((uintptr_t) &KERNEL_START_ADDR, ARCH_PAGE_SIZE);
     uint64_t kernel_page_amount = (ALIGN_UP((uintptr_t) &KERNEL_END_ADDR, ARCH_PAGE_SIZE) - kernel_address) / ARCH_PAGE_SIZE;
@@ -108,29 +106,32 @@ void vmm_init()
     //mark_pages_used(0x0, 256);
 }
 
-bool vmm_page_present(
+bool is_page_present(
     pml4_t *map, 
     uint64_t addr)
 {
-    pml4_entry_t *pml4_entry = (pml4_entry_t*)&((map->entries[pml4_indexof(addr)]));
+    pml4_entry_t *pml4_entry = &map->entries[pml4_indexof(addr)];
     if (!pml4_entry->present)
     {
         return false;
     }
 
-    pdpt_entry_t *pdpt_entry = (pdpt_entry_t*)&(((pdpt_t*)(pml4_entry->addr * ARCH_PAGE_SIZE))->entries[pdpt_indexof(addr)]);
+    pdpt_t *_pdpt = (pdpt_t *)(pml4_entry->addr * ARCH_PAGE_SIZE + KERNEL_VIRTUAL_BASE);
+    pdpt_entry_t *pdpt_entry = &_pdpt->entries[pdpt_indexof(addr)];
     if (!pdpt_entry->present)
     {
         return false;
     }
 
-    pd_entry_t *pd_entry = (pd_entry_t*)&(((page_dir_t*)(pdpt_entry->addr * ARCH_PAGE_SIZE))->entries[pd_indexof(addr)]);
+    struct page_dir *_page_dir = (struct page_dir *)(pdpt_entry->addr * ARCH_PAGE_SIZE + KERNEL_VIRTUAL_BASE);
+    pd_entry_t *pd_entry = &_page_dir->entries[pd_indexof(addr)];
     if (!pd_entry->present)
     {
         return false;
     }
 
-    page_t *page = (page_t*)&(((page_table_t*)(pd_entry->addr * ARCH_PAGE_SIZE))->entries[page_indexof(addr)]);
+    struct page_table *_page_table = (struct page_table *)(pd_entry->addr * ARCH_PAGE_SIZE + KERNEL_VIRTUAL_BASE);
+    page_t *page = &_page_table->entries[page_indexof(addr)];
 
     return page->present;
 }
@@ -164,18 +165,13 @@ void map_virtual_address(
             pml4_entry->writable = writable;
             pml4_entry->usr = usr;
             
-            /// ISSUE HERE
             pdpt_entry_t *pdpt_entry = (pdpt_entry_t*) alloc_pages(kproc, 1);
-            if(virt < KERNEL_VIRTUAL_BASE) asm("hlt");
 
-            pml4_entry->addr = (uint64_t)pdpt_entry / ARCH_PAGE_SIZE;
+            pml4_entry->addr = ((uint64_t) pdpt_entry - KERNEL_VIRTUAL_BASE) / ARCH_PAGE_SIZE;
         }
-
-        //print_string("FILE paging.c LINE 165");
 
         pdpt_t *_pdpt = (pdpt_t *)(pml4_entry->addr * ARCH_PAGE_SIZE + KERNEL_VIRTUAL_BASE);
         pdpt_entry_t *pdpt_entry = &_pdpt->entries[pdpt_index];
-        //pdpt_entry_t *pdpt_entry = &(((pdpt_entry_t*)(pml4_entry->addr * ARCH_PAGE_SIZE))[pdpt_index]);
 
         if(!pdpt_entry->present)
         {
@@ -185,7 +181,7 @@ void map_virtual_address(
             
             pd_entry_t *pd_entry = (pd_entry_t*) alloc_pages(kproc, 1);
 
-            pdpt_entry->addr = (uint64_t)pd_entry / ARCH_PAGE_SIZE;
+            pdpt_entry->addr = ((uint64_t) pd_entry - KERNEL_VIRTUAL_BASE) / ARCH_PAGE_SIZE;
         }
 
         //print_string("FILE paging.c LINE 182");
@@ -201,16 +197,11 @@ void map_virtual_address(
 
             page_t *page = (page_t *) alloc_pages(kproc, 1);
 
-            pd_entry->addr = (uint64_t)page / ARCH_PAGE_SIZE;
+            pd_entry->addr = ((uint64_t) page - KERNEL_VIRTUAL_BASE) / ARCH_PAGE_SIZE;
         }
 
         struct page_table *_page_table = (struct page_table *)(pd_entry->addr * ARCH_PAGE_SIZE + KERNEL_VIRTUAL_BASE);
         page_t *page = &_page_table->entries[page_index];
-        
-        //if(page == &kernel_tables[pd_index].entries[page_index])
-        //    return;
-
-        //page_t *page = &(((page_t*)(pd_entry->addr * ARCH_PAGE_SIZE))[page_index]);
 
         page->present = 1;
         page->writable = writable;
@@ -222,8 +213,6 @@ void map_virtual_address(
         virt += ARCH_PAGE_SIZE;
         amount--;
     }
-
-    print_string("Address mapped.");
 }
 
 uintptr_t vmm_alloc_pages(
@@ -252,7 +241,6 @@ uintptr_t vmm_alloc_pages(
          */
         if (marks[idx] == nullptr)
         {
-            asm("hlt");
             /* Try to allocate and map 1 page (4096 KiB) for saving marks. */
             uint64_t virt_mark = alloc_pages(
                 get_kernel_process(),
@@ -312,6 +300,12 @@ uintptr_t vmm_alloc_pages(
                     if (!--amount_left)
                     {
                         print_string("Virtual address allocated.");
+                        if(virt % ARCH_PAGE_SIZE)
+                        {
+                            print_string("ADDRESS NOT ALIGNED!");
+                            print_long(virt);
+                            //asm("hlt");
+                        }
                         if(is_kernel_space)
                             virt += KERNEL_VIRTUAL_BASE;
                         print_long(virt);
@@ -363,8 +357,6 @@ void mark_pages_used(
 
         if(amount <= 0)
         {
-            print_string("pages marked");
-            print_long(marks[0]);
             return;
         }
     }
@@ -401,30 +393,28 @@ uintptr_t virt_to_phys(
     pml4_t *map, 
     uintptr_t addr)
 {
-    pml4_entry_t *pml4_entry = (pml4_entry_t*)&((map->entries[pml4_indexof(addr)]));
+    pml4_entry_t *pml4_entry = &map->entries[pml4_indexof(addr)];
     if (!pml4_entry->present)
     {
-        return 0;
+        return false;
     }
 
-    pdpt_entry_t *pdpt_entry = (pdpt_entry_t*)&(((pdpt_t*)(pml4_entry->addr * ARCH_PAGE_SIZE))->entries[pdpt_indexof(addr)]);
+    pdpt_t *_pdpt = (pdpt_t *)(pml4_entry->addr * ARCH_PAGE_SIZE + KERNEL_VIRTUAL_BASE);
+    pdpt_entry_t *pdpt_entry = &_pdpt->entries[pdpt_indexof(addr)];
     if (!pdpt_entry->present)
     {
-        return 0;
+        return false;
     }
 
-    pd_entry_t *pd_entry = (pd_entry_t*)&(((page_dir_t*)(pdpt_entry->addr * ARCH_PAGE_SIZE))->entries[pd_indexof(addr)]);
+    struct page_dir *_page_dir = (struct page_dir *)(pdpt_entry->addr * ARCH_PAGE_SIZE + KERNEL_VIRTUAL_BASE);
+    pd_entry_t *pd_entry = &_page_dir->entries[pd_indexof(addr)];
     if (!pd_entry->present)
     {
-        return 0;
+        return false;
     }
 
-    page_t *page = (page_t*)&(((page_table_t*)(pd_entry->addr * ARCH_PAGE_SIZE))->entries[page_indexof(addr)]);
-
-    if (!page->present && !page->addr)
-    {
-        return 0;
-    }
+    struct page_table *_page_table = (struct page_table *)(pd_entry->addr * ARCH_PAGE_SIZE + KERNEL_VIRTUAL_BASE);
+    page_t *page = &_page_table->entries[page_indexof(addr)];
 
     return (page->addr * ARCH_PAGE_SIZE) + (addr & 0xfff);
 }

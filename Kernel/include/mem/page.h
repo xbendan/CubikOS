@@ -15,8 +15,6 @@
 #define PAGE_NODE_TOTAL_SIZE ((4 * 1024 * 1024) + (1024 * sizeof(buddy_page_t)))
 #define EQUALS_POWER_TWO(x) (!((x) & ((x) - 1)))
 
-
-
 /**
  * @brief Buddy page is the main unit of buddy system
  * It will be saved into the free area.
@@ -39,7 +37,7 @@ typedef struct pageframe
             uint32_t slab_inuse: 16;
             uint32_t slab_objects: 15;
             uint32_t slab_frozen: 1;
-        };
+        } __attribute__((packed));
         union
         {
             uint64_t private;
@@ -80,6 +78,9 @@ typedef struct pageframe_block
      */
     pageframe_list_t freelist[PAGE_MAX_ORDER + 1];
 } pageframe_node_t;
+
+size_t page_size_align(size_t size);
+uint8_t page_size_order(size_t size);
 
 void pmm_init_zone(range_t range);
 pageframe_t* pmm_alloc(size_t size);

@@ -69,6 +69,8 @@ void init_mem()
         get_kernel_process(),
         1
     );
+    print_string("Terminal buffer:");
+    print_long(t_addr);
     map_virtual_address(
         get_kernel_pages(),
         0xb8000,
@@ -76,15 +78,12 @@ void init_mem()
         1,
         PAGE_FLAG_WRITABLE
     );
-    //print_long(t_addr);
     switch_page_tables(
         get_kernel_pages()
     );
     //triple_fault();
     set_t_buffer(t_addr);
     print_string("HELLO");
-
-    
 
     struct boot_mem *mem = &get_boot_info()->mem;
 
@@ -114,9 +113,9 @@ void init_mem()
             switch (entry->type)
             {
             case MemoryMapEntryTypeAvailable:
+                mem_stats.available += size;
                 print_string("Load memory free entry.");
                 pmm_init_zone(entry->range);
-                mem_stats.available += size;
                 break;
             case MemoryMapEntryTypeKernel:
                 /*

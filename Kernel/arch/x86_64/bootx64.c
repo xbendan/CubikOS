@@ -19,7 +19,7 @@ void kernel_init()
     }
 
     // load x86 features
-    //cli();
+    cli();
     lgdt();
     lidt();
 
