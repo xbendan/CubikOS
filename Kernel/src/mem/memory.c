@@ -117,10 +117,17 @@ void init_mem()
                 print_string("Load memory free entry.");
                 pmm_init_zone(entry->range);
                 break;
+            case MemoryMapEntryTypeReserved:
+                break;
+            case MemoryMapEntryTypeAcpiReclaimable:
+                break;
+            case MemoryMapEntryTypeNvs:
+                break;
+            case MemoryMapEntryTypeBadRam:
+                break;
             case MemoryMapEntryTypeKernel:
                 print_string("Load memory kernel entry.");
                 //pmm_init_zone(entry->range);
-                asm("hlt");
                 pmm_mark_pages_used((range_t){
                     .start = ALIGN_DOWN(entry->range.start, ARCH_PAGE_SIZE),
                     .end = ALIGN_UP(entry->range.end, ARCH_PAGE_SIZE)
@@ -135,8 +142,6 @@ void init_mem()
             
         }
     }
-    asm("hlt");
 
     print_string("Memory initialized.");
-    panic("");
 }

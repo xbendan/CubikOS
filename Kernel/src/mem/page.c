@@ -210,9 +210,6 @@ void pmm_init_zone(range_t range)
                 temp,
                 16,
                 PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE);
-            print_long(sizeof(pageframe_t));
-            print_long(map_to->addr);
-            print_long(temp);
             write_pages(
                 temp,
                 current);
@@ -364,7 +361,10 @@ void pmm_mark_pages_used(range_t range)
 
 pageframe_t* pageframe_struct(uintptr_t addr)
 {
-    return (pageframe_t *)(KERNEL_PHYSICAL_PAGES + (addr / ARCH_PAGE_SIZE * sizeof(pageframe_t)));
+    if(is_page_present(get_kernel_pages(), addr))
+        return (pageframe_t *)(KERNEL_PHYSICAL_PAGES + (addr / ARCH_PAGE_SIZE * sizeof(pageframe_t)));
+    else
+        return nullptr;
 }
 
 /**

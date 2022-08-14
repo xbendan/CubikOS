@@ -29,7 +29,7 @@
 
 #define IDT_ENTRY_COUNT 256
 
-struct idt_pack
+struct idt_ptr
 {
     uint16_t size;
     uint64_t base;

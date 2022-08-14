@@ -28,10 +28,10 @@ void kernel_init()
     // load memory management
     init_mem();
 
+/*
     struct boot_graphic *graphic = &boot_info.graphic;
-
     uint64_t framebuffer_pages = graphic->width * graphic->height * graphic->bytes_per_pixel / 8 / ARCH_PAGE_SIZE;
-
+*/
 /*
     map_virtual_address(
         get_kernel_pages(),
@@ -41,10 +41,6 @@ void kernel_init()
         PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE
     );
 */
-
-    //switch_page_tables(
-    //    get_kernel_pages()
-    //);
 /*
     uint32_t *buffer = (uint32_t *) graphic->buffer_address;//KERNEL_FRAMEBUFFER_BASE;
     for (unsigned i = 0; i < graphic->height; i++)
@@ -67,6 +63,7 @@ void kernel_init()
     pit_load(1000);
 
     sti();
+    asm("hlt");
 }
 
 void kload_multiboot2(void *addr)

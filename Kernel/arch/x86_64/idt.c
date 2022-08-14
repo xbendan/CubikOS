@@ -2,7 +2,7 @@
 
 extern uintptr_t isr_tables[];
 static struct idt_entry idt_entry_list[IDT_ENTRY_COUNT];
-static struct idt_pack idtr = {
+static struct idt_ptr idtr = {
     .size = sizeof(struct idt_entry) * IDT_ENTRY_COUNT,
     .base = (uint64_t) &idt_entry_list[0]
 };

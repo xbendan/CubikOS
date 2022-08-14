@@ -59,7 +59,9 @@ typedef struct process
         uint32_t present_pages;
         uint32_t swapped_pages;
     };
+    #ifdef ARCH_X86_64
     void *page_map;
+    #endif
     uint64_t** vmmap;
 } proc_t;
 

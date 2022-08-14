@@ -23,10 +23,6 @@ uintptr_t alloc_pages(
     uintptr_t phys = phys_page->addr;
     uintptr_t virt = vmm_alloc_pages(process, amount);
 
-    print_string("ALLOCATING");
-    print_long(phys);
-    print_long(virt);
-
     page_flags_t flags = PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE;
     if(process == get_kernel_process())
     {
@@ -40,6 +36,9 @@ uintptr_t alloc_pages(
         amount,
         flags
     );
+    process->allocated += amount * ARCH_PAGE_SIZE;
+    process->pages += amount;
+    process->present_pages
 
     return virt;
 }

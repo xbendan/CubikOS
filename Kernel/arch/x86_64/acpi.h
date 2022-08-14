@@ -1,51 +1,51 @@
 #include <macros.h>
 
-enum acpi_table_name_definition
+enum AcpiTableNameDefinition
 {
-    AcpiMultiDescriptionTable = 0 // MADT
+    // AcpiMultiDescriptionTable = "MADT"
 };
 
-typedef struct acpi_root_system_desc_pointer
+typedef struct AcpiRootSystemDescPtr
 {
     char signature[8];
     uint8_t checksum;
-    char oem_id[6];
+    char oemId[6];
     uint8_t revision;
-    uint32_t rsdt_ptr;
+    uint32_t rsdtPtr;
 } __attribute__((packed)) acpi_rsdp_t;
 
-typedef struct acpi_root_system_desc_pointer2
+typedef struct AcpiRootSystemDescPtr2
 {
-    acpi_rsdp_t rsdp_part;
+    acpi_rsdp_t rsdpPart;
     uint32_t length;
-    uint64_t xsdt_pointer;
-    uint8_t checksum_extended;
+    uint64_t xsdtPtr;
+    uint8_t checksumExtended;
     uint8_t reserved[3];
 } __attribute__((packed)) acpi_rsdp2_t;
 
-typedef struct acpi_system_desc_table
+typedef struct AcpiSystemDescTable
 {
     char signature[4];
     uint32_t length;
     uint8_t revision;
     uint8_t checksum;
-    char oem_id[6];
-    char oem_table_id[8];
-    uint32_t oem_revision;
-    uint32_t creator_id;
-    uint32_t creator_revision;
+    char oemId[6];
+    char oemTableId[8];
+    uint32_t oemRevision;
+    uint32_t creatorId;
+    uint32_t creatorRevision;
 } acpi_sdt_t;
 
-typedef struct acpi_root_sdt
+typedef struct AcpiRootSdt
 {
-    struct acpi_system_desc_table table;
-    uint64_t ptr[];
+    struct AcpiSystemDescTable table;
+    uint64_t ptr[]; // (table.length - sizeof(table)) / 4
 } acpi_rsdt_t;
 
-typedef struct acpi_extended_sdt
+typedef struct AcpiExtendedSdt
 {
-    struct acpi_system_desc_table table;
-    uint64_t ptr[];
+    struct AcpiSystemDescTable table;
+    uint64_t ptr[]; // (table.length - sizeof(table)) / 8
 } acpi_xsdt_t;
 
 void acpi_load();
