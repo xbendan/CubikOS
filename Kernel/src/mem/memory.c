@@ -78,12 +78,12 @@ void init_mem()
         1,
         PAGE_FLAG_WRITABLE
     );
+    set_t_buffer(t_addr);
     switch_page_tables(
         get_kernel_pages()
     );
-    //triple_fault();
-    set_t_buffer(t_addr);
     print_string("HELLO");
+    //triple_fault();
 
     struct boot_mem *mem = &get_boot_info()->mem;
 
@@ -118,16 +118,16 @@ void init_mem()
                 pmm_init_zone(entry->range);
                 break;
             case MemoryMapEntryTypeKernel:
-                /*
                 print_string("Load memory kernel entry.");
-                pmm_init_zone(entry->range);
+                //pmm_init_zone(entry->range);
+                asm("hlt");
                 pmm_mark_pages_used((range_t){
                     .start = ALIGN_DOWN(entry->range.start, ARCH_PAGE_SIZE),
                     .end = ALIGN_UP(entry->range.end, ARCH_PAGE_SIZE)
                 });
-                */
                 mem_stats.allocated += size;
                 mem_stats.inuse += size;
+                break;
             default:
                 print_string("Skip memory entry.");
                 break;

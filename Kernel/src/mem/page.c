@@ -76,21 +76,12 @@ void write_pages(
     pageframe_t *pages,
     uintptr_t address)
 {
-    //print_long(virt_to_phys(get_kernel_pages(), (uint64_t) &pages[0]));
-    if((uint64_t) pages == 0xFFFF808000020000)
-    {
-        virt_to_phys(get_kernel_pages(), 0xFFFF808000020000);
-        uint64_t *u64 = (uint64_t *) 0xFFFF808000020000;
-        *u64 = 0xFFFFFFFFFFFFFFFF;
-        asm("hlt");
-    }
     for (size_t idx = 0; idx < 1024; idx++)
     {
         pages[idx].free = 1;
         pages[idx].addr = address + (idx * ARCH_PAGE_SIZE);
         pages[idx].first_page = pages;
     }
-    
     
     pages->order = PAGE_MAX_ORDER;
     lklist_append(
@@ -219,19 +210,12 @@ void pmm_init_zone(range_t range)
                 temp,
                 16,
                 PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE);
-            map_virtual_address(
-                get_kernel_pages(),
-                map_to->addr,
-                pages,
-                
-            )
             print_long(sizeof(pageframe_t));
             print_long(map_to->addr);
             print_long(temp);
             write_pages(
                 temp,
                 current);
-            asm("hlt");
         }
 
         current += PAGE_MAX_SIZE;
