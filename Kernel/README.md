@@ -7,28 +7,28 @@ Delegasy kernel is designed as a modern style system kernel. It's a monolithic k
 - [ ] loongarch
 # Components  
 System  
-- [ ] Power Management (ACPI)
-- [ ] Multi-processor (ACPI)
+- [ ] Power Management (ACPI)  
+- [ ] Multi-processor (ACPI)  
 Memory  
 - [x] Virtual Memory - Kernel Space
 - [ ] Virtual Memory - User Space
 - [x] Physical Memory - Page Frame Allocate and Free
-- [ ] Physical Memory - Kernel Memory Allocate and Free **(In progress)**
-Process & Thread
+- [ ] Physical Memory - Kernel Memory Allocate and Free **(In progress)**  
+Process & Thread  
 - [ ] Process Create, Exit, and Terminate **(In progress)**
 - [ ] Context Switch
 - [ ] Schedule (Round Robin)
 - [ ] Schedule (Multilevel Feedback Queue Scheduling)
 - [ ] Inter-process Communication
-- [ ] Shared Memory
-Graphics
+- [ ] Shared Memory  
+Graphics  
 - [x] VGA Text Mode
 - [ ] Framebuffer **(In progress)**
-- [ ] Extended graphics
+- [ ] Extended graphics  
 File System  
-- [ ] FAT32
+- [ ] FAT32  
 Security  
-- [ ] User Account
+- [ ] User Account  
 - [ ] Registry Policy
 - [ ] Permission Control
 # Support hardware & device  

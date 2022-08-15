@@ -34,35 +34,38 @@ enum TaskType
 
 typedef struct Process
 {
-    char *name;
-    char *publisher;
-    char *filename;
-    pid_t pid;
-    uint8_t type;
+    char *name;         /* Name of the process */
+    char *publisher;    /* Name of the publisher */
+    char *filename;     /* Executable file name of this process */
+    char *package;      /* Package Name */
+    pid_t pid;          /* Process Id, 0~255 are reserved for kernel process */
+    uint8_t type;       /* Current process type */
+    activity_t *activity;   /* Pointer to the Activity */
     union
-    {
+    { // Flags
         uint32_t size;
         struct
         {
-            bool focus: 1;
+            bool focus: 1; 
             uint32_t reserved: 31;
         } __attribute__((packed));
     };
-    uint16_t threads;
-    uint16_t handles;
-    uint16_t cores;
+    uint16_t threads;   /* Amount of threads kept by this process*/
+    uint16_t handles;   /* Register handles amount */
+    //uint16_t cores;     /* CPU Cores currently running on */
     struct
-    {
-        uint64_t allocated;
-        uint32_t cached;
-        uint32_t pages;
-        uint32_t present_pages;
-        uint32_t swapped_pages;
+    { // Memory
+        uint64_t allocated;     /* Memory allocated for this process */
+        uint32_t cached;        /* Memory allocated and cached */
+        uint32_t pages;         /* Amount of 4K pages */
+        uint32_t present_pages; /* Pages that is present now */
+        uint32_t swapped_pages; /* Pages that has been swapped into disks */
     };
 
     uintptr_t entryPoint;
     uintptr_t heap;
 
+    /* Architecture Fields */
     #ifdef ARCH_X86_64
     void *page_map;
     uint64_t** vmmap;
@@ -77,4 +80,12 @@ typedef struct Thread
 {
     tid_t tid;
     proc_t* proc;
+    
+    struct
+    {
+        uint32_t esp0;
+        uint16_t ss0;
+        uint32_t stack;
+    } __attribute__((packed));
+    
 } thread_t;

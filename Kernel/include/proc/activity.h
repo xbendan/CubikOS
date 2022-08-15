@@ -1,6 +1,6 @@
 #include <proc/proc.h>
 
-struct activity
+typedef struct activity
 {
-    
-};
+    char *name;
+} activity_t;
