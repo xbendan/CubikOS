@@ -67,7 +67,7 @@ intrid%1:
     pop rax
 %endmacro
 
-extern dispatch_interrupts
+extern DispatchInterrupts
 
 _commonInterrupt:
     cld
@@ -75,7 +75,7 @@ _commonInterrupt:
     _PUSHA_
 
     mov rdi, rsp
-    call dispatch_interrupts
+    call DispatchInterrupts
     mov rsp, rax
 
     _POPA_

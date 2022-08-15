@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include <macros.h>
 
 #define LOCAL_APIC_ID 0x20 // APIC ID Register
 #define LOCAL_APIC_VERSION 0x30 // APIC Version Register
@@ -29,22 +29,22 @@
 #define LOCAL_APIC_TIMER_DIVIDE 0x3E0 // Timer Divide Configuration Register
 #define LOCAL_APIC_NMI ((4 << 8))
 
-void lapic_writebase(uint64_t val);
+void LAPIC_WriteBase(uint64_t val);
 
-uint64_t lapic_readbase();
+uint64_t LAPIC_ReadBase();
 
-void lapic_writedata(uint32_t reg, uint32_t data);
+void LAPIC_WriteData(uint32_t reg, uint32_t data);
 
-uint32_t lapic_readdata(uint32_t reg);
+uint32_t LAPIC_ReadData(uint32_t reg);
 
-void ioapic_writedata32(uint32_t reg, uint32_t data);
+void IOAPIC_WriteData32(uint32_t reg, uint32_t data);
 
-uint32_t ioapic_readdata32(uint32_t reg);
+uint32_t IOAPIC_ReadData32(uint32_t reg);
 
-void ioapic_writedata64(uint32_t reg, uint64_t data);
+void IOAPIC_WriteData64(uint32_t reg, uint64_t data);
 
-uint64_t ioapic_readdata64(uint32_t reg);
+uint64_t IOAPIC_ReadData64(uint32_t reg);
 
-void apic_start_timer();
+void LAPIC_StartTimer();
 
-void lapic_initialize();
+void LAPIC_Initialize();

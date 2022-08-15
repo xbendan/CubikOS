@@ -61,6 +61,8 @@ typedef struct process
     };
     #ifdef ARCH_X86_64
     void *page_map;
+    #elif ARCH_AARCH64
+    #elif ARCH_RISCV
     #endif
     uint64_t** vmmap;
 } proc_t;

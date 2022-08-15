@@ -17,7 +17,7 @@ pml4_t *currentPages;
 
 uint64_t kvm_marks[8192];
 
-void vmm_init()
+void LoadVirtualMemory()
 {
     pml4_entry_t *pml4Entry = &kernelPages.entries[PDPTS_PER_PML4 - 1];
 
@@ -88,7 +88,7 @@ void vmm_init()
         kpd_entry->addr = ((uint64_t) &kernelPageTables[idx] - KERNEL_VIRTUAL_BASE) / ARCH_PAGE_SIZE;
     }
 */
-    proc_t *kproc = get_kernel_process();
+    proc_t *kproc = PR_GetKernelProcess();
     kproc->vmmap = &kvm_marks;
     for (size_t idx = 0; idx < 16; idx++)
         kproc->vmmap[idx] = &kvm_marks[idx * 512];
@@ -96,7 +96,7 @@ void vmm_init()
     uint64_t kernel_address = ALIGN_DOWN((uintptr_t) &KERNEL_START_ADDR, ARCH_PAGE_SIZE);
     uint64_t kernel_page_amount = (ALIGN_UP((uintptr_t) &KERNEL_END_ADDR, ARCH_PAGE_SIZE) - kernel_address) / ARCH_PAGE_SIZE;
     
-    map_virtual_address(
+    MapVirtualAddress(
         &kernelPages,
         kernel_address - KERNEL_VIRTUAL_BASE,
         kernel_address,
@@ -104,19 +104,19 @@ void vmm_init()
         PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE
     );
 
-    mark_pages_used(
+    VM_MarkPagesUsed(
         kproc,
         KERNEL_VIRTUAL_BASE,
         (kernel_address - KERNEL_VIRTUAL_BASE) / ARCH_PAGE_SIZE
     );
-    mark_pages_used(
+    VM_MarkPagesUsed(
         kproc,
         kernel_address,
         kernel_page_amount
     );
 }
 
-bool is_page_present(
+bool IsPagePresent(
     pml4_t *map, 
     uint64_t addr)
 {
@@ -125,7 +125,7 @@ bool is_page_present(
     if(pml4Index == PDPTS_PER_PML4 - 1)
     {
         // Kernel address space
-        page_t *page = get_page(map, addr);
+        page_t *page = VM_GetPage(map, addr);
         return page != nullptr && page->present;
     }
     else
@@ -171,7 +171,7 @@ void destory_pagemap()
 
 }
 
-void map_virtual_address(
+void MapVirtualAddress(
     pml4_t *map,
     uint64_t phys,
     uint64_t virt,
@@ -180,11 +180,8 @@ void map_virtual_address(
 {
     bool writable = flags & PAGE_FLAG_WRITABLE;
     bool usr = flags & PAGE_FLAG_USER;
-    proc_t *kproc = get_kernel_process();
+    proc_t *kproc = PR_GetKernelProcess();
     size_t pml4Index, pdptIndex, pdirIndex, pageIndex;
-
-    print_string("Mapping address...");
-    print_long(virt);
 
     while (amount)
     {
@@ -196,7 +193,7 @@ void map_virtual_address(
         if(pml4Index == PDPTS_PER_PML4 - 1)
         {
             /* Kernel Address Space */
-            page_t *page = get_page(map, virt);
+            page_t *page = VM_GetPage(map, virt);
             if(page == nullptr)
             {
                 pd_entry_t *pdirEntry = &kernelPageDirs[pdptIndex].entries[pdirIndex];
@@ -207,8 +204,8 @@ void map_virtual_address(
                     pdirEntry->writable = flags & PAGE_FLAG_WRITABLE;
                     pdirEntry->usr = flags & PAGE_FLAG_USER;
                     
-                    pageTable = alloc_pages(kproc, 1);
-                    uint64_t pageTablePhys = virt_to_phys(map, (uint64_t)(pageTable));
+                    pageTable = AllocatePages(kproc, 1);
+                    uint64_t pageTablePhys = ConvertVirtToPhys(map, (uint64_t)(pageTable));
                     
                     pdirEntry->addr = pageTablePhys / ARCH_PAGE_SIZE;
                     kernelPageTablePointers[pdptIndex][pdirIndex] = pageTable;
@@ -240,9 +237,9 @@ void map_virtual_address(
             pml4Entry->writable = writable;
             pml4Entry->usr = usr;
             
-            pdpt_entry_t *pdptEntry = (pdpt_entry_t*) alloc_pages(kproc, 1);
+            pdpt_entry_t *pdptEntry = (pdpt_entry_t*) AllocatePages(kproc, 1);
 
-            pml4Entry->addr = virt_to_phys(map, (uint64_t)(pdptEntry)) / ARCH_PAGE_SIZE;
+            pml4Entry->addr = ConvertVirtToPhys(map, (uint64_t)(pdptEntry)) / ARCH_PAGE_SIZE;
         }
 
         pdpt_t *_pdpt = (pdpt_t *)(pml4_entry->addr * ARCH_PAGE_SIZE + kernel_offset);
@@ -254,12 +251,10 @@ void map_virtual_address(
             pdptEntry->writable = writable;
             pdptEntry->usr = usr;
             
-            pd_entry_t *pdirEntry = (pd_entry_t*) alloc_pages(kproc, 1);
+            pd_entry_t *pdirEntry = (pd_entry_t*) AllocatePages(kproc, 1);
 
-            pdptEntry->addr = virt_to_phys(map, (uint64_t)(pdirEntry)) / ARCH_PAGE_SIZE;
+            pdptEntry->addr = ConvertVirtToPhys(map, (uint64_t)(pdirEntry)) / ARCH_PAGE_SIZE;
         }
-
-        //print_string("FILE paging.c LINE 182");
 
         struct page_dir *_pageDir = (struct page_dir *)(pdpt_entry->addr * ARCH_PAGE_SIZE + kernel_offset);
         pd_entry_t *pdirEntry = &_pageDir->entries[pdirIndex];
@@ -270,9 +265,9 @@ void map_virtual_address(
             pdirEntry->writable = writable;
             pdirEntry->usr = usr;
 
-            page_t *page = (page_t *) alloc_pages(kproc, 1);
+            page_t *page = (page_t *) AllocatePages(kproc, 1);
 
-            pdirEntry->addr = virt_to_phys(map, (uint64_t)(page)) / ARCH_PAGE_SIZE;
+            pdirEntry->addr = ConvertVirtToPhys(map, (uint64_t)(page)) / ARCH_PAGE_SIZE;
         }
 
         struct page_table *_pageTable = (struct page_table *)(pdirEntry->addr * ARCH_PAGE_SIZE + kernel_offset);
@@ -291,15 +286,15 @@ void map_virtual_address(
     }
 }
 
-uintptr_t vmm_alloc_pages(
+uintptr_t VM_AllocatePages(
     proc_t *process,
     size_t amount)
 {
     if(process == nullptr)
-        process = get_current_process();
+        process = PR_GetCurrentProcess();
 
     uintptr_t virt = 0;
-    bool is_kernel_space = (process == get_kernel_process());
+    bool is_kernel_space = (process == PR_GetKernelProcess());
     size_t amount_left;
     size_t space_limit = (is_kernel_space ? 16 : 16 * 256);
     uint64_t** marks = process->vmmap;
@@ -318,8 +313,8 @@ uintptr_t vmm_alloc_pages(
         if (marks[idx] == nullptr)
         {
             /* Try to allocate and map 1 page (4096 KiB) for saving marks. */
-            uint64_t virt_mark = alloc_pages(
-                get_kernel_process(),
+            uint64_t virt_mark = AllocatePages(
+                PR_GetKernelProcess(),
                 1);
             if(virt_mark)
                 marks[idx] = virt_mark;
@@ -336,7 +331,6 @@ uintptr_t vmm_alloc_pages(
         /* Scan 128 MiB virtual address each time */
         for (size_t sub_index = 0; sub_index < 512; sub_index++)
         {
-            //print_string("scan");
             /* Skip to next mark if all bits set */
             if (marks[idx][sub_index] == 0xffffffffffffffff)
                 continue;
@@ -375,17 +369,9 @@ uintptr_t vmm_alloc_pages(
                      */
                     if (!--amount_left)
                     {
-                        print_string("Virtual address allocated.");
-                        if(virt % ARCH_PAGE_SIZE)
-                        {
-                            print_string("ADDRESS NOT ALIGNED!");
-                            print_long(virt);
-                            //asm("hlt");
-                        }
                         if(is_kernel_space)
                             virt += KERNEL_VIRTUAL_BASE;
-                        print_long(virt);
-                        mark_pages_used(process, virt, amount);
+                        VM_MarkPagesUsed(process, virt, amount);
                         return virt;
                     }
                 }
@@ -398,21 +384,21 @@ uintptr_t vmm_alloc_pages(
     return 0;
 }
 
-void vmm_free_pages(
+void VM_FreePages(
     proc_t *process,
     uint64_t virt,
     size_t amount)
 {
-    mark_pages_free(process, virt, amount);
+    VM_MarkPagesFree(process, virt, amount);
 }
 
-void mark_pages_used(
+void VM_MarkPagesUsed(
     proc_t *process,
     uint64_t virt, 
     size_t amount)
 {
 
-    if(process == get_kernel_process())
+    if(process == PR_GetKernelProcess())
         virt -= KERNEL_VIRTUAL_BASE;
 
     uint16_t pageIndex, ptr_index;
@@ -438,12 +424,12 @@ void mark_pages_used(
     }
 }
 
-void mark_pages_free(
+void VM_MarkPagesFree(
     proc_t *process,
     uint64_t virt,
     size_t amount)
 {
-    if(process == get_kernel_process())
+    if(process == PR_GetKernelProcess())
         virt -= KERNEL_ADDR_SPACE;
 
     uint16_t pageIndex, ptr_index;
@@ -465,7 +451,7 @@ void mark_pages_free(
     }
 }
 
-uintptr_t virt_to_phys(
+uintptr_t ConvertVirtToPhys(
     pml4_t *map, 
     uintptr_t addr)
 {
@@ -516,7 +502,7 @@ uintptr_t virt_to_phys(
     */
 }
 
-page_t *get_page(pml4_t *map, uintptr_t addr)
+page_t *VM_GetPage(pml4_t *map, uintptr_t addr)
 {
     size_t pml4Index, pdptIndex, pdirIndex, pageIndex;
 
@@ -541,15 +527,15 @@ page_t *get_page(pml4_t *map, uintptr_t addr)
     }
 }
 
-void switch_page_tables(pml4_t *map)
+void VM_SwitchPageTable(pml4_t *map)
 {
     asmi_load_paging(
-        virt_to_phys(
-            get_kernel_pages(), 
+        ConvertVirtToPhys(
+            VM_GetKernelPages(), 
             0x723000
         )
     );
 }
 
-pml4_t* current_page_map() { return asmw_get_pagemap(); }
-pml4_t* get_kernel_pages() { return &kernelPages; }
+pml4_t* VM_CurrentPages() { return asmw_get_pagemap(); }
+pml4_t* VM_GetKernelPages() { return &kernelPages; }

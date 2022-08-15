@@ -7,13 +7,13 @@
 #include <x86_64/paging.h>
 #endif
 
-uintptr_t alloc_pages(
+uintptr_t AllocatePages(
     proc_t *process, 
     size_t amount)
 {
     amount = page_size_align(amount);
 
-    pageframe_t *phys_page = pmm_alloc_pages(page_size_order(amount));
+    pageframe_t *phys_page = PM_AllocatePages(page_size_order(amount));
     if(phys_page == nullptr)
     {
         // out of memory, try to swap page
@@ -21,15 +21,15 @@ uintptr_t alloc_pages(
         return 0;
     }
     uintptr_t phys = phys_page->addr;
-    uintptr_t virt = vmm_alloc_pages(process, amount);
+    uintptr_t virt = VM_AllocatePages(process, amount);
 
     page_flags_t flags = PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE;
-    if(process == get_kernel_process())
+    if(process == PR_GetKernelProcess())
     {
         flags |= PAGE_FLAG_USER;
     }
 
-    map_virtual_address(
+    MapVirtualAddress(
         process->page_map,
         phys,
         virt,
@@ -38,7 +38,7 @@ uintptr_t alloc_pages(
     );
     process->allocated += amount * ARCH_PAGE_SIZE;
     process->pages += amount;
-    process->present_pages
+    process->present_pages + amount;
 
     return virt;
 }

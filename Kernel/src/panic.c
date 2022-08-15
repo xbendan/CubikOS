@@ -3,7 +3,7 @@
 #include <graphic/terminal.h>
 #include <panic.h>
 
-void panic(const char* text)
+void CallPanic(const char* text)
 {
     //draw_rect();
     print_string("KERNEL PANIC!");
@@ -13,9 +13,9 @@ hang:
     goto hang;
 }
 
-void triple_fault()
+void MakeTripleFault()
 {
-    while(port_readin_byte(0x64) & 0x02 != 0);
-    port_writeout_byte(0x64, 0xFE);
+    while(IoPorts_ReadByte8(0x64) & 0x02 != 0);
+    IoPorts_WriteByte8(0x64, 0xFE);
     asm("hlt");
 }

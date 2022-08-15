@@ -798,12 +798,12 @@ struct stivale2_struct_tag_hhdm {
 
 #include <boot/bootinfo.h>
 
-void parse_multiboot2_info(boot_info_t *boot_info, multiboot2_info_header_t *mb_info)
+void ParseMultiboot2Info(boot_info_t *boot_info, multiboot2_info_header_t *mb_info)
 {
 
 }
 
-void parse_stivale2_info(boot_info_t *boot_info, stivale2_struct_t *st_info)
+void ParseStivale2Info(boot_info_t *boot_info, stivale2_struct_t *st_info)
 {
     struct stivale2_tag* tag = (struct stivale2_tag*)(st_info->tags);
     struct boot_mem *mem_info = &boot_info->mem;

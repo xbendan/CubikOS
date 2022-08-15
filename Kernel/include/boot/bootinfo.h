@@ -46,4 +46,4 @@ typedef struct boot_info
     struct boot_graphic graphic;
 } boot_info_t;
 
-boot_info_t* get_boot_info();
+boot_info_t* GetBootInfo();

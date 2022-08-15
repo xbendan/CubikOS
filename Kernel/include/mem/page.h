@@ -20,7 +20,7 @@
  * It will be saved into the free area.
  * The page size must equals to 2^N
  */
-typedef struct pageframe
+typedef struct Pageframe
 {
     lklist_head_t listnode;
     struct
@@ -41,8 +41,8 @@ typedef struct pageframe
         union
         {
             uint64_t private;
-            struct slab_mem_cache *slab_cache;
-            struct pageframe *first_page;
+            struct slab_mem_cache *slabCache;
+            struct pageframe *firstPage;
         };
         void *freelist;
     };
@@ -55,7 +55,7 @@ typedef struct pageframe
  * which means that you cannot save a 16K page and a 256K
  * together.
  */
-typedef struct pageframe_list
+typedef struct PageframeList
 {
     /**
      * This variable does not represents the whole list,
@@ -66,7 +66,7 @@ typedef struct pageframe_list
     uint32_t count;
 } pageframe_list_t;
 
-typedef struct pageframe_block
+typedef struct PageframeBlock
 {   
     /* nodes available, one equals to 16 MiB */
     uint32_t count;
@@ -82,15 +82,15 @@ typedef struct pageframe_block
 size_t page_size_align(size_t size);
 uint8_t page_size_order(size_t size);
 
-void pmm_init_zone(range_t range);
-pageframe_t* pmm_alloc(size_t size);
-pageframe_t* pmm_alloc_pages(uint8_t order);
-void pmm_free(uintptr_t addr);
-void pmm_free_page(pageframe_t* pf);
-void pmm_mark_pages_used(range_t range);
-pageframe_t* pageframe_struct(uintptr_t addr);
-pageframe_t* pmm_struct_expand(pageframe_t* pf);
-pageframe_t* pmm_struct_combine(pageframe_t *pf);
-void pmm_struct_combine_pages(pageframe_t *lpage, pageframe_t *rpage);
+void PM_LoadZoneRange(range_t range);
+pageframe_t* PM_Allocate(size_t size);
+pageframe_t* PM_AllocatePages(uint8_t order);
+void PM_Free(uintptr_t addr);
+void PM_FreePages(pageframe_t* pf);
+void PM_MarkPagesUsed(range_t range);
+pageframe_t* PM_GetPage(uintptr_t addr);
+pageframe_t* PM_ExpandPage(pageframe_t* pf);
+pageframe_t* PM_CombinePage(pageframe_t *pf);
+void PM_CombineExistPages(pageframe_t *lpage, pageframe_t *rpage);
 
 

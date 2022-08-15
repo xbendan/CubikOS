@@ -11,7 +11,7 @@
 
 static boot_info_t boot_info;
 
-void kernel_init()
+void ArchitectureInitialize()
 {
     if(boot_info.check != 0xDEADC0DE)
     {
@@ -26,15 +26,15 @@ void kernel_init()
     //set_framebuffer(boot_info.graphic.buffer_address);
 
     // load memory management
-    init_mem();
+    MemoryInitialize();
 
 /*
     struct boot_graphic *graphic = &boot_info.graphic;
     uint64_t framebuffer_pages = graphic->width * graphic->height * graphic->bytes_per_pixel / 8 / ARCH_PAGE_SIZE;
 */
 /*
-    map_virtual_address(
-        get_kernel_pages(),
+    MapVirtualAddress(
+        VM_GetKernelPages(),
         graphic->buffer_address,
         KERNEL_FRAMEBUFFER_BASE,
         framebuffer_pages,
@@ -59,8 +59,8 @@ void kernel_init()
      * Load pic and pit first, or it will keep throwing double fault
      * Hardware will call double fault if irq is not remapped.
      */
-    pic_load();
-    pit_load(1000);
+    PIC_Initialize();
+    PIT_Initialize(1000);
 
     sti();
     asm("hlt");
@@ -78,18 +78,18 @@ void kload_stivale2(void *addr)
     if(addr == nullptr)
         __asm__("mov $0x32, %al");
 
-    parse_stivale2_info(
+    ParseStivale2Info(
         &boot_info,
         (stivale2_struct_t*)(addr)
     );
-    kernel_init();
+    ArchitectureInitialize();
 
 hang:
     __asm__("hlt");
     goto hang;
 }
 
-boot_info_t* get_boot_info()
+boot_info_t* GetBootInfo()
 {
     return &boot_info;
 }

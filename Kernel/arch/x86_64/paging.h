@@ -1,7 +1,6 @@
 #pragma once
 
 #include <macros.h>
-#include <mem/mflags.h>
 #include <mem/memory.h>
 #include <proc/proc.h>
 #include <utils/range.h>
@@ -27,13 +26,13 @@ typedef struct pml4_entry
     bool present : 1;       // Must be 1
     bool writable : 1;      // Page is readonly if set to 0, also called Read/Write bit
     bool usr : 1;           // Everyone could access this page if it's not 0, or only supervisor allowed.
-    bool write_through : 1; // Write-Through cache is enabled when this bit is set
+    bool writeThrough : 1; // Write-Through cache is enabled when this bit is set
     bool cache : 1;         // Disable cache if it's set to 1
     bool access : 1;        // Is this page entry has been used.
     int ign_6_11 : 6;       // Ignored
     uint64_t addr : 36;     // Physical Address
     int ign_48_62 : 15;     // Ignored
-    bool disable_exec: 1;
+    bool disableExec: 1;
 } __attribute__((packed)) pml4_entry_t;
 
 typedef struct pml3_entry
@@ -41,7 +40,7 @@ typedef struct pml3_entry
     bool present : 1;       // Must be 1
     bool writable : 1;      // Page is readonly if set to 0, also called Read/Write bit
     bool usr : 1;           // Everyone could access this page if it's not 0, or only supervisor allowed.
-    bool write_through : 1; // Write-Through cache is enabled when this bit is set
+    bool writeThrough : 1;  // Write-Through cache is enabled when this bit is set
     bool cache : 1;         // Disable cache if it's set to 1
     bool access : 1;        // Is this page entry has been used.
     int ign_6 : 1;
@@ -49,7 +48,7 @@ typedef struct pml3_entry
     int ign_8_11 : 4;
     uint64_t addr : 36;
     int ign_48_62 : 15;
-    bool disable_exec : 1;
+    bool disableExec : 1;
 } __attribute__((packed)) pdpt_entry_t;
 
 typedef struct pml2_entry
@@ -57,7 +56,7 @@ typedef struct pml2_entry
     bool present : 1;       // Must be 1
     bool writable : 1;      // Page is readonly if set to 0, also called Read/Write bit
     bool usr : 1;           // Everyone could access this page if it's not 0, or only supervisor allowed.
-    bool write_through : 1; // Write-Through cache is enabled when this bit is set
+    bool writeThrough : 1;  // Write-Through cache is enabled when this bit is set
     bool cache : 1;         // Disable cache if it's set to 1
     bool access : 1;        // Is this page entry has been used.
     int ign_6 : 1;
@@ -65,7 +64,7 @@ typedef struct pml2_entry
     int ign_8_11 : 4;
     uint64_t addr : 36;
     int ign_48_62 : 15;
-    bool disable_exec : 1;
+    bool disableExec : 1;
 } __attribute__((packed)) pd_entry_t;
 
 typedef struct page_entry
@@ -77,13 +76,13 @@ typedef struct page_entry
     bool cache : 1;        // Disable cache if it's set to 1
     bool access : 1;       // Is this page entry has been used.
     int dirty : 1;
-    int mem_type : 1;
+    int memType : 1;
     int global : 1;
     int ign_9_11 : 3;
     uint64_t addr : 36;
     int ign_48_57 : 10;
     uint8_t key : 5;
-    bool disable_exec : 1;
+    bool disableExec : 1;
 } __attribute__((packed)) page_t;
 
 typedef struct pml4
@@ -122,7 +121,7 @@ static inline void asmi_invlpg(uintptr_t addr) { asm volatile("invlpg (%0)"::"r"
 /**
  * @brief Initialize kernel page map and virtual memory management
  */
-void vmm_init(void);
+void LoadVirtualMemory(void);
 /**
  * @brief 
  * 
@@ -131,43 +130,43 @@ void vmm_init(void);
  * @return true If the page is present (in the memory)
  * @return false If the page does not exist or be swapped into disks.
  */
-bool is_page_present(
+bool IsPagePresent(
     pml4_t *map, 
     uint64_t addr
 );
-page_map_t *create_pagemap();
-void destory_pagemap();
-void map_virtual_address(
+page_map_t *CreatePagemap();
+void DestoryPagemap();
+void MapVirtualAddress(
     pml4_t *map,
     uint64_t phys,
     uint64_t virt,
     size_t amount,
     page_flags_t flags
 );
-uintptr_t vmm_alloc_pages(
+uintptr_t VM_AllocatePages(
     proc_t *process,
     size_t amount
 );
-void vmm_free_pages(
+void VM_FreePages(
     proc_t *process,
     uint64_t virt,
     size_t amount
 );
-void mark_pages_used(
+void VM_MarkPagesUsed(
     proc_t *process,
     uint64_t virt, 
     size_t amount
 );
-void mark_pages_free(
+void VM_MarkPagesFree(
     proc_t *process,
     uint64_t virt,
     size_t amount
 );
-uintptr_t virt_to_phys(
+uintptr_t ConvertVirtToPhys(
     pml4_t *pml4, 
     uintptr_t addr
 );
-void switch_page_tables(pml4_t *map);
-pml4_t *current_page_map();
-pml4_t *get_kernel_pages();
-page_t *get_page(pml4_t *map, uintptr_t addr);
+void VM_SwitchPageTable(pml4_t *map);
+pml4_t *VM_CurrentPages();
+pml4_t *VM_GetKernelPages();
+page_t *VM_GetPage(pml4_t *map, uintptr_t addr);

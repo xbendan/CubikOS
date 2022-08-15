@@ -96,7 +96,7 @@ void write_pages(
  * 
  * @param range 
  */
-void pmm_init_zone(range_t range)
+void PM_LoadZoneRange(range_t range)
 {
     /* Initialize and align start and end address here */
     uintptr_t start_address = ALIGN_UP(range.start, PAGE_MAX_SIZE);
@@ -128,7 +128,7 @@ void pmm_init_zone(range_t range)
          * 
          * The maximum size of the page can describe is 1024 * 4 KiB = 4096 KiB = 4 MiB
          */
-        pageframe_t *alloc_space = pmm_alloc_pages(4);
+        pageframe_t *alloc_space = PM_AllocatePages(4);
         /*  */
         if(alloc_space == nullptr)
         {
@@ -138,11 +138,11 @@ void pmm_init_zone(range_t range)
              * 
              * size equals to 16 * 4 pages = 65536 bytes = 1024 [struct pageframe]
              */
-            uintptr_t virt = vmm_alloc_pages(
-                get_kernel_process(),
+            uintptr_t virt = VM_AllocatePages(
+                PR_GetKernelProcess(),
                 16);
-            map_virtual_address(
-                get_kernel_pages(),
+            MapVirtualAddress(
+                VM_GetKernelPages(),
                 current,
                 virt,
                 16,
@@ -152,11 +152,11 @@ void pmm_init_zone(range_t range)
             write_pages(
                 alloc_space,
                 current);
-            uintptr_t phys = pmm_alloc_pages(4)->addr;
+            uintptr_t phys = PM_AllocatePages(4)->addr;
 
             int64_t offset = current - KERNEL_PHYSICAL_PAGES;
-            map_virtual_address(
-                get_kernel_pages(),
+            MapVirtualAddress(
+                VM_GetKernelPages(),
                 current,
                 KERNEL_PHYSICAL_PAGES + (current / ARCH_PAGE_SIZE * sizeof(pageframe_t)),
                 16,
@@ -186,8 +186,8 @@ void pmm_init_zone(range_t range)
             */
            
             /*
-            vmm_free_pages(
-                get_kernel_process(),
+            VM_FreePages(
+                PR_GetKernelProcess(),
                 virt,
                 16);
             */
@@ -195,17 +195,17 @@ void pmm_init_zone(range_t range)
         else
         {
             uintptr_t pages = (current / ARCH_PAGE_SIZE * sizeof(pageframe_t)) + KERNEL_PHYSICAL_PAGES;
-            uintptr_t temp = vmm_alloc_pages(
-                get_kernel_process(),
+            uintptr_t temp = VM_AllocatePages(
+                PR_GetKernelProcess(),
                 16);
-            pageframe_t *map_to = pmm_alloc_pages(4);
+            pageframe_t *map_to = PM_AllocatePages(4);
             if(map_to == nullptr)
             {
                 // panic
                 return;
             }
-            map_virtual_address(
-                get_kernel_pages(),
+            MapVirtualAddress(
+                VM_GetKernelPages(),
                 map_to->addr,
                 temp,
                 16,
@@ -222,10 +222,10 @@ void pmm_init_zone(range_t range)
 }
 
 /**
- * @brief pmm_alloc pages allows you to get the best [struct pageframe] with a size
+ * @brief PM_Allocate pages allows you to get the best [struct pageframe] with a size
  * 
- * This function is the implmentation of [pmm_alloc_pages], actually
- * it packages the argument and finally call the [pmm_alloc_pages].
+ * This function is the implmentation of [PM_AllocatePages], actually
+ * it packages the argument and finally call the [PM_AllocatePages].
  * It allows you to allocate pages while the argument is not 2^order.
  * The argument(s) of this function are in bytes.
  * If there is no suitable page, return [nullptr] instead.
@@ -233,7 +233,7 @@ void pmm_init_zone(range_t range)
  * @param size 
  * @return pageframe_t* 
  */
-pageframe_t* pmm_alloc(size_t size)
+pageframe_t* PM_Allocate(size_t size)
 {
     if(size > PAGE_MAX_SIZE || size <= 0)
     {
@@ -242,23 +242,23 @@ pageframe_t* pmm_alloc(size_t size)
 
     uint8_t order = page_size_order(page_size_align(size) / 4096);
 
-    return pmm_alloc_pages(order);
+    return PM_AllocatePages(order);
 }
 
 /**
- * @brief pmm_alloc_pages allows you to get 2^order pages every time
+ * @brief PM_AllocatePages allows you to get 2^order pages every time
  * 
  * This function is the core of physical memory allocation,
  * which allows you to allocate 2^order pages every time.
  * If the number of pages is not equals to 2^order, please
- * use [pmm_alloc] instead.
+ * use [PM_Allocate] instead.
  * The argument(s) of this function are in pages.
  * If there is no suitable page, return [nullptr] instead.
  * 
  * @param order the order of the page amount
  * @return pageframe_t* the virtual address pointer to [struct pageframe]
  */
-pageframe_t* pmm_alloc_pages(uint8_t order)
+pageframe_t* PM_AllocatePages(uint8_t order)
 {
     if(order > PAGE_MAX_ORDER || order < PAGE_MIN_ORDER)
     {
@@ -302,23 +302,20 @@ SELECT_PAGE:
 
     while(m_order > order)
     {
-        page = pmm_struct_expand(page);
+        page = PM_ExpandPage(page);
         m_order--;
     }
 
     page->free = false;
-
-    print_string("Physical address allocated");
-    print_long(page->addr);
     return page;
 }
 
-void pmm_free(uintptr_t addr)
+void PM_Free(uintptr_t addr)
 {
-    pmm_free_page(pageframe_struct(addr));
+    PM_FreePages(PM_GetPage(addr));
 }
 
-void pmm_free_page(pageframe_t* pf)
+void PM_FreePages(pageframe_t* pf)
 {
     if(pf == nullptr)
         return;
@@ -330,10 +327,10 @@ void pmm_free_page(pageframe_t* pf)
     release_spinlock(&pf->lock);
 
     while(pf != nullptr)
-        pf = pmm_struct_combine(pf);
+        pf = PM_CombinePage(pf);
 }
 
-void pmm_mark_pages_used(range_t range)
+void PM_MarkPagesUsed(range_t range)
 {
     uintptr_t start_address = ALIGN_DOWN(range.start, ARCH_PAGE_SIZE);
     uintptr_t end_address   = ALIGN_UP(range.end, ARCH_PAGE_SIZE);
@@ -343,7 +340,7 @@ void pmm_mark_pages_used(range_t range)
 
     while (current <= end_address)
     {
-        page = pageframe_struct(current);
+        page = PM_GetPage(current);
 
         if(page == nullptr)
             continue;
@@ -359,9 +356,9 @@ void pmm_mark_pages_used(range_t range)
     }
 }
 
-pageframe_t* pageframe_struct(uintptr_t addr)
+pageframe_t* PM_GetPage(uintptr_t addr)
 {
-    if(is_page_present(get_kernel_pages(), addr))
+    if(IsPagePresent(VM_GetKernelPages(), addr))
         return (pageframe_t *)(KERNEL_PHYSICAL_PAGES + (addr / ARCH_PAGE_SIZE * sizeof(pageframe_t)));
     else
         return nullptr;
@@ -375,7 +372,7 @@ pageframe_t* pageframe_struct(uintptr_t addr)
  * @param page the page that need to be expanded
  * @return buddy_page_t* new page (Not in the list)
  */
-pageframe_t* pmm_struct_expand(pageframe_t* page)
+pageframe_t* PM_ExpandPage(pageframe_t* page)
 {
     /* check whether it's possible to split it */
     if(!page->order)
@@ -391,7 +388,7 @@ pageframe_t* pmm_struct_expand(pageframe_t* page)
     /* Find another page descriptor and initialize it */
     // uintptr_t new_address = page->addr + ((1 << page->order) * ARCH_PAGE_SIZE);
     pageframe_t *new_page = ((uintptr_t) page) + ((1 << page->order) * sizeof(pageframe_t));
-    //pageframe_t *new_page = pageframe_struct(new_address);
+    //pageframe_t *new_page = PM_GetPage(new_address);
 
     new_page->order = page->order;
     new_page->addr = page->addr + ((1 << page->order) * ARCH_PAGE_SIZE);
@@ -414,7 +411,7 @@ pageframe_t* pmm_struct_expand(pageframe_t* page)
  * @param page
  * @return buddy_page_t* pointer to new page
  */
-pageframe_t* pmm_struct_combine(pageframe_t* page)
+pageframe_t* PM_CombinePage(pageframe_t* page)
 {
     uint32_t order_size = (1 << page->order) * ARCH_PAGE_SIZE;
     bool is_aligned = !(page->addr % order_size);
@@ -435,7 +432,7 @@ pageframe_t* pmm_struct_combine(pageframe_t* page)
     }
 }
 
-void pmm_struct_combine_pages(pageframe_t* lpage, pageframe_t* rpage)
+void PM_CombineExistPages(pageframe_t* lpage, pageframe_t* rpage)
 {
     
 }

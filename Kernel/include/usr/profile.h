@@ -1,4 +1,4 @@
-enum user_state
+enum UserAccountState
 {
     UserAccountActive = 0;
     UserAccountLocked = 1;
@@ -6,14 +6,14 @@ enum user_state
     UserAccountSleep = 3;
 }
 
-typedef struct user
+typedef struct UserProfile
 {
     char* name;
-    uint8_t state;
-    struct 
+    enum UserAccountState state;
+    struct
     {
-        uint16_t runnings;
         uint32_t threads;
+        uint16_t processes;
         uint32_t handles;
-    } proc;
-} user_t;
+    };
+} profile_t;

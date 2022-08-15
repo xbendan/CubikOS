@@ -61,31 +61,31 @@ int memcmp(const void* s1, const void* s2, size_t n)
     return 0;
 }
 
-void init_mem()
+void MemoryInitialize()
 {
-    vmm_init();
+    LoadVirtualMemory();
 
-    uint64_t t_addr = vmm_alloc_pages(
-        get_kernel_process(),
+    uint64_t t_addr = VM_AllocatePages(
+        PR_GetKernelProcess(),
         1
     );
     print_string("Terminal buffer:");
     print_long(t_addr);
-    map_virtual_address(
-        get_kernel_pages(),
+    MapVirtualAddress(
+        VM_GetKernelPages(),
         0xb8000,
         t_addr,
         1,
         PAGE_FLAG_WRITABLE
     );
     set_t_buffer(t_addr);
-    switch_page_tables(
-        get_kernel_pages()
+    VM_SwitchPageTable(
+        VM_GetKernelPages()
     );
     print_string("HELLO");
-    //triple_fault();
+    //MakeTripleFault();
 
-    struct boot_mem *mem = &get_boot_info()->mem;
+    struct boot_mem *mem = &GetBootInfo()->mem;
 
     int count = 0;
     mem_stats = (struct mem_stats){
@@ -115,7 +115,7 @@ void init_mem()
             case MemoryMapEntryTypeAvailable:
                 mem_stats.available += size;
                 print_string("Load memory free entry.");
-                pmm_init_zone(entry->range);
+                PM_LoadZoneRange(entry->range);
                 break;
             case MemoryMapEntryTypeReserved:
                 break;
@@ -126,9 +126,9 @@ void init_mem()
             case MemoryMapEntryTypeBadRam:
                 break;
             case MemoryMapEntryTypeKernel:
-                print_string("Load memory kernel entry.");
-                //pmm_init_zone(entry->range);
-                pmm_mark_pages_used((range_t){
+                print_string("Load memory kernel or module entry.");
+                //PM_LoadZoneRange(entry->range);
+                PM_MarkPagesUsed((range_t){
                     .start = ALIGN_DOWN(entry->range.start, ARCH_PAGE_SIZE),
                     .end = ALIGN_UP(entry->range.end, ARCH_PAGE_SIZE)
                 });

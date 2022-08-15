@@ -35,6 +35,6 @@ struct mem_stats
     uint64_t allocated;
 };
 
-void init_mem();
+void MemoryInitialize();
 
 //void mem_value_commit(enum mem_stats_item item_num, int64_t change);

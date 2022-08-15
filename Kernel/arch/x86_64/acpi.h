@@ -2,7 +2,7 @@
 
 enum AcpiTableNameDefinition
 {
-    // AcpiMultiDescriptionTable = "MADT"
+    AcpiMultiDescriptionTable = 0
 };
 
 typedef struct AcpiRootSystemDescPtr
@@ -48,5 +48,5 @@ typedef struct AcpiExtendedSdt
     uint64_t ptr[]; // (table.length - sizeof(table)) / 8
 } acpi_xsdt_t;
 
-void acpi_load();
-void acpi_find_table(const char* str);
+void ACPI_Initialize();
+void ACPI_FindTable(const char* str);
