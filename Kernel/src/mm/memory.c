@@ -1,4 +1,4 @@
-#include <mem/memory.h>
+#include <mm/memory.h>
 #include <boot/bootinfo.h>
 #include <graphic/terminal.h>
 #include <panic.h>

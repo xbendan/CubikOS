@@ -1,7 +1,7 @@
 #pragma once
 
 #include <macros.h>
-#include <mem/memory.h>
+#include <mm/memory.h>
 #include <proc/proc.h>
 #include <utils/range.h>
 

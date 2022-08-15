@@ -1,7 +1,7 @@
 #include <x86_64/paging.h>
-#include <mem/memory.h>
-#include <mem/malloc.h>
-#include <mem/address.h>
+#include <mm/memory.h>
+#include <mm/malloc.h>
+#include <mm/address.h>
 #include <proc/sched.h>
 #include <graphic/terminal.h>
 #include <macros.h>

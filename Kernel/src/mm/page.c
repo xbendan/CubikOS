@@ -1,6 +1,6 @@
-#include <mem/page.h>
-#include <mem/malloc.h>
-#include <mem/address.h>
+#include <mm/page.h>
+#include <mm/malloc.h>
+#include <mm/address.h>
 #include <proc/sched.h>
 #include <graphic/terminal.h>
 #include <macros.h>

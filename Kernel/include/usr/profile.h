@@ -1,3 +1,7 @@
+#include <macros.h>
+
+typedef uint16_t uid_t;
+
 enum UserAccountState
 {
     UserAccountActive = 0;
@@ -9,6 +13,7 @@ enum UserAccountState
 typedef struct UserProfile
 {
     char* name;
+    uid_t uid;
     enum UserAccountState state;
     struct
     {

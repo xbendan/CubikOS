@@ -6,7 +6,7 @@
 #include <x86_64/interrupts.h>
 #include <x86_64/pic.h>
 #include <x86_64/pit.h>
-#include <mem/address.h>
+#include <mm/address.h>
 #include <panic.h>
 
 static boot_info_t boot_info;

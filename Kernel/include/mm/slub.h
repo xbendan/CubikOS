@@ -1,7 +1,7 @@
 #pragma once
 
 #include <macros.h>
-#include <mem/page.h>
+#include <mm/page.h>
 #include <utils/list.h>
 #include <utils/spinlock.h>
 #define SLAB_MAX_BLOCK_ORDER        16

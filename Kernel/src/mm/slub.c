@@ -1,5 +1,5 @@
-#include <mem/slub.h>
-#include <mem/malloc.h>
+#include <mm/slub.h>
+#include <mm/malloc.h>
 
 const uint16_t struct_size[] = {
     sizeof(thread_t)

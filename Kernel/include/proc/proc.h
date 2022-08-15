@@ -6,7 +6,7 @@
 typedef uint16_t pid_t;
 typedef uint32_t tid_t;
 
-enum task_priority
+enum TaskPriority
 {
     PriorityIdle = -1,
     PriorityLowest = 0,
@@ -17,13 +17,13 @@ enum task_priority
     PriorityRealTime = 5
 };
 
-enum task_state
+enum TaskState
 {
     TaskStateRunning = 0,
     TaskStateIdle = 1,
 };
 
-enum task_type
+enum TaskType
 {
     TaskTypeSystemProcess = 0,
     TaskTypeSystemDriver = 1,
@@ -32,7 +32,7 @@ enum task_type
     TaskTypeBackground = 4
 };
 
-typedef struct process
+typedef struct Process
 {
     char *name;
     char *publisher;
@@ -59,12 +59,18 @@ typedef struct process
         uint32_t present_pages;
         uint32_t swapped_pages;
     };
+
+    uintptr_t entryPoint;
+    uintptr_t heap;
+
     #ifdef ARCH_X86_64
     void *page_map;
-    #elif ARCH_AARCH64
-    #elif ARCH_RISCV
-    #endif
     uint64_t** vmmap;
+    #elif ARCH_AARCH64
+
+    #elif ARCH_RISCV
+
+    #endif
 } proc_t;
 
 typedef struct Thread

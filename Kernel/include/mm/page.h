@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include <mem/memory.h>
+#include <mm/memory.h>
 #include <utils/list.h>
 #include <utils/spinlock.h>
 #include <utils/range.h>

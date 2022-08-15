@@ -1,5 +1,5 @@
-#include <mem/page.h>
-#include <mem/malloc.h>
+#include <mm/page.h>
+#include <mm/malloc.h>
 #include <proc/sched.h>
 #include <proc/proc.h>
 #include <graphic/terminal.h>
