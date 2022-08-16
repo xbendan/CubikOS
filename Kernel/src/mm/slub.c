@@ -9,7 +9,7 @@ const uint16_t block_size[] = {
     256,    512,    768,    1024,   1536,   2048,   4096,   8192
 };
 
-uint8_t get_block_order(size_t size)
+uint8_t BLOCK_ORDER(size_t size)
 {
     uint8_t order = 0;
     while (block_size[order] < size)
@@ -17,7 +17,7 @@ uint8_t get_block_order(size_t size)
     return order;
 }
 
-uint8_t get_struct_order(size_t size)
+uint8_t STRUCT_ORDER(size_t size)
 {
     uint8_t order = 0;
     while (order < 1)
@@ -31,17 +31,23 @@ uint8_t get_struct_order(size_t size)
     return 0;
 }
 
-//uintptr_t __alloc_block(uint8_t index, size_t size, )
-
-uintptr_t alloc_block(size_t size)
+int SlubSystemInitialize(struct SlabMemoryCache *array, int cacheNum)
 {
-    uint8_t order = get_block_order(size);
+
+}
+
+uintptr_t KM_SlubAllocate(uint32_t size)
+{
+    uint8_t order = BLOCK_ORDER(size);
 
     if(order >= SLAB_MAX_BLOCK_ORDER)
     {
         // try to allocate from buddy allocator
         return nullptr;
     }
+}
 
+void KM_SlubFree(uintptr_t addr)
+{
     
 }

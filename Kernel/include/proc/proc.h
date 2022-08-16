@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fs/vfs.h>
 #include <macros.h>
 
 ;
@@ -40,6 +41,7 @@ typedef struct Process
     char *package;      /* Package Name */
     pid_t pid;          /* Process Id, 0~255 are reserved for kernel process */
     uint8_t type;       /* Current process type */
+    file_t *file;
     activity_t *activity;   /* Pointer to the Activity */
     union
     { // Flags
@@ -75,17 +77,3 @@ typedef struct Process
 
     #endif
 } proc_t;
-
-typedef struct Thread
-{
-    tid_t tid;
-    proc_t* proc;
-    
-    struct
-    {
-        uint32_t esp0;
-        uint16_t ss0;
-        uint32_t stack;
-    } __attribute__((packed));
-    
-} thread_t;

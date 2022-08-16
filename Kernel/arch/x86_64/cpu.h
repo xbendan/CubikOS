@@ -59,7 +59,7 @@
 #define CPUID_EDX_IA64 (1 << 30)
 #define CPUID_EDX_PBE (1 << 31)
 
-typedef struct cpuid_info
+typedef struct CPUIDInfo
 {
     char vendor_str[12];
     char end = '\0';
@@ -67,9 +67,10 @@ typedef struct cpuid_info
     uint32_t ecx, edx;
 } cpuid_info_t;
 
-typedef struct processor
+typedef struct ProcessorInfo;
 {
+    
     uint32_t id;
     struct gdt_ptr gdtPtr;
     struct idt_ptr idtPtr;
-}
+} cpu_info_t;

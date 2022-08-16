@@ -12,7 +12,7 @@ uint8_t get_block_order(size_t size);
 uintptr_t alloc_block(size_t size);
 uintptr_t free_block(size_t size);
 
-struct slab_cpu_cache
+struct SlabCpuCache
 {
     void **freelist;
     uint64_t tid;
@@ -20,15 +20,22 @@ struct slab_cpu_cache
     pageframe_t *partial;
 };
 
-struct slab_mem_node
-{  
+struct SlabMemoryNode
+{
     spinlock_t lock;
     uint64_t count;
     lklist_head_t head;
 };
 
-struct slab_mem_cache
+struct SlabMemoryCache
 {
-    struct slab_cpu_cache cpu_slab[SLAB_MAX_CPU_COUNT]; 
-    struct slab_mem_node node;
-}
+    int32_t size;
+    int32_t objectSize;
+    int32_t offset;
+    int32_t order;
+    int32_t objects;
+};
+
+int SlubSystemInitialize(struct SlabMemoryCache *array, int cacheNum);
+uintptr_t KM_SlubAllocate(uint32_t size);
+void KM_SlubFree(uintptr_t addr);
