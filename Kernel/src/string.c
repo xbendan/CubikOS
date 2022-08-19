@@ -51,7 +51,7 @@ int strncmp(const char* s1, const char* s2, size_t n) {
 char* strchr(const char* s, int c) {
     while (*s != (char)c)
         if (!*s++)
-            return nullptr;
+            return NULL;
     return (char*)s;
 }
 
@@ -59,10 +59,10 @@ char* strchr(const char* s, int c) {
 char* strnchr(const char* s, int c, size_t n) {
     while (n-- && *s != (char)c)
         if (!*s++)
-            return nullptr;
+            return NULL;
 
     if (n <= 0) {
-        return nullptr;
+        return NULL;
     }
 
     return (char*)(s);
@@ -70,7 +70,7 @@ char* strnchr(const char* s, int c, size_t n) {
 
 // strrchr - Get pointer to last occurance of c in string s
 char* strrchr(const char* s, int c) {
-    const char* occ = nullptr;
+    const char* occ = NULL;
     while (*s)
         if (*s++ == c)
             occ = s;

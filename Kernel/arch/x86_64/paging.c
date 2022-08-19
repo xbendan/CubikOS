@@ -89,6 +89,7 @@ void LoadVirtualMemory()
     }
 */
     proc_t *kproc = PR_GetKernelProcess();
+    //kproc->page_map = &kernelPages;
     kproc->vmmap = &kvm_marks;
     for (size_t idx = 0; idx < 16; idx++)
         kproc->vmmap[idx] = &kvm_marks[idx * 512];
@@ -126,7 +127,7 @@ bool IsPagePresent(
     {
         // Kernel address space
         page_t *page = VM_GetPage(map, addr);
-        return page != nullptr && page->present;
+        return page != NULL && page->present;
     }
     else
     {
@@ -194,7 +195,7 @@ void MapVirtualAddress(
         {
             /* Kernel Address Space */
             page_t *page = VM_GetPage(map, virt);
-            if(page == nullptr)
+            if(page == NULL)
             {
                 pd_entry_t *pdirEntry = &kernelPageDirs[pdptIndex].entries[pdirIndex];
                 page_table_t *pageTable;
@@ -204,7 +205,7 @@ void MapVirtualAddress(
                     pdirEntry->writable = flags & PAGE_FLAG_WRITABLE;
                     pdirEntry->usr = flags & PAGE_FLAG_USER;
                     
-                    pageTable = AllocatePages(kproc, 1);
+                    pageTable = (page_table_t *) AllocatePages(kproc, 1);
                     uint64_t pageTablePhys = ConvertVirtToPhys(map, (uint64_t)(pageTable));
                     
                     pdirEntry->addr = pageTablePhys / ARCH_PAGE_SIZE;
@@ -226,7 +227,7 @@ void MapVirtualAddress(
         }
         else
         {
-
+            asm("hlt");
         }
 
         /*
@@ -290,8 +291,9 @@ uintptr_t VM_AllocatePages(
     proc_t *process,
     size_t amount)
 {
-    if(process == nullptr)
+    if(process == NULL)
         process = PR_GetCurrentProcess();
+        
 
     uintptr_t virt = 0;
     bool is_kernel_space = (process == PR_GetKernelProcess());
@@ -310,7 +312,7 @@ uintptr_t VM_AllocatePages(
          * 
          * If it's a null pointer try to allocate a new page.
          */
-        if (marks[idx] == nullptr)
+        if (marks[idx] == NULL)
         {
             /* Try to allocate and map 1 page (4096 KiB) for saving marks. */
             uint64_t virt_mark = AllocatePages(
@@ -462,7 +464,7 @@ uintptr_t ConvertVirtToPhys(
     {
         page_table_t *pageTable = kernelPageTablePointers[pdptIndex][pdirIndex];
 
-        if(pageTable != 0x0 && pageTable != nullptr)
+        if(pageTable != 0x0 && pageTable != NULL)
         {
             return (pageTable->entries[pageIndex].addr * ARCH_PAGE_SIZE) + (addr & 0xFFF);
         }
@@ -518,12 +520,12 @@ page_t *VM_GetPage(pml4_t *map, uintptr_t addr)
         if (pageTableEntry != 0x0)
             return &pageTableEntry->entries[pageIndex];
         else
-            return nullptr;
+            return NULL;
     }
     else
     {
         // Process Address Space
-        return nullptr;
+        return NULL;
     }
 }
 
@@ -532,7 +534,7 @@ void VM_SwitchPageTable(pml4_t *map)
     asmi_load_paging(
         ConvertVirtToPhys(
             VM_GetKernelPages(), 
-            0x723000
+            map
         )
     );
 }

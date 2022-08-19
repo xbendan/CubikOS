@@ -1,11 +1,12 @@
 #pragma once
 
 #include <fs/vfs.h>
+#include <proc/activity.h>
 #include <macros.h>
 
 ;
-typedef uint16_t pid_t;
 typedef uint32_t tid_t;
+typedef uint16_t pid_t;
 
 enum TaskPriority
 {
@@ -77,3 +78,19 @@ typedef struct Process
 
     #endif
 } proc_t;
+
+typedef struct Thread
+{
+    tid_t tid;
+    proc_t *proc;
+    
+    struct
+    {
+        uint32_t esp0;
+        uint16_t ss0;
+        uint32_t stack;
+    } __attribute__((packed));
+    
+    uintptr_t stackBase;
+    uintptr_t stackSize;
+} thread_t;

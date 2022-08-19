@@ -143,5 +143,8 @@ void MemoryInitialize()
         }
     }
 
+    KM_Initialize();
+
     print_string("Memory initialized.");
+    asm("hlt");
 }

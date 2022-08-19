@@ -12,7 +12,6 @@
 #define PAGE_MAX_ORDER 10
 #define PAGE_MIN_ORDER 0
 #define PAGE_AMOUNT_PER_BLOCK 1024
-#define PAGE_NODE_TOTAL_SIZE ((4 * 1024 * 1024) + (1024 * sizeof(buddy_page_t)))
 #define EQUALS_POWER_TWO(x) (!((x) & ((x) - 1)))
 
 /**
@@ -22,29 +21,36 @@
  */
 typedef struct Pageframe
 {
-    lklist_head_t listnode;
+    lklist_node_t listnode;
     struct
     {
         uint8_t order: 4;
         bool free: 1;
         bool kmem: 1;
-        uint32_t __ign: 10;
+        uint16_t __ign: 10;
     } __attribute__((packed));
     struct
     {
+        /*
+        union
+        {
+            lklist_node_t slablist;
+            struct
+            {
+                void *next;
+                int pages;
+                int pobjects;
+            };
+        };
+        */
         struct
         {
             uint32_t slab_inuse: 16;
             uint32_t slab_objects: 15;
             uint32_t slab_frozen: 1;
         } __attribute__((packed));
-        union
-        {
-            uint64_t private;
-            struct slab_mem_cache *slabCache;
-            struct pageframe *firstPage;
-        };
-        void *freelist;
+        struct KMemoryCache *slabCache;
+        void **freelist; 
     };
     spinlock_t lock;
     uintptr_t addr;
@@ -62,7 +68,7 @@ typedef struct PageframeList
      * any valid node in the actual list could be saved here
      * but usually the first one
      */
-    lklist_head_t handle;
+    lklist_node_t handle;
     uint32_t count;
 } pageframe_list_t;
 

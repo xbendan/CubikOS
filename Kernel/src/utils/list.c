@@ -1,22 +1,22 @@
 #include <utils/list.h>
 #include <macros.h>
 
-void lklist_remove(lklist_head_t* node)
+void LinkedListRemove(lklist_node_t* node)
 {
-    lklist_head_t *prev_node = node->prev, *next_node = node->next;
+    lklist_node_t *prev_node = node->prev, *next_node = node->next;
 
-    if(prev_node != nullptr) prev_node->next = next_node;
-    if(next_node != nullptr) next_node->prev = prev_node;
+    if(prev_node != NULL) prev_node->next = next_node;
+    if(next_node != NULL) next_node->prev = prev_node;
 }
 
-void lklist_append(lklist_head_t* current, lklist_head_t* node)
+void LinkedListAppend(lklist_node_t* current, lklist_node_t* node)
 {
-    if(current == nullptr || node == nullptr)
+    if(current == NULL || node == NULL)
         return;
     else
     {
         node->prev = current;
-        if(current->next != nullptr)
+        if(current->next != NULL)
         {
             node->next = current->next;
             current->next->prev = node;

@@ -29,6 +29,8 @@
 #define LOCAL_APIC_TIMER_DIVIDE 0x3E0 // Timer Divide Configuration Register
 #define LOCAL_APIC_NMI ((4 << 8))
 
+extern volatile uint32_t *m_localApic;
+
 void LAPIC_WriteBase(uint64_t val);
 
 uint64_t LAPIC_ReadBase();

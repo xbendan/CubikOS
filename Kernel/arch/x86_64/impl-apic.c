@@ -1,7 +1,8 @@
 #include <x86_64/apic.h>
 #include <x86_64/pic.h>
 
-static volatile uint32_t* apicLocalPtr = nullptr;
+static volatile uint32_t* apicLocalPtr = NULL;
+volatile uint32_t *m_localApic = NULL;
 
 void LAPIC_WriteBase(uint64_t val)
 {

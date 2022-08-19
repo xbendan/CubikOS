@@ -7,7 +7,7 @@ static inline void spinlock_init(spinlock_t* lock)
     lock = 0;
 }
 
-static inline void acquire_spinlock(spinlock_t* lock)
+static inline void AcquireLock(spinlock_t* lock)
 {
     int lockVal = 1; // From DPDK
     __asm__ volatile(
@@ -26,7 +26,7 @@ static inline void acquire_spinlock(spinlock_t* lock)
             : "memory");
 }
 
-static inline void release_spinlock(spinlock_t* lock)
+static inline void ReleaseLock(spinlock_t* lock)
 {
     int unlockVal = 0;
     __asm__ volatile(

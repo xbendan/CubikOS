@@ -80,11 +80,11 @@ void write_pages(
     {
         pages[idx].free = 1;
         pages[idx].addr = address + (idx * ARCH_PAGE_SIZE);
-        pages[idx].first_page = pages;
+        //pages[idx].first_page = pages;
     }
     
     pages->order = PAGE_MAX_ORDER;
-    lklist_append(
+    LinkedListAppend(
         &pf_freelist[PAGE_MAX_ORDER - 1].handle,
         &pages->listnode
     );
@@ -130,7 +130,7 @@ void PM_LoadZoneRange(range_t range)
          */
         pageframe_t *alloc_space = PM_AllocatePages(4);
         /*  */
-        if(alloc_space == nullptr)
+        if(alloc_space == NULL)
         {
             /*
              * Allocate virtual address and map it to physical address
@@ -147,8 +147,9 @@ void PM_LoadZoneRange(range_t range)
                 virt,
                 16,
                 PAGE_FLAG_WRITABLE);
-///
-            alloc_space = (pageframe_t *)virt;
+
+            alloc_space = (pageframe_t *) virt;
+            print_long(sizeof(pageframe_t));
             write_pages(
                 alloc_space,
                 current);
@@ -162,8 +163,6 @@ void PM_LoadZoneRange(range_t range)
                 16,
                 PAGE_FLAG_WRITABLE);
             
-            /// ISSUE HERE
-            
             /*
              * Redirect linked list head
              */
@@ -172,12 +171,12 @@ void PM_LoadZoneRange(range_t range)
             {
                 pageframe_t *page = ((vma_offset + idx) * sizeof(pageframe_t));
 
-                if(page->listnode.prev != nullptr)
+                if(page->listnode.prev != NULL)
                 {
                     pageframe_t *lpage = (pageframe_t *) page->listnode.prev;
                     lpage->listnode.next = (pageframe_t *)(((uint64_t) page) - offset);
                 }
-                if(page->listnode.next != nullptr)
+                if(page->listnode.next != NULL)
                 {
                     pageframe_t *rpage = (pageframe_t *) page->listnode.next;
                     rpage->listnode.prev = (pageframe_t *)(((uint64_t) page) - offset);
@@ -199,7 +198,7 @@ void PM_LoadZoneRange(range_t range)
                 PR_GetKernelProcess(),
                 16);
             pageframe_t *map_to = PM_AllocatePages(4);
-            if(map_to == nullptr)
+            if(map_to == NULL)
             {
                 // panic
                 return;
@@ -211,7 +210,7 @@ void PM_LoadZoneRange(range_t range)
                 16,
                 PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE);
             write_pages(
-                temp,
+                (pageframe_t *) temp,
                 current);
         }
 
@@ -228,7 +227,7 @@ void PM_LoadZoneRange(range_t range)
  * it packages the argument and finally call the [PM_AllocatePages].
  * It allows you to allocate pages while the argument is not 2^order.
  * The argument(s) of this function are in bytes.
- * If there is no suitable page, return [nullptr] instead.
+ * If there is no suitable page, return [NULL] instead.
  * 
  * @param size 
  * @return pageframe_t* 
@@ -237,7 +236,7 @@ pageframe_t* PM_Allocate(size_t size)
 {
     if(size > PAGE_MAX_SIZE || size <= 0)
     {
-        return nullptr;
+        return NULL;
     }
 
     uint8_t order = page_size_order(page_size_align(size) / 4096);
@@ -253,7 +252,7 @@ pageframe_t* PM_Allocate(size_t size)
  * If the number of pages is not equals to 2^order, please
  * use [PM_Allocate] instead.
  * The argument(s) of this function are in pages.
- * If there is no suitable page, return [nullptr] instead.
+ * If there is no suitable page, return [NULL] instead.
  * 
  * @param order the order of the page amount
  * @return pageframe_t* the virtual address pointer to [struct pageframe]
@@ -262,13 +261,13 @@ pageframe_t* PM_AllocatePages(uint8_t order)
 {
     if(order > PAGE_MAX_ORDER || order < PAGE_MIN_ORDER)
     {
-        return nullptr;
+        return NULL;
     }
 
     pageframe_t *page;
     uint8_t m_order = order;
     
-    pageframe_list_t *pf_list = nullptr;
+    pageframe_list_t *pf_list = NULL;
     while(m_order <= PAGE_MAX_ORDER)
     {
         if(pf_freelist[m_order].count)
@@ -279,26 +278,26 @@ pageframe_t* PM_AllocatePages(uint8_t order)
         m_order++;
     }
 
-    if(pf_list == nullptr)
+    if(pf_list == NULL)
     {
         // panic! (no enough memory space.)
         // or try to swap pages, kill processes
-        return nullptr;
+        return NULL;
     }
 
 SELECT_PAGE:
     page = (pageframe_t*)(pf_list->handle.next);
-    acquire_spinlock(&page->lock);
+    AcquireLock(&page->lock);
     if(!page->free)
     {
-        release_spinlock(&page->lock);
+        ReleaseLock(&page->lock);
         goto SELECT_PAGE;
     }
 
     pf_list->count--;
-    lklist_remove(&page->listnode);
+    LinkedListRemove(&page->listnode);
 
-    release_spinlock(&page->lock);
+    ReleaseLock(&page->lock);
 
     while(m_order > order)
     {
@@ -310,23 +309,23 @@ SELECT_PAGE:
     return page;
 }
 
-void PM_Free(uintptr_t addr)
+void PM_Free(uintptr_t phys)
 {
-    PM_FreePages(PM_GetPage(addr));
+    PM_FreePages(PM_GetPage(phys));
 }
 
 void PM_FreePages(pageframe_t* pf)
 {
-    if(pf == nullptr)
+    if(pf == NULL)
         return;
 
-    acquire_spinlock(&pf->lock);
+    AcquireLock(&pf->lock);
 
     pf->free = true;
 
-    release_spinlock(&pf->lock);
+    ReleaseLock(&pf->lock);
 
-    while(pf != nullptr)
+    while(pf != NULL)
         pf = PM_CombinePage(pf);
 }
 
@@ -342,26 +341,27 @@ void PM_MarkPagesUsed(range_t range)
     {
         page = PM_GetPage(current);
 
-        if(page == nullptr)
+        if(page == NULL)
             continue;
 
-        acquire_spinlock(&page->lock);
+        AcquireLock(&page->lock);
 
         page->free = false;
-        lklist_remove(&page->listnode);
+        LinkedListRemove(&page->listnode);
 
-        release_spinlock(&page->lock);
+        ReleaseLock(&page->lock);
 
         current += ARCH_PAGE_SIZE;
     }
 }
 
-pageframe_t* PM_GetPage(uintptr_t addr)
+pageframe_t* PM_GetPage(uintptr_t phys)
 {
-    if(IsPagePresent(VM_GetKernelPages(), addr))
-        return (pageframe_t *)(KERNEL_PHYSICAL_PAGES + (addr / ARCH_PAGE_SIZE * sizeof(pageframe_t)));
+    pageframe_t *page = (pageframe_t *)(KERNEL_PHYSICAL_PAGES + (phys / ARCH_PAGE_SIZE * sizeof(pageframe_t)));
+    if(IsPagePresent(VM_GetKernelPages(), (uintptr_t) page))
+        return page;
     else
-        return nullptr;
+        return NULL;
 }
 
 /**
@@ -376,30 +376,28 @@ pageframe_t* PM_ExpandPage(pageframe_t* page)
 {
     /* check whether it's possible to split it */
     if(!page->order)
-        return nullptr;
+        return NULL;
 
-    acquire_spinlock(&page->lock);
+    AcquireLock(&page->lock);
 
     /* Remove this page from upper order list */
-    lklist_remove(&page->listnode);
+    LinkedListRemove(&page->listnode);
     /* Decrease the order and find the lower tier list */
-    struct pageframe_list *freelist = &pf_freelist[--page->order];
+    pageframe_list_t *freelist = &pf_freelist[--page->order];
     
     /* Find another page descriptor and initialize it */
-    // uintptr_t new_address = page->addr + ((1 << page->order) * ARCH_PAGE_SIZE);
     pageframe_t *new_page = ((uintptr_t) page) + ((1 << page->order) * sizeof(pageframe_t));
-    //pageframe_t *new_page = PM_GetPage(new_address);
 
     new_page->order = page->order;
     new_page->addr = page->addr + ((1 << page->order) * ARCH_PAGE_SIZE);
     new_page->free = true;
 
     /* Insert this page into the lower tier free list */
-    lklist_append(&freelist->handle, &new_page->listnode);
+    LinkedListAppend(&freelist->handle, &new_page->listnode);
 
     freelist->count++;
 
-    release_spinlock(&page->lock);
+    ReleaseLock(&page->lock);
 
     return page;
 }
@@ -419,16 +417,16 @@ pageframe_t* PM_CombinePage(pageframe_t* page)
     pageframe_t *new_page = (pageframe_t *)(is_aligned ? page->addr + order_size : page->addr - order_size);
     if(new_page->free)
     {
-        lklist_remove(&new_page->listnode);
+        LinkedListRemove(&new_page->listnode);
         pageframe_t *result = is_aligned ? page : new_page;
-        lklist_append(&pf_freelist[++result->order].handle, &result->listnode);
+        LinkedListAppend(&pf_freelist[++result->order].handle, &result->listnode);
         
         return result;
     }
     else
     {
-        lklist_append(&pf_freelist[page->order].handle, &page->listnode);
-        return nullptr;
+        LinkedListAppend(&pf_freelist[page->order].handle, &page->listnode);
+        return NULL;
     }
 }
 

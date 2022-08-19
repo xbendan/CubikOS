@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#define nullptr NULL
 // Align the nearest _lower_ aligned address
 // ex: 8 with align = 8 -> 8
 // ex: 9 with align = 8 -> 16

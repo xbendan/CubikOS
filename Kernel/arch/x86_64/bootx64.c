@@ -75,7 +75,7 @@ hang:
 
 void kload_stivale2(void *addr)
 {
-    if(addr == nullptr)
+    if(addr == NULL)
         __asm__("mov $0x32, %al");
 
     ParseStivale2Info(

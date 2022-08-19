@@ -1,1 +1,1 @@
-#include <proc/thread.h>
+#include <proc/proc.h>
