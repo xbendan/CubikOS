@@ -9,7 +9,7 @@ void sti() { __asm__("sti"); }
 
 uint64_t DispatchInterrupts(uintptr_t rsp)
 {
-    stackframe_t *context = (stackframe_t*)(rsp);
+    registers_t *context = (registers_t*)(rsp);
 
     if(context->intno < 32)
     {

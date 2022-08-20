@@ -7,12 +7,10 @@
 #include <x86_64/cpu.h>
 #endif
 
-const uint16_t struct_size[] = {
-    sizeof(thread_t)
-};
 const uint16_t blockSize[] = {
     8,      16,     32,     48,     64,     96,     128,    192, 
-    256,    512,    768,    1024,   1536,   2048,   4096,   8192
+    256,    512,    768,    1024,   1536,   2048,   4096,   8192,
+    sizeof(thread_t)
 };
 static struct KMemoryCache *g_cachePointers[SLAB_MAX_BLOCK_ORDER];
 static lklist_node_t g_cacheList;
@@ -34,13 +32,13 @@ void __slab_SetCache(struct KMemoryCache *cache, int size, uint64_t flags)
         cache->reserved = ARCH_PAGE_SIZE - (amount * size);
     }
 
-    for(size_t idx = 0; idx < SLAB_MAX_CPU_COUNT; idx++)
+    for(size_t idx = 0; idx < MAX_CPU_AMOUNT; idx++)
     {
         cache->cpu_slab[idx].freelist = NULL;
     }
 
     for(size_t idx = 0; idx < MAX_NUMA_COUNT; idx++)
-        cache->node[idx] = ((uint64_t) cache) + (idx * sizeof(struct KMemoryNode));
+        cache->node[idx] = (struct KMemoryNode *)(((uint64_t) cache) + (idx * sizeof(struct KMemoryNode)));
 
     LinkedListAppend(&g_cacheList, &cache->listnode);
 }
@@ -124,12 +122,14 @@ pageframe_t *__slab_GetPartialPage(struct KMemoryCache *cache)
  */
 void KM_Initialize()
 {
-    for(size_t idx; idx < SLAB_MAX_BLOCK_ORDER; idx++)
+    for(size_t idx; idx < 16; idx++)
+    {
         __slab_SetCache(
-            (struct KMemoryCache *) AllocatePages(PR_GetKernelProcess(), 2),
+            (struct KMemoryCache *) AllocatePages(PR_GetKernelProcess(), 4),
             blockSize[idx],
             0x0
         );
+    }
 }
 
 /**

@@ -2,7 +2,7 @@
 
 uint32_t *buffer;
 
-void set_framebuffer(uint32_t address)
+void set_framebuffer(uint64_t address)
 {
     buffer = (uint32_t *)(address);
 }

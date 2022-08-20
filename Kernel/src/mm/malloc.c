@@ -4,6 +4,7 @@
 #include <proc/sched.h>
 #include <proc/proc.h>
 #include <graphic/terminal.h>
+#include <panic.h>
 #ifdef ARCH_X86_64
 #include <x86_64/paging.h>
 #endif

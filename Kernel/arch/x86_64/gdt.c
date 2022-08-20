@@ -1,4 +1,5 @@
 #include <x86_64/gdt.h>
+#include <x86_64/cpu.h>
 
 static struct task_state_segment tss = {
     .ign_0 = 0,

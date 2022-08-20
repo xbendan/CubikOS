@@ -3,6 +3,16 @@
 #include <fs/vfs.h>
 #include <proc/activity.h>
 #include <macros.h>
+#include <utils/list.h>
+#include <utils/spinlock.h>
+
+#ifdef ARCH_X86_64
+    #include <x86_64/cpu.h>
+#elif ARCH_AARCH64
+
+#elif ARCH_RISCV
+
+#endif
 
 ;
 typedef uint32_t tid_t;
@@ -65,7 +75,7 @@ typedef struct Process
         uint32_t swapped_pages; /* Pages that has been swapped into disks */
     };
 
-    uintptr_t entryPoint;
+    uintptr_t entry_point;
     uintptr_t heap;
 
     /* Architecture Fields */
@@ -82,15 +92,16 @@ typedef struct Process
 typedef struct Thread
 {
     tid_t tid;
-    proc_t *proc;
-    
-    struct
-    {
-        uint32_t esp0;
-        uint16_t ss0;
-        uint32_t stack;
-    } __attribute__((packed));
+    proc_t *process;
+    spinlock_t lock;
+    spinlock_t stateLock;
+
+    registers_t registers;
+    registers_t last_syscall;
     
     uintptr_t stackBase;
     uintptr_t stackSize;
+
+    uint8_t priority;
+    uint8_t state;
 } thread_t;

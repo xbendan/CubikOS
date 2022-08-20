@@ -1,4 +1,5 @@
 #include <x86_64/idt.h>
+#include <x86_64/cpu.h>
 
 extern uintptr_t isr_tables[];
 static struct idt_entry idt_entry_list[IDT_ENTRY_COUNT];

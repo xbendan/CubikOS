@@ -1,3 +1,5 @@
+#pragma once
+
 #include <x86_64/gdt.h>
 #include <x86_64/idt.h>
 
@@ -60,6 +62,116 @@
 #define CPUID_EDX_PBE (1 << 31)
 
 #define CPU_CORE_ID GetCpuNum()
+#define MAX_CPU_AMOUNT 256
+
+#define GDT_ENTRY_COUNT 5
+#define GDT_SEGMENT 0b00010000
+#define GDT_PRESENT 0b10000000
+#define GDT_USER 0b01100000
+#define GDT_EXECUTABLE 0b00001000
+#define GDT_READWRITE 0b00000010
+#define GDT_LM_GRANULARITY 0b0010
+#define GDT_FLAGS 0b1100
+
+struct gdt_ptr
+{
+    uint16_t size;
+    uint64_t base;
+} __attribute__((packed));
+
+struct gdt_entry
+{
+    uint16_t limit_low;
+    uint16_t base_low;
+    uint8_t base_medium;
+    uint8_t access;
+    uint8_t granularity;
+    uint8_t base_high;
+} __attribute__((packed));
+
+typedef struct task_state_segment
+{
+    uint32_t ign_0;
+    uint64_t rsp[3];
+    uint64_t ign_1;
+    uint64_t ist[7];
+    uint32_t ign_2;
+    uint32_t ign_3;
+    uint16_t ign_4;
+    uint16_t iopb_offset;
+} __attribute__((packed)) tss_t;
+
+struct gdt_tss_entry
+{
+    uint16_t len;
+    uint16_t base_low;
+    uint8_t base_medium;
+    uint8_t flags_a;
+    uint8_t flags_b;
+    uint8_t base_high;
+    uint32_t base_upper;
+    uint32_t ign;
+} __attribute__((packed));
+
+struct gdt_pack
+{
+    struct gdt_entry entries[GDT_ENTRY_COUNT];
+    struct gdt_tss_entry tss;
+} __attribute__((packed));
+
+#define IDT_DIVIDE_BY_ZERO 0x00
+#define IDT_SINGLE_STEP 0x01
+#define IDT_NMI 0x02
+#define IDT_BREAKPOINT 0x03
+#define IDT_OVERFLOW 0x04
+#define IDT_BOUND_RANGE_EXCEEDED 0x05
+#define IDT_INVALID_OPCODE 0x06
+#define IDT_COPROCESSOR_NOT_AVAILABLE 0x07
+#define IDT_DOUBLE_FAULT 0x08
+
+#define IDT_INVALID_TASK_STATE_SEGMENT 0x0A
+#define IDT_SEGMENT_NOT_PRESENT 0x0B
+#define IDT_STACK_SEGMENT_FAULT 0x0C
+#define IDT_GENERAL_PROTECTION_FAULT 0x0D
+#define IDT_PAGE_FAULT 0x0E
+
+#define IDT_X87_FLOATING_POINT_EXCEPTION 0x10
+#define IDT_ALIGNMENT_CHECK 0x11
+#define IDT_MACHINE_CHECK 0x12
+#define IDT_SIMD_FLOATING_POINT_EXCEPTION 0x13
+#define IDT_VIRTUALIZATION_EXCEPTION 0x14
+#define IDT_CONTROL_PROTECTION_EXCEPTION 0x15
+
+#define IDT_FLAGS_INTGATE 0x8E
+#define IDT_FLAGS_TRAPGATE 0xEF
+#define IDT_FLAGS_USER 0b01100000
+
+#define IDT_ENTRY_COUNT 256
+
+struct idt_ptr
+{
+    uint16_t size;
+    uint64_t base;
+} __attribute__((packed));
+
+struct idt_entry
+{
+    uint16_t base_low;
+    uint16_t selector;
+    uint8_t ist;
+    uint8_t flags;
+    uint16_t base_med;
+    uint32_t base_high;
+    uint32_t ign;
+} __attribute__((packed));
+
+typedef struct RegisterContext
+{
+    uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
+    uint64_t rbp, rdi, rsi, rdx, rcx, rbx, rax;
+    uint64_t intno, err;
+    uint64_t rip, cs, rflags, rsp, ss;
+} __attribute__((packed)) registers_t;
 
 typedef struct CPUIDInfo
 {

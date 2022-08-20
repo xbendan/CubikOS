@@ -2,11 +2,19 @@
 
 #include <macros.h>
 #include <mm/page.h>
+#include <mm/malloc.h>
 #include <utils/list.h>
 #include <utils/spinlock.h>
+#ifdef ARCH_X86_64
+    #include <x86_64/cpu.h>
+#elif ARCH_AARCH64
+    
+#elif ARCH_RISCV
+
+#endif
+
 #define SLAB_MAX_BLOCK_ORDER        16
 #define SLAB_MAX_STRUCT_ORDER       1
-#define SLAB_MAX_CPU_COUNT          128
 #define SLAB_MAX_SIZE               8192
 #define MAX_NUMA_COUNT              4
 
@@ -46,7 +54,7 @@ struct KMemoryCache
     const char *name;
 
     /* Indicate the cache for individual CPU core */
-    struct KCpuCache cpu_slab[SLAB_MAX_CPU_COUNT];
+    struct KCpuCache cpu_slab[MAX_CPU_AMOUNT];
     uint64_t flags;
     int size;
     int object_size;
@@ -56,11 +64,6 @@ struct KMemoryCache
     uint64_t min_partial;
     int reserved;
 };
-
-typedef enum KernelStructIndexEnumeration
-{
-    KernelStructThread = 16,
-} kstruct_index_t;
 
 void KM_Initialize();
 uintptr_t KM_Allocate(uint32_t size);

@@ -7,6 +7,7 @@
 #include <x86_64/pic.h>
 #include <x86_64/pit.h>
 #include <mm/address.h>
+#include <startup.h>
 #include <panic.h>
 
 static boot_info_t boot_info;
@@ -23,34 +24,9 @@ void ArchitectureInitialize()
     lgdt();
     lidt();
 
-    //set_framebuffer(boot_info.graphic.buffer_address);
-
     // load memory management
     MemoryInitialize();
 
-/*
-    struct boot_graphic *graphic = &boot_info.graphic;
-    uint64_t framebuffer_pages = graphic->width * graphic->height * graphic->bytes_per_pixel / 8 / ARCH_PAGE_SIZE;
-*/
-/*
-    MapVirtualAddress(
-        VM_GetKernelPages(),
-        graphic->buffer_address,
-        KERNEL_FRAMEBUFFER_BASE,
-        framebuffer_pages,
-        PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE
-    );
-*/
-/*
-    uint32_t *buffer = (uint32_t *) graphic->buffer_address;//KERNEL_FRAMEBUFFER_BASE;
-    for (unsigned i = 0; i < graphic->height; i++)
-    {
-        for (unsigned j = 0; j < graphic->width; j++)
-        {
-            buffer[(i * graphic->width) + j] = 0xCCCCCCCC;
-        }
-    }
-*/
 
     /**
      * @attention PIC and PIT are required before enable interrupts

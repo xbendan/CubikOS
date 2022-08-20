@@ -386,7 +386,7 @@ pageframe_t* PM_ExpandPage(pageframe_t* page)
     pageframe_list_t *freelist = &pf_freelist[--page->order];
     
     /* Find another page descriptor and initialize it */
-    pageframe_t *new_page = ((uintptr_t) page) + ((1 << page->order) * sizeof(pageframe_t));
+    pageframe_t *new_page = (pageframe_t *)(((uintptr_t) page) + ((1 << page->order) * sizeof(pageframe_t)));
 
     new_page->order = page->order;
     new_page->addr = page->addr + ((1 << page->order) * ARCH_PAGE_SIZE);

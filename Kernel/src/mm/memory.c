@@ -1,6 +1,8 @@
 #include <mm/memory.h>
-#include <boot/bootinfo.h>
+#include <mm/page.h>
+#include <mm/slub.h>
 #include <graphic/terminal.h>
+#include <proc/sched.h>
 #include <panic.h>
 
 #ifdef ARCH_X86_64
@@ -146,5 +148,4 @@ void MemoryInitialize()
     KM_Initialize();
 
     print_string("Memory initialized.");
-    asm("hlt");
 }
