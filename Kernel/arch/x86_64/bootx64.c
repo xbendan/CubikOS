@@ -7,7 +7,7 @@
 #include <x86_64/pic.h>
 #include <x86_64/pit.h>
 #include <mm/address.h>
-#include <startup.h>
+#include <system.h>
 #include <panic.h>
 
 static boot_info_t boot_info;
@@ -20,9 +20,9 @@ void ArchitectureInitialize()
     }
 
     // load x86 features
-    cli();
-    lgdt();
-    lidt();
+    DisableInterrupts();
+    LoadGlobalDescTable();
+    LoadInterruptDescTable();
 
     // load memory management
     MemoryInitialize();
@@ -38,7 +38,12 @@ void ArchitectureInitialize()
     PIC_Initialize();
     PIT_Initialize(1000);
 
-    sti();
+    EnableInterrupts();
+
+    KernelInitialize();
+
+    
+    SMP_Initialize();
     asm("hlt");
 }
 

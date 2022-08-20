@@ -15,11 +15,38 @@ activity_t *NewActivity(const char* name);
 /**
  * @brief Create a Process object
  * 
- * @return proc_t* 
+ * @return proc_t* Pointer to new process object
  */
 proc_t *CreateProcess();
+
+/**
+ * @brief Create a process from existing file
+ * 
+ * @param file Source file, must be executable
+ * @return proc_t* Pointer to new process object
+ */
 proc_t *CreateELFProcess(file_t *file);
-proc_t *CreateProcessEx(activity_t *activity, const char *name);
+
+/**
+ * @brief Create a Process object with full arguments
+ * 
+ * A process will not be scheduled once it is created because the default
+ * state of a process is TaskStateIdle.
+ * Set it to TaskStateRunning to active it.
+ * 
+ * @param activity Activity the process belongs to
+ * @param name Process name, use filename instead if its NULL, or <activity_name>-<pid>
+ * @param file The file that the process created from
+ * @return proc_t* Pointer to new process object
+ */
+proc_t *CreateProcessEx(activity_t *activity, file_t* file, const char *name);
+
+/**
+ * @brief Create a new thread object of specific process
+ * 
+ * @param process Parent process
+ * @return thread_t* Pointer to new thread
+ */
 thread_t *CreateThread(proc_t *process);
 
 /**
@@ -52,3 +79,5 @@ void KillProcess(proc_t *process);
  * @param process 
  */
 void TerminateProcess(proc_t *process);
+
+void SchedulerInitialize();

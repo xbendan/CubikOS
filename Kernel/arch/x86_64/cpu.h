@@ -2,6 +2,7 @@
 
 #include <x86_64/gdt.h>
 #include <x86_64/idt.h>
+#include <proc/proc.h>
 
 #define CPUID_ECX_SSE3 (1 << 0)
 #define CPUID_ECX_PCLMUL (1 << 1)
@@ -73,13 +74,13 @@
 #define GDT_LM_GRANULARITY 0b0010
 #define GDT_FLAGS 0b1100
 
-struct gdt_ptr
+struct GlobalDescTablePointer
 {
     uint16_t size;
     uint64_t base;
 } __attribute__((packed));
 
-struct gdt_entry
+struct GlobalDescTableEntry
 {
     uint16_t limit_low;
     uint16_t base_low;
@@ -89,7 +90,7 @@ struct gdt_entry
     uint8_t base_high;
 } __attribute__((packed));
 
-typedef struct task_state_segment
+typedef struct TaskStateSegment
 {
     uint32_t ign_0;
     uint64_t rsp[3];
@@ -101,7 +102,7 @@ typedef struct task_state_segment
     uint16_t iopb_offset;
 } __attribute__((packed)) tss_t;
 
-struct gdt_tss_entry
+struct GlobalDescTableTaskEntry
 {
     uint16_t len;
     uint16_t base_low;
@@ -113,10 +114,10 @@ struct gdt_tss_entry
     uint32_t ign;
 } __attribute__((packed));
 
-struct gdt_pack
+struct GlobalDescTablePackage
 {
-    struct gdt_entry entries[GDT_ENTRY_COUNT];
-    struct gdt_tss_entry tss;
+    struct GlobalDescTableEntry entries[GDT_ENTRY_COUNT];
+    struct GlobalDescTableTaskEntry tss;
 } __attribute__((packed));
 
 #define IDT_DIVIDE_BY_ZERO 0x00
@@ -148,13 +149,13 @@ struct gdt_pack
 
 #define IDT_ENTRY_COUNT 256
 
-struct idt_ptr
+struct InterruptDescTablePointer
 {
     uint16_t size;
     uint64_t base;
 } __attribute__((packed));
 
-struct idt_entry
+struct InterruptDescTableEntry
 {
     uint16_t base_low;
     uint16_t selector;
@@ -181,11 +182,21 @@ typedef struct CPUIDInfo
     uint32_t ecx, edx;
 } cpuid_info_t;
 
-typedef struct ProcessorInfo
+typedef struct CPUCore
 {
-    uint32_t id;
-    struct gdt_ptr gdtPtr;
-    struct idt_ptr idtPtr;
+    struct CPUCore *self;
+    uint64_t id;
+    void *gdt;
+    struct GlobalDescTablePointer gdtPtr;
+    struct InterruptDescTablePointer idtPtr;
+    thread_t *currentThread;
+    thread_t *idleThread;
+    proc_t *idleProcess;
+    
+
 } cpu_info_t;
+
+static void SetCPULocal(cpu_info_t *cpu);
+static cpu_info_t *GetCPULocal();
 
 int GetCpuNum();

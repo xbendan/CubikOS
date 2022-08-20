@@ -1,4 +1,4 @@
 #include <stdint.h>
 
-void lidt();
+void LoadInterruptDescTable();
 extern void asmw_flush_idt(uint64_t);

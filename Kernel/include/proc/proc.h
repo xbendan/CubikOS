@@ -2,9 +2,9 @@
 
 #include <fs/vfs.h>
 #include <proc/activity.h>
-#include <macros.h>
 #include <utils/list.h>
 #include <utils/spinlock.h>
+#include <macros.h>
 
 #ifdef ARCH_X86_64
     #include <x86_64/cpu.h>
@@ -42,6 +42,14 @@ enum TaskType
     TaskTypeApplication = 2,
     TaskTypeService = 3,
     TaskTypeBackground = 4
+};
+
+enum ThreadState
+{
+    ThreadStateAbolished = 0,
+    ThreadStateRunning = 1,
+    ThreadStateBlocked = 2,
+    ThreadState
 };
 
 typedef struct Process
@@ -91,17 +99,17 @@ typedef struct Process
 
 typedef struct Thread
 {
-    tid_t tid;
-    proc_t *process;
-    spinlock_t lock;
-    spinlock_t stateLock;
+    tid_t tid;              /* Thread ID, not duplicated in same progress */
+    proc_t *process;        /* Parent process, indicates the owner of this thread */
+    spinlock_t lock;        /* Thread lock */
+    spinlock_t stateLock;   /* Thread state lock */
 
-    registers_t registers;
+    registers_t registers;  
     registers_t last_syscall;
     
     uintptr_t stackBase;
     uintptr_t stackSize;
 
-    uint8_t priority;
-    uint8_t state;
+    uint8_t priority;       /* The priority when scheduling */
+    uint8_t state;          /* Thread state */
 } thread_t;

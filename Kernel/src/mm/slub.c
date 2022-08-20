@@ -122,7 +122,7 @@ pageframe_t *__slab_GetPartialPage(struct KMemoryCache *cache)
  */
 void KM_Initialize()
 {
-    for(size_t idx; idx < 16; idx++)
+    for(size_t idx; idx < sizeof(blockSize) / 2; idx++)
     {
         __slab_SetCache(
             (struct KMemoryCache *) AllocatePages(PR_GetKernelProcess(), 4),

@@ -24,7 +24,7 @@ void PIC_Disable()
     IoPorts_WriteByte8(0x21, 0xFF);
 }
 
-void PIC_ACK(int i)
+void RestoreInterrupts(int i)
 {
     if (i >= 40)
     {

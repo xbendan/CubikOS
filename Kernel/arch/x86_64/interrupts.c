@@ -4,8 +4,8 @@
 #include <x86_64/interrupts.h>
 #include <panic.h>
 
-void cli() { __asm__("cli"); }
-void sti() { __asm__("sti"); }
+void DisableInterrupts() { __asm__("cli"); }
+void EnableInterrupts() { __asm__("sti"); }
 
 uint64_t DispatchInterrupts(uintptr_t rsp)
 {
@@ -25,7 +25,7 @@ uint64_t DispatchInterrupts(uintptr_t rsp)
 
     }
 
-    PIC_ACK(context->intno);
+    RestoreInterrupts(context->intno);
 
     return rsp;
 }

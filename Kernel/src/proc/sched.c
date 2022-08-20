@@ -42,7 +42,7 @@ proc_t *CreateELFProcess(file_t *file)
 
 }
 
-proc_t *CreateProcessEx(activity_t *activity, const char *name)
+proc_t *CreateProcessEx(activity_t *activity, file_t *file, const char *name)
 {
     
 }
@@ -53,4 +53,9 @@ thread_t *CreateThread(proc_t *process)
         return NULL;
 
     thread_t *newThread = KernelAllocateStruct(KernelStructThread);
+}
+
+void SchedulerInitialize()
+{
+    
 }
