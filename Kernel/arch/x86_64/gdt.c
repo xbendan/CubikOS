@@ -22,7 +22,7 @@ static struct GlobalDescTablePackage gdt = {
     {
     }
 };
-static struct GlobalDescTablePointer gdtr = {
+struct GlobalDescTablePointer g_Gdtr = {
     .size = sizeof(struct GlobalDescTablePackage) - 1,
     .base = (uint64_t) &gdt,
 };
@@ -41,5 +41,5 @@ void LoadGlobalDescTable()
         .ign = 0
     };
 
-    asmw_flush_gdt((uint64_t) &gdtr);
+    asmw_flush_gdt((uint64_t) &g_Gdtr);
 }

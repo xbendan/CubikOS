@@ -59,3 +59,35 @@ void LAPIC_Initialize()
         LOCAL_APIC_SIVR,
         LAPIC_ReadData(LOCAL_APIC_SIVR) | 0x100);
 }
+
+uintptr_t ioApicBase;
+uintptr_t ioApicVirtBase;
+volatile uint32_t *ioApicRegisterSelect;
+volatile uint32_t *ioApicWindow;
+uint32_t ioApicInterrupts;
+uint32_t ioApicId;
+
+void IOAPIC_Initialize()
+{
+    if(!ioApicBase)
+    {
+        CallPanic("[APIC] Attempt to initialize I/O APIC with out base");
+        return;
+    }
+
+    asm("hlt");
+    ioApicVirtBase = VM_GetIOMapping(ioApicBase);
+    ioApicRegisterSelect = (uint32_t *)(ioApicVirtBase + IO_APIC_REGSEL);
+    ioApicWindow = (uint32_t *)(ioApicVirtBase + IO_APIC_WIN);
+    ioApicInterrupts = IOAPIC_ReadData32(IO_APIC_REGISTER_VER) >> 16;
+    ioApicId = IOAPIC_ReadData32(IO_APIC_REGISTER_ID) >> 24;
+
+    //for(int i = 0; i < ACPI)
+}
+
+void IOAPIC_SetBase(uintptr_t newBase)
+{
+    ioApicBase = newBase;
+}
+
+void IOAPIC_MapLegacyIRQ(uint8_t irq);

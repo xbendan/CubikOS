@@ -6,7 +6,8 @@
 void CallPanic(const char* text)
 {
     //draw_rect();
-    print_string("KERNEL PANIC!");
+    WriteLine(text);
+    WriteLine("KERNEL PANIC!");
 
 hang:
     __asm__("hlt");

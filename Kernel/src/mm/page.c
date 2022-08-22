@@ -105,10 +105,10 @@ void PM_LoadZoneRange(range_t range)
     if(start_address >= end_address)
     {
         /* ignore */
-        print_string("Entry ignored.");
+        WriteLine("[MEMORY] Entry ignored.");
         return;
     }
-    print_string("Entry loading...");
+    WriteLine("[MEMORY] Entry loading...");
 
     uintptr_t current = start_address;
 
@@ -149,7 +149,6 @@ void PM_LoadZoneRange(range_t range)
                 PAGE_FLAG_WRITABLE);
 
             alloc_space = (pageframe_t *) virt;
-            print_long(sizeof(pageframe_t));
             write_pages(
                 alloc_space,
                 current);
@@ -194,30 +193,21 @@ void PM_LoadZoneRange(range_t range)
         else
         {
             uintptr_t pages = (current / ARCH_PAGE_SIZE * sizeof(pageframe_t)) + KERNEL_PHYSICAL_PAGES;
-            uintptr_t temp = VM_AllocatePages(
-                PR_GetKernelProcess(),
-                16);
-            pageframe_t *map_to = PM_AllocatePages(4);
-            if(map_to == NULL)
-            {
-                // panic
-                return;
-            }
             MapVirtualAddress(
                 VM_GetKernelPages(),
-                map_to->addr,
-                temp,
+                PM_AllocatePages(4)->addr,
+                pages,
                 16,
                 PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE);
             write_pages(
-                (pageframe_t *) temp,
+                (pageframe_t *) pages,
                 current);
         }
 
         current += PAGE_MAX_SIZE;
     }
 
-    print_string("Entry loaded");
+    WriteLine("[MEMORY] Entry loaded");
 }
 
 /**

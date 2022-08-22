@@ -6,6 +6,8 @@
 #include <x86_64/interrupts.h>
 #include <x86_64/pic.h>
 #include <x86_64/pit.h>
+#include <x86_64/smp.h>
+#include <x86_64/cpu.h>
 #include <mm/address.h>
 #include <system.h>
 #include <panic.h>
@@ -20,13 +22,13 @@ void ArchitectureInitialize()
     }
 
     // load x86 features
-    DisableInterrupts();
+    //DisableInterrupts();
+    EnableInterrupts();
     LoadGlobalDescTable();
     LoadInterruptDescTable();
 
     // load memory management
     MemoryInitialize();
-
 
     /**
      * @attention PIC and PIT are required before enable interrupts
@@ -40,10 +42,14 @@ void ArchitectureInitialize()
 
     EnableInterrupts();
 
+    cpuid_info_t cpuid = CPUID();
+    ACPI_Initialize();
+    WriteLine("[ACPI] OK!");
+
     KernelInitialize();
 
-    
     SMP_Initialize();
+    WriteLine("[SMP] OK!");
     asm("hlt");
 }
 

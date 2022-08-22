@@ -4,17 +4,29 @@
 #include <x86_64/interrupts.h>
 #include <panic.h>
 
+isr_t g_IsrHandlers[256];
+
 void DisableInterrupts() { __asm__("cli"); }
 void EnableInterrupts() { __asm__("sti"); }
+
+void RegisterInterruptHandler(int num, isr_t func)
+{
+    g_IsrHandlers[num] = func;
+}
 
 uint64_t DispatchInterrupts(uintptr_t rsp)
 {
     registers_t *context = (registers_t*)(rsp);
 
+    if(g_IsrHandlers[context->intno] != 0x0)
+    {
+        g_IsrHandlers[context->intno](NULL, context);
+    }else{
+
     if(context->intno < 32)
     {
-        print_long(context->intno);
-        CallPanic("");
+        WriteLong(context->intno);
+        CallPanic("System Interrupt");
     }
     else if(context->intno < 48)
     {
@@ -23,7 +35,7 @@ uint64_t DispatchInterrupts(uintptr_t rsp)
     else
     {
 
-    }
+    }}
 
     RestoreInterrupts(context->intno);
 

@@ -1,5 +1,6 @@
 #include <mm/slub.h>
 #include <mm/malloc.h>
+#include <proc/sched.h>
 #include <panic.h>
 
 #ifdef ARCH_X86_64
@@ -10,18 +11,20 @@
 const uint16_t blockSize[] = {
     8,      16,     32,     48,     64,     96,     128,    192, 
     256,    512,    768,    1024,   1536,   2048,   4096,   8192,
-    sizeof(thread_t)
+    sizeof(struct Thread)
 };
 static struct KMemoryCache *g_cachePointers[SLAB_MAX_BLOCK_ORDER];
 static lklist_node_t g_cacheList;
 
-void __slab_SetCache(struct KMemoryCache *cache, int size, uint64_t flags)
+void __slab_SetCache(struct KMemoryCache *cache, int order, uint64_t flags)
 {
     if(cache == NULL)
     {
         CallPanic("INVALID ADDRESS");
         return;
     }
+
+    int size = blockSize[size];
 
     cache->size = size;
     cache->flags = flags;
@@ -41,6 +44,7 @@ void __slab_SetCache(struct KMemoryCache *cache, int size, uint64_t flags)
         cache->node[idx] = (struct KMemoryNode *)(((uint64_t) cache) + (idx * sizeof(struct KMemoryNode)));
 
     LinkedListAppend(&g_cacheList, &cache->listnode);
+    g_cachePointers[order] = cache;
 }
 
 void __slab_SetPage(struct KMemoryCache *cache, pageframe_t *page, uintptr_t virt)
@@ -81,12 +85,22 @@ struct KMemoryCache *KM_FindCache(size_t size)
     if(size > SLAB_MAX_SIZE)
         return NULL;
 
+    for(int order = 0; order < 16; order++)
+    {
+        if(blockSize[order] > size)
+        {
+            cache = g_cachePointers[order];
+            break;
+        }
+    }
+
+    /*
     int oo = 0;
     do
     {
         cache = g_cachePointers[oo++];
     } while (cache->size < size);
-
+    */
     return cache;
 }
 
@@ -126,7 +140,7 @@ void KM_Initialize()
     {
         __slab_SetCache(
             (struct KMemoryCache *) AllocatePages(PR_GetKernelProcess(), 4),
-            blockSize[idx],
+            idx,
             0x0
         );
     }
@@ -170,7 +184,7 @@ void __slab_AssignCpuSlab(struct KCpuCache *slabCpu, pageframe_t *page)
  * @param cache 
  * @return uintptr_t 
  */
-uintptr_t __AllocateObject(struct KMemoryCache *cache)
+uintptr_t __slab_AllocateObject(struct KMemoryCache *cache)
 {
     if (cache == NULL)
         CallPanic("Null Pointer for cache while allocating kernel memory.");
@@ -254,12 +268,12 @@ uintptr_t KM_AllocateStruct(kstruct_index_t id)
     if(id < SLAB_MAX_BLOCK_ORDER || id > 16)
         CallPanic("Kernel Struct Index out of bound.");
 
-    return __AllocateObject(g_cachePointers[id]);
+    return __slab_AllocateObject(g_cachePointers[id]);
 }
 
 uintptr_t KM_Allocate(uint32_t size)
 {
-    return __AllocateObject(KM_FindCache(size));
+    return __slab_AllocateObject(KM_FindCache(size));
 }
 
 void KM_Free(uintptr_t addr)

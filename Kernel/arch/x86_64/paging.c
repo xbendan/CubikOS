@@ -1,21 +1,29 @@
 #include <x86_64/paging.h>
+#include <x86_64/interrupts.h>
 #include <mm/memory.h>
 #include <mm/malloc.h>
 #include <mm/address.h>
 #include <proc/sched.h>
 #include <graphic/terminal.h>
 #include <macros.h>
+#include <panic.h>
 
 pml4_t          kernelPages __attribute__((aligned(ARCH_PAGE_SIZE)));
 pdpt_t          kernelPdpts __attribute__((aligned(ARCH_PAGE_SIZE)));
 page_dir_t      kernelPageDirs[DIRS_PER_PDPT] __attribute__((aligned(ARCH_PAGE_SIZE)));
 page_table_t    kernelPageTables[TABLES_PER_DIR] __attribute__((aligned(ARCH_PAGE_SIZE)));
+
 page_table_t   *kernelPageTablePointers[DIRS_PER_PDPT][TABLES_PER_DIR];
-//page_t kernel_pages[TABLES_PER_DIR][PAGES_PER_TABLE] __attribute__((aligned(ARCH_PAGE_SIZE)));
 
 pml4_t *currentPages;
 
 uint64_t kvm_marks[8192];
+
+void Interrupts_PageFaultHandler(void *, struct RegisterContext *regs)
+{
+    WriteLine("[ERR] Page Fault");
+    asm("hlt");
+}
 
 void LoadVirtualMemory()
 {
@@ -26,14 +34,6 @@ void LoadVirtualMemory()
     pml4Entry->usr = 0;
 
     pml4Entry->addr = (((uint64_t) &kernelPdpts) - KERNEL_VIRTUAL_BASE) / ARCH_PAGE_SIZE;
-/*
-    *pml4Entry = (pml4_entry_t){
-        .usr = 0,
-        .writable = 1,
-        .present = 1,
-        .addr = ((uint64_t) &kernelPdpts) / ARCH_PAGE_SIZE
-    };
-*/
 
     for (size_t pdptIndex = 0; pdptIndex < DIRS_PER_PDPT; pdptIndex++)
     {
@@ -59,37 +59,9 @@ void LoadVirtualMemory()
         pdirEntry->addr = (((uint64_t) pageTable) - KERNEL_VIRTUAL_BASE) / ARCH_PAGE_SIZE;
         kernelPageTablePointers[PDPT_GET_INDEX(KERNEL_VIRTUAL_BASE)][pdirIndex] = pageTable;
     }
-/*
-    pdpt_entry_t *pdptEntry = &kernelPdpts.entries[TABLES_PER_DIR - 2];
 
-    pdptEntry->present = 1;
-    pdptEntry->writable = 1;
-    pdptEntry->usr = 0;
-
-    pdptEntry->addr = ((uint64_t) &kernelPageDirs - KERNEL_VIRTUAL_BASE) / ARCH_PAGE_SIZE;
-*/
-/*
-    *pdptEntry = (pdpt_entry_t){
-        .usr = 0,
-        .writable = 1,
-        .present = 1,
-        .addr = ((uint64_t) &kernelPageDirs) / ARCH_PAGE_SIZE
-    };
-*/
-/*
-    for (size_t idx = 0; idx < TABLES_PER_DIR; idx++)
-    {
-        pd_entry_t *kpd_entry = &kernelPageDirs.entries[idx];
-
-        kpd_entry->present = 1;
-        kpd_entry->writable = 1;
-        kpd_entry->usr = 0;
-
-        kpd_entry->addr = ((uint64_t) &kernelPageTables[idx] - KERNEL_VIRTUAL_BASE) / ARCH_PAGE_SIZE;
-    }
-*/
-    proc_t *kproc = PR_GetKernelProcess();
-    //kproc->page_map = &kernelPages;
+    struct Process *kproc = PR_GetKernelProcess();
+    kproc->page_map = &kernelPages;
     kproc->vmmap = &kvm_marks;
     for (size_t idx = 0; idx < 16; idx++)
         kproc->vmmap[idx] = &kvm_marks[idx * 512];
@@ -115,6 +87,8 @@ void LoadVirtualMemory()
         kernel_address,
         kernel_page_amount
     );
+
+    RegisterInterruptHandler(14, &Interrupts_PageFaultHandler);
 }
 
 bool IsPagePresent(
@@ -133,43 +107,27 @@ bool IsPagePresent(
     {
         size_t pdptIndex = PDPT_GET_INDEX(addr), pdirIndex = PDIR_GET_INDEX(addr), pageIndex = PAGE_GET_INDEX(addr);
     }
-
-/*
-    pml4_entry_t *pml4_entry = &map->entries[PML4_GET_INDEX(addr)];
-    if (!pml4_entry->present)
-    {
-        return false;
-    }
-
-    pdpt_t *_pdpt = (pdpt_t *)(pml4_entry->addr * ARCH_PAGE_SIZE + kernel_offset);
-    pdpt_entry_t *pdpt_entry = &_pdpt->entries[PDPT_GET_INDEX(addr)];
-    if (!pdpt_entry->present)
-    {
-        return false;
-    }
-
-    struct page_dir *_page_dir = (struct page_dir *)(pdpt_entry->addr * ARCH_PAGE_SIZE + kernel_offset);
-    pd_entry_t *pd_entry = &_page_dir->entries[PDIR_GET_INDEX(addr)];
-    if (!pd_entry->present)
-    {
-        return false;
-    }
-
-    struct page_table *_page_table = (struct page_table *)(pd_entry->addr * ARCH_PAGE_SIZE + kernel_offset);
-    page_t *page = &_page_table->entries[PAGE_GET_INDEX(addr)];
-
-    return page->present;
-*/
 }
 
-page_map_t *create_pagemap()
+page_map_t *VM_CreatePagemap()
 {
 
 }
 
-void destory_pagemap()
+void VM_DestroyPagemap()
 {
 
+}
+
+uintptr_t VM_GetIOMapping(uintptr_t address)
+{
+    if(address > 0xFFFFFFFF)
+    {
+        WriteLine("[WARN] Access IO address greater than 0xFFFFFFFF.");
+        WriteLong(address);
+        return 0xFFFFFFFF;
+    }
+    return address + KERNEL_IO_VIRTUAL_BASE;
 }
 
 void MapVirtualAddress(
@@ -181,7 +139,7 @@ void MapVirtualAddress(
 {
     bool writable = flags & PAGE_FLAG_WRITABLE;
     bool usr = flags & PAGE_FLAG_USER;
-    proc_t *kproc = PR_GetKernelProcess();
+    struct Process *kproc = PR_GetKernelProcess();
     size_t pml4Index, pdptIndex, pdirIndex, pageIndex;
 
     while (amount)
@@ -206,6 +164,8 @@ void MapVirtualAddress(
                     pdirEntry->usr = flags & PAGE_FLAG_USER;
                     
                     pageTable = (page_table_t *) AllocatePages(kproc, 1);
+                    if(pageTable == NULL || pageTable == 0x0)
+                        asm("hlt");
                     uint64_t pageTablePhys = ConvertVirtToPhys(map, (uint64_t)(pageTable));
                     
                     pdirEntry->addr = pageTablePhys / ARCH_PAGE_SIZE;
@@ -230,57 +190,6 @@ void MapVirtualAddress(
             asm("hlt");
         }
 
-        /*
-        pml4_entry_t *pml4Entry = &map->entries[pml4Index];
-        if(!pml4Entry->present)
-        {
-            pml4Entry->present = 1;
-            pml4Entry->writable = writable;
-            pml4Entry->usr = usr;
-            
-            pdpt_entry_t *pdptEntry = (pdpt_entry_t*) AllocatePages(kproc, 1);
-
-            pml4Entry->addr = ConvertVirtToPhys(map, (uint64_t)(pdptEntry)) / ARCH_PAGE_SIZE;
-        }
-
-        pdpt_t *_pdpt = (pdpt_t *)(pml4_entry->addr * ARCH_PAGE_SIZE + kernel_offset);
-        pdpt_entry_t *pdptEntry = &_pdpt->entries[pdptIndex];
-
-        if(!pdptEntry->present)
-        {
-            pdptEntry->present = 1;
-            pdptEntry->writable = writable;
-            pdptEntry->usr = usr;
-            
-            pd_entry_t *pdirEntry = (pd_entry_t*) AllocatePages(kproc, 1);
-
-            pdptEntry->addr = ConvertVirtToPhys(map, (uint64_t)(pdirEntry)) / ARCH_PAGE_SIZE;
-        }
-
-        struct page_dir *_pageDir = (struct page_dir *)(pdpt_entry->addr * ARCH_PAGE_SIZE + kernel_offset);
-        pd_entry_t *pdirEntry = &_pageDir->entries[pdirIndex];
-
-        if (!pdirEntry->present)
-        {
-            pdirEntry->present = 1;
-            pdirEntry->writable = writable;
-            pdirEntry->usr = usr;
-
-            page_t *page = (page_t *) AllocatePages(kproc, 1);
-
-            pdirEntry->addr = ConvertVirtToPhys(map, (uint64_t)(page)) / ARCH_PAGE_SIZE;
-        }
-
-        struct page_table *_pageTable = (struct page_table *)(pdirEntry->addr * ARCH_PAGE_SIZE + kernel_offset);
-        page_t *page = &_pageTable->entries[pageIndex];
-
-        page->present = 1;
-        page->writable = writable;
-        page->usr = usr;
-
-        page->addr = phys / ARCH_PAGE_SIZE;
-        */
-
         phys += ARCH_PAGE_SIZE;
         virt += ARCH_PAGE_SIZE;
         amount--;
@@ -288,7 +197,7 @@ void MapVirtualAddress(
 }
 
 uintptr_t VM_AllocatePages(
-    proc_t *process,
+    struct Process *process,
     size_t amount)
 {
     if(process == NULL)
@@ -387,7 +296,7 @@ uintptr_t VM_AllocatePages(
 }
 
 void VM_FreePages(
-    proc_t *process,
+    struct Process *process,
     uint64_t virt,
     size_t amount)
 {
@@ -395,7 +304,7 @@ void VM_FreePages(
 }
 
 void VM_MarkPagesUsed(
-    proc_t *process,
+    struct Process *process,
     uint64_t virt, 
     size_t amount)
 {
@@ -427,7 +336,7 @@ void VM_MarkPagesUsed(
 }
 
 void VM_MarkPagesFree(
-    proc_t *process,
+    struct Process *process,
     uint64_t virt,
     size_t amount)
 {
@@ -475,33 +384,6 @@ uintptr_t ConvertVirtToPhys(
     }
 
     return addr;
-    
-    /*
-    pml4_entry_t *pml4_entry = &map->entries[PML4_GET_INDEX(addr)];
-    if (!pml4_entry->present)
-    {
-        return false;
-    }
-
-    pdpt_t *_pdpt = (pdpt_t *)(pml4_entry->addr * ARCH_PAGE_SIZE + kernel_offset);
-    pdpt_entry_t *pdpt_entry = &_pdpt->entries[PDPT_GET_INDEX(addr)];
-    if (!pdpt_entry->present)
-    {
-        return false;
-    }
-
-    struct page_dir *_page_dir = (struct page_dir *)(pdpt_entry->addr * ARCH_PAGE_SIZE + kernel_offset);
-    pd_entry_t *pd_entry = &_page_dir->entries[PDIR_GET_INDEX(addr)];
-    if (!pd_entry->present)
-    {
-        return false;
-    }
-
-    struct page_table *_page_table = (struct page_table *)(pd_entry->addr * ARCH_PAGE_SIZE + kernel_offset);
-    page_t *page = &_page_table->entries[PAGE_GET_INDEX(addr)];
-
-    return (page->addr * ARCH_PAGE_SIZE) + (addr & 0xfff);
-    */
 }
 
 page_t *VM_GetPage(pml4_t *map, uintptr_t addr)
@@ -517,7 +399,7 @@ page_t *VM_GetPage(pml4_t *map, uintptr_t addr)
     {
         // Kernel Address Space
         page_table_t *pageTableEntry = kernelPageTablePointers[pdptIndex][pdirIndex]; //kernelPageDirs[pdptIndex].entries[pdirIndex];
-        if (pageTableEntry != 0x0)
+        if (pageTableEntry != 0x0 && pageTableEntry != NULL)
             return &pageTableEntry->entries[pageIndex];
         else
             return NULL;
@@ -534,7 +416,7 @@ void VM_SwitchPageTable(pml4_t *map)
     asmi_load_paging(
         ConvertVirtToPhys(
             VM_GetKernelPages(), 
-            map
+            (uintptr_t) map
         )
     );
 }

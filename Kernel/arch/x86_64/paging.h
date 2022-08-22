@@ -134,8 +134,9 @@ bool IsPagePresent(
     pml4_t *map, 
     uint64_t addr
 );
-page_map_t *CreatePagemap();
-void DestoryPagemap();
+page_map_t *VM_CreatePagemap();
+void VM_DestoryPagemap();
+uintptr_t VM_GetIOMapping(uintptr_t address);
 void MapVirtualAddress(
     pml4_t *map,
     uint64_t phys,
@@ -144,21 +145,21 @@ void MapVirtualAddress(
     page_flags_t flags
 );
 uintptr_t VM_AllocatePages(
-    proc_t *process,
+    struct Process *process,
     size_t amount
 );
 void VM_FreePages(
-    proc_t *process,
+    struct Process *process,
     uint64_t virt,
     size_t amount
 );
 void VM_MarkPagesUsed(
-    proc_t *process,
+    struct Process *process,
     uint64_t virt, 
     size_t amount
 );
 void VM_MarkPagesFree(
-    proc_t *process,
+    struct Process *process,
     uint64_t virt,
     size_t amount
 );

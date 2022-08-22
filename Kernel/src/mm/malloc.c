@@ -5,12 +5,13 @@
 #include <proc/proc.h>
 #include <graphic/terminal.h>
 #include <panic.h>
+
 #ifdef ARCH_X86_64
-#include <x86_64/paging.h>
+    #include <x86_64/paging.h>
 #endif
 
 uintptr_t AllocatePages(
-    proc_t *process, 
+    struct Process *process, 
     size_t amount)
 {
     amount = page_size_align(amount);

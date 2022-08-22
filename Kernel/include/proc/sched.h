@@ -1,7 +1,7 @@
 #include <proc/proc.h>
 
-proc_t *PR_GetKernelProcess();
-proc_t *PR_GetCurrentProcess();
+struct Process *PR_GetKernelProcess();
+struct Process *PR_GetCurrentProcess();
 
 
 /**
@@ -15,17 +15,17 @@ activity_t *NewActivity(const char* name);
 /**
  * @brief Create a Process object
  * 
- * @return proc_t* Pointer to new process object
+ * @return struct Process* Pointer to new process object
  */
-proc_t *CreateProcess();
+struct Process *CreateProcess();
 
 /**
  * @brief Create a process from existing file
  * 
  * @param file Source file, must be executable
- * @return proc_t* Pointer to new process object
+ * @return struct Process* Pointer to new process object
  */
-proc_t *CreateELFProcess(file_t *file);
+struct Process *CreateELFProcess(file_t *file);
 
 /**
  * @brief Create a Process object with full arguments
@@ -37,17 +37,17 @@ proc_t *CreateELFProcess(file_t *file);
  * @param activity Activity the process belongs to
  * @param name Process name, use filename instead if its NULL, or <activity_name>-<pid>
  * @param file The file that the process created from
- * @return proc_t* Pointer to new process object
+ * @return struct Process* Pointer to new process object
  */
-proc_t *CreateProcessEx(activity_t *activity, file_t* file, const char *name);
+struct Process *CreateProcessEx(activity_t *activity, file_t* file, const char *name);
 
 /**
  * @brief Create a new thread object of specific process
  * 
  * @param process Parent process
- * @return thread_t* Pointer to new thread
+ * @return struct Thread* Pointer to new thread
  */
-thread_t *CreateThread(proc_t *process);
+struct Thread *CreateThread(struct Process *process);
 
 /**
  * @brief Forcely kill a process and clean all resources
@@ -61,7 +61,7 @@ thread_t *CreateThread(proc_t *process);
  * 
  * @param process Process that will be killed
  */
-void KillProcess(proc_t *process);
+void KillProcess(struct Process *process);
 
 /**
  * @brief Send a message to terminate a process
@@ -72,12 +72,12 @@ void KillProcess(proc_t *process);
  * by the process, so it's safe to stop a processunless the process 
  * cannot handle this message. In that situation, sending a terminate 
  * message won't do anything, call @code {.c}
- * KillProcess(proc_t *process)
+ * KillProcess(struct Process *process)
  * @endcode instead.
  * 
  * 
  * @param process 
  */
-void TerminateProcess(proc_t *process);
+void TerminateProcess(struct Process *process);
 
 void SchedulerInitialize();

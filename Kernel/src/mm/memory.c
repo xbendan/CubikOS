@@ -1,6 +1,7 @@
 #include <mm/memory.h>
 #include <mm/page.h>
 #include <mm/slub.h>
+#include <mm/address.h>
 #include <graphic/terminal.h>
 #include <proc/sched.h>
 #include <panic.h>
@@ -71,8 +72,8 @@ void MemoryInitialize()
         PR_GetKernelProcess(),
         1
     );
-    print_string("Terminal buffer:");
-    print_long(t_addr);
+    WriteLine("Terminal buffer:");
+    WriteLong(t_addr);
     MapVirtualAddress(
         VM_GetKernelPages(),
         0xb8000,
@@ -84,8 +85,6 @@ void MemoryInitialize()
     VM_SwitchPageTable(
         VM_GetKernelPages()
     );
-    print_string("HELLO");
-    //MakeTripleFault();
 
     struct boot_mem *mem = &GetBootInfo()->mem;
 
@@ -116,7 +115,7 @@ void MemoryInitialize()
             {
             case MemoryMapEntryTypeAvailable:
                 mem_stats.available += size;
-                print_string("Load memory free entry.");
+                WriteLine("[MEMORY] Load memory free entry.");
                 PM_LoadZoneRange(entry->range);
                 break;
             case MemoryMapEntryTypeReserved:
@@ -128,8 +127,7 @@ void MemoryInitialize()
             case MemoryMapEntryTypeBadRam:
                 break;
             case MemoryMapEntryTypeKernel:
-                print_string("Load memory kernel or module entry.");
-                //PM_LoadZoneRange(entry->range);
+                WriteLine("[MEMORY] Load memory kernel or module entry.");
                 PM_MarkPagesUsed((range_t){
                     .start = ALIGN_DOWN(entry->range.start, ARCH_PAGE_SIZE),
                     .end = ALIGN_UP(entry->range.end, ARCH_PAGE_SIZE)
@@ -138,14 +136,22 @@ void MemoryInitialize()
                 mem_stats.inuse += size;
                 break;
             default:
-                print_string("Skip memory entry.");
+                WriteLine("[MEMORY] Skip memory entry.");
                 break;
             }
             
         }
     }
 
-    KM_Initialize();
+    MapVirtualAddress(
+        VM_GetKernelPages(),
+        0x00000000,
+        KERNEL_LOW_4GB,
+        0x100000,
+        PAGE_FLAG_PRESENT | PAGE_FLAG_WRITABLE
+    );
 
-    print_string("Memory initialized.");
+    KM_Initialize();
+    
+    WriteLine("[MEMORY] OK!");
 }

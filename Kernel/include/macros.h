@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#define __INLINE__ __attribute__((always_inline)) inline
+#define __PACKED__ __attribute__((packed))
 // Align the nearest _lower_ aligned address
 // ex: 8 with align = 8 -> 8
 // ex: 9 with align = 8 -> 16

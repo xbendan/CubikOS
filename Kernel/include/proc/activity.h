@@ -1,4 +1,3 @@
-#include <proc/proc.h>
 #include <utils/list.h> 
 
 typedef struct activity

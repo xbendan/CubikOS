@@ -47,7 +47,7 @@ void add_char(char c)
     }
 }
 
-void print_string(const char* text)
+void WriteLine(const char* text)
 {
     for(int i = 0; i < strlen(text); i++)
     {
@@ -56,7 +56,7 @@ void print_string(const char* text)
     new_line();
 }
 
-void print_long(uint64_t val)
+void WriteLong(uint64_t val)
 {
     for(int i = 0; i < 79; i++)
     {

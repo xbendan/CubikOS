@@ -15,6 +15,7 @@
 #endif
 
 ;
+
 typedef uint32_t tid_t;
 typedef uint16_t pid_t;
 
@@ -52,7 +53,7 @@ enum ThreadState
     ThreadState
 };
 
-typedef struct Process
+struct Process
 {
     char *name;         /* Name of the process */
     char *publisher;    /* Name of the publisher */
@@ -60,8 +61,8 @@ typedef struct Process
     char *package;      /* Package Name */
     pid_t pid;          /* Process Id, 0~255 are reserved for kernel process */
     uint8_t type;       /* Current process type */
-    file_t *file;
-    activity_t *activity;   /* Pointer to the Activity */
+    struct File *file;
+    struct Activity *activity;   /* Pointer to the Activity */
     union
     { // Flags
         uint32_t size;
@@ -95,21 +96,21 @@ typedef struct Process
     #elif ARCH_RISCV
 
     #endif
-} proc_t;
+};
 
-typedef struct Thread
+struct Thread
 {
     tid_t tid;              /* Thread ID, not duplicated in same progress */
-    proc_t *process;        /* Parent process, indicates the owner of this thread */
+    struct Process *process;        /* Parent process, indicates the owner of this thread */
     spinlock_t lock;        /* Thread lock */
     spinlock_t stateLock;   /* Thread state lock */
 
-    registers_t registers;  
-    registers_t last_syscall;
+    struct RegisterContext registers;  
+    struct RegisterContext last_syscall;
     
     uintptr_t stackBase;
     uintptr_t stackSize;
 
     uint8_t priority;       /* The priority when scheduling */
     uint8_t state;          /* Thread state */
-} thread_t;
+};

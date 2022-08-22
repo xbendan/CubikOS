@@ -9,20 +9,20 @@
 
 #endif
 
-proc_t g_kernelProcess;
-proc_t *g_currentProcess[MAX_CPU_AMOUNT];
+struct Process g_kernelProcess;
+struct Process *g_currentProcess[MAX_CPU_AMOUNT];
 
 pid_t NextProcessId()
 {
 
 }
 
-proc_t* PR_GetKernelProcess()
+struct Process* PR_GetKernelProcess()
 {
     return &g_kernelProcess;
 }
 
-proc_t* PR_GetCurrentProcess()
+struct Process* PR_GetCurrentProcess()
 {
     return g_currentProcess[CPU_CORE_ID];
 }
@@ -32,30 +32,32 @@ activity_t *NewActivity(const char* name)
     
 }
 
-proc_t *CreateProcess()
+struct Process *CreateProcess()
 {
 
 }
 
-proc_t *CreateELFProcess(file_t *file)
+struct Process *CreateELFProcess(file_t *file)
 {
 
 }
 
-proc_t *CreateProcessEx(activity_t *activity, file_t *file, const char *name)
+struct Process *CreateProcessEx(activity_t *activity, file_t *file, const char *name)
 {
     
 }
 
-thread_t *CreateThread(proc_t *process)
+struct Thread *CreateThread(struct Process *process)
 {
     if (process == NULL)
         return NULL;
 
-    thread_t *newThread = KernelAllocateStruct(KernelStructThread);
+    struct Thread *newThread = (struct Thread *) KernelAllocateStruct(KernelStructThread);
 }
 
 void SchedulerInitialize()
 {
+    g_currentProcess[CPU_CORE_ID] = &g_kernelProcess;
+
     
 }

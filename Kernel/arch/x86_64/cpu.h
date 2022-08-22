@@ -2,7 +2,6 @@
 
 #include <x86_64/gdt.h>
 #include <x86_64/idt.h>
-#include <proc/proc.h>
 
 #define CPUID_ECX_SSE3 (1 << 0)
 #define CPUID_ECX_PCLMUL (1 << 1)
@@ -177,7 +176,7 @@ typedef struct RegisterContext
 typedef struct CPUIDInfo
 {
     char vendor_str[12];
-    char end;
+    char vendor_end;
 
     uint32_t ecx, edx;
 } cpuid_info_t;
@@ -189,14 +188,13 @@ typedef struct CPUCore
     void *gdt;
     struct GlobalDescTablePointer gdtPtr;
     struct InterruptDescTablePointer idtPtr;
-    thread_t *currentThread;
-    thread_t *idleThread;
-    proc_t *idleProcess;
-    
-
+    struct Thread *currentThread;
+    struct Thread *idleThread;
+    struct Process *idleProcess;
 } cpu_info_t;
 
-static void SetCPULocal(cpu_info_t *cpu);
-static cpu_info_t *GetCPULocal();
+cpuid_info_t CPUID();
+void SetCPULocal(cpu_info_t *cpu);
+cpu_info_t *GetCPULocal();
 
 int GetCpuNum();
