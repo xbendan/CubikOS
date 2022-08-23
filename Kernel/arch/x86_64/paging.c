@@ -17,7 +17,7 @@ page_table_t   *kernelPageTablePointers[DIRS_PER_PDPT][TABLES_PER_DIR];
 
 pml4_t *currentPages;
 
-uint64_t kvm_marks[8192];
+uint64_t kernelPageMarks[8192];
 
 void Interrupts_PageFaultHandler(void *, struct RegisterContext *regs)
 {
@@ -62,9 +62,9 @@ void LoadVirtualMemory()
 
     struct Process *kproc = PR_GetKernelProcess();
     kproc->page_map = &kernelPages;
-    kproc->vmmap = &kvm_marks;
+    kproc->vmmap = (uint64_t **) &kernelPageMarks;
     for (size_t idx = 0; idx < 16; idx++)
-        kproc->vmmap[idx] = &kvm_marks[idx * 512];
+        kproc->vmmap[idx] = &kernelPageMarks[idx * 512];
 
     uint64_t kernel_address = ALIGN_DOWN((uintptr_t) &KERNEL_START_ADDR, ARCH_PAGE_SIZE);
     uint64_t kernel_page_amount = (ALIGN_UP((uintptr_t) &KERNEL_END_ADDR, ARCH_PAGE_SIZE) - kernel_address) / ARCH_PAGE_SIZE;
@@ -228,7 +228,7 @@ uintptr_t VM_AllocatePages(
                 PR_GetKernelProcess(),
                 1);
             if(virt_mark)
-                marks[idx] = virt_mark;
+                marks[idx] = (uint64_t *) virt_mark;
             else
             {
                 /*

@@ -16,6 +16,6 @@
 |Global Variable|Lower Camel Case|No|Start with **g_** (letter 'g' and an underline)|g_bootInfo|
 |Local Variable|Lower Camel Case|No||localVariable|
 |Struct Name|Upper Camel Case without Underline|No||struct ExampleStruct|
-|Field in Struct|Snake Case|Better Not|Do NOT follow this if a field is already defined, such as register contexts. Prefer 1 or 2 word(s) only. If a bunch of field needs to be put together, add a prefix, such as "**slab**_inuse"|uint32_t example;|
+|Field in Struct|m_\<ItemName> *(Upper Camel Case)*|Better Not|Do NOT follow this if a field is already defined, such as register contexts. Prefer 1 or 2 word(s) only. If a bunch of field needs to be put together, add a prefix, such as "**slab**_inuse"|uint32_t example;|
 |Enumeration Name|Upper Camel Case without Underline|Better Not||enum VariableType|
 |Enumeration Item|Upper Camel Case without Underline|No||MemoryMapEntryTypeAvailable = 0|

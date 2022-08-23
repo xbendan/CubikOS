@@ -3,6 +3,7 @@
 #include <x86_64/paging.h>
 #include <x86_64/interrupts.h>
 #include <mm/memory.h>
+#include <panic.h>
 
 const char *ACPI_SIGNATURE = "RSD PTR ";
 uint8_t g_Processors[256];

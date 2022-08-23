@@ -4,8 +4,8 @@
 
 int GetCpuNum()
 {
-    if(m_localApic)
-        return m_localApic[LOCAL_APIC_ID / 4] >> 24;
+    if(apicLocalPtr)
+        return apicLocalPtr[LOCAL_APIC_ID / 4] >> 24;
     else
         return 0;
 }

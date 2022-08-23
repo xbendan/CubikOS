@@ -1,8 +1,9 @@
+#include <x86_64/paging.h>
 #include <x86_64/apic.h>
 #include <x86_64/pic.h>
+#include <panic.h>
 
-static volatile uint32_t* apicLocalPtr = NULL;
-volatile uint32_t *m_localApic = NULL;
+volatile uint32_t* apicLocalPtr = NULL;
 
 void LAPIC_WriteBase(uint64_t val)
 {
@@ -53,11 +54,11 @@ void LAPIC_StartTimer()
 
 void LAPIC_Initialize()
 {
-    PIC_Disable();
-    apicLocalPtr = (uint32_t *)LAPIC_ReadBase();
+    apicLocalPtr = (uint32_t *) VM_GetIOMapping(LAPIC_ReadBase());
     LAPIC_WriteData(
         LOCAL_APIC_SIVR,
         LAPIC_ReadData(LOCAL_APIC_SIVR) | 0x100);
+    asm("hlt");
 }
 
 uintptr_t ioApicBase;
@@ -75,7 +76,6 @@ void IOAPIC_Initialize()
         return;
     }
 
-    asm("hlt");
     ioApicVirtBase = VM_GetIOMapping(ioApicBase);
     ioApicRegisterSelect = (uint32_t *)(ioApicVirtBase + IO_APIC_REGSEL);
     ioApicWindow = (uint32_t *)(ioApicVirtBase + IO_APIC_WIN);

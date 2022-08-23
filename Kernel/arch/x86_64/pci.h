@@ -161,7 +161,7 @@ enum PCIConfigurationAccessMode
 };
 
 void PCI_MsiCapSetData(pci_msicap_t* msiCap, uint32_t dat);
-void PCI_MsiCapGetData(pci_msicap_t* msiCap);
+uint32_t PCI_MsiCapGetData(pci_msicap_t* msiCap);
 void PCI_MsiCapSetAddress(pci_msicap_t* msiCap, int cpu);
 
 void PCI_SetDevice(pci_device_t *info, uint8_t bus, uint8_t slot, uint8_t func);

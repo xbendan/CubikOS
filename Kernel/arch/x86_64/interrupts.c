@@ -2,6 +2,7 @@
 #include <x86_64/idt.h>
 #include <x86_64/pic.h>
 #include <x86_64/interrupts.h>
+#include <graphic/terminal.h>
 #include <panic.h>
 
 isr_t g_IsrHandlers[256];

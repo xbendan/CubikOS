@@ -94,13 +94,6 @@ struct KMemoryCache *KM_FindCache(size_t size)
         }
     }
 
-    /*
-    int oo = 0;
-    do
-    {
-        cache = g_cachePointers[oo++];
-    } while (cache->size < size);
-    */
     return cache;
 }
 

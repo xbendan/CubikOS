@@ -17,7 +17,7 @@ void PCI_MsiCapSetData(pci_msicap_t *msiCap, uint32_t dat)
     }
 }
 
-void PCI_MsiCapGetData(pci_msicap_t *msiCap)
+uint32_t PCI_MsiCapGetData(pci_msicap_t *msiCap)
 {
     if (msiCap->msiControl & PCI_CAP_MSI_CONTROL_64)
     {

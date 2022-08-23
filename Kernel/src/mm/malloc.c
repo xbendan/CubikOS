@@ -8,6 +8,10 @@
 
 #ifdef ARCH_X86_64
     #include <x86_64/paging.h>
+#elif ARCH_AARCH64
+
+#elif ARCH_RISCV
+
 #endif
 
 uintptr_t AllocatePages(
@@ -39,9 +43,9 @@ uintptr_t AllocatePages(
         amount,
         flags
     );
-    process->allocated += amount * ARCH_PAGE_SIZE;
-    process->pages += amount;
-    process->present_pages + amount;
+    process->m_MemoryAllocated += (amount * ARCH_PAGE_SIZE);
+    process->m_Pages += amount;
+    process->m_PresentPages + amount;
 
     return virt;
 }

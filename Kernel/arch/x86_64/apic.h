@@ -55,7 +55,7 @@
 
 #define IO_RED_TBL_VECTOR(x) (x & 0xFF)
 
-extern volatile uint32_t *m_localApic;
+extern volatile uint32_t *apicLocalPtr;
 
 void LAPIC_WriteBase(uint64_t val);
 

@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <x86_64/bootx64.h>
 #include <x86_64/paging.h>
+#include <x86_64/acpi.h>
+#include <x86_64/apic.h>
 #include <x86_64/gdt.h>
 #include <x86_64/idt.h>
 #include <x86_64/interrupts.h>
@@ -9,6 +11,7 @@
 #include <x86_64/smp.h>
 #include <x86_64/cpu.h>
 #include <mm/address.h>
+#include <graphic/terminal.h>
 #include <system.h>
 #include <panic.h>
 
@@ -45,6 +48,17 @@ void ArchitectureInitialize()
     cpuid_info_t cpuid = CPUID();
     ACPI_Initialize();
     WriteLine("[ACPI] OK!");
+
+    // APIC
+    if(cpuid.edx & CPUID_EDX_APIC)
+    {
+        PIC_Disable();
+        LAPIC_Initialize();
+        IOAPIC_Initialize();
+        WriteLine("[APIC] OK!");
+    }
+    else
+        WriteLine("[APIC] Not Present.");
 
     KernelInitialize();
 
