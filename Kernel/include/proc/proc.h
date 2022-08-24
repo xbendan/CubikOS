@@ -7,6 +7,7 @@
 #include <macros.h>
 
 #ifdef ARCH_X86_64
+    #include <x86_64/paging.h>
     #include <x86_64/cpu.h>
 #elif ARCH_AARCH64
 
@@ -57,7 +58,7 @@ struct Process
 {
     char *m_Name;         /* Name of the process */
     char *m_Publisher;    /* Name of the publisher */
-    char *m_FileName;     /* Executable file name of this process */
+    //char *m_FileName;     /* Executable file name of this process */
     char *m_Package;      /* Package Name */
     pid_t m_ProcessId;    /* Process Id, 0~255 are reserved for kernel process */
     uint8_t m_Type;       /* Current process type */
@@ -68,8 +69,9 @@ struct Process
         uint32_t __flag_size__;
         struct
         {
-            bool m_IsFocus: 1; 
-            uint32_t __reserved__: 31;
+            bool m_IsFocus: 1;
+            bool m_IsIdle: 1;
+            uint32_t __reserved__: 30;
         } __attribute__((packed));
     };
     uint16_t m_Threads;   /* Amount of threads kept by this process*/
@@ -84,13 +86,26 @@ struct Process
         uint32_t m_SwappedPages;        /* Pages that has been swapped into disks */
     };
 
+    struct
+    {
+        spinlock_t m_Lock;
+        spinlock_t m_HandleLock;
+    };
+
+    struct
+    {
+        uint32_t m_NextThreadId;
+        struct Thread *m_MainThread;
+        struct Thread *m_ChildrenThreadList;
+    };
+
     uintptr_t m_EntryPoint;
-    uintptr_t heap;
+    uintptr_t m_Heap;
 
     /* Architecture Fields */
     #ifdef ARCH_X86_64
-    void *page_map;
-    uint64_t** vmmap;
+    void *m_Pagemap;
+    uint64_t** m_VirtuaPagesBitmap;
     #elif ARCH_AARCH64
 
     #elif ARCH_RISCV
@@ -100,19 +115,29 @@ struct Process
 
 struct Thread
 {
-    tid_t tid;              /* Thread ID, not duplicated in same progress */
-    struct Process *process;        /* Parent process, indicates the owner of this thread */
-    spinlock_t lock;        /* Thread lock */
-    spinlock_t stateLock;   /* Thread state lock */
+    lklist_node_t listnode;
 
-    struct RegisterContext registers;  
-    struct RegisterContext last_syscall;
-    
-    uintptr_t stackBase;
-    uintptr_t stackSize;
+    tid_t m_ThreadId;                  /* Thread ID, not duplicated in same progress */
+    struct Process *m_Parent;    /* Parent process, indicates the owner of this thread */
+    spinlock_t m_Lock;            /* Thread lock */
+    spinlock_t m_StateLock;       /* Thread state lock */
 
-    uint8_t priority;       /* The priority when scheduling */
-    uint8_t state;          /* Thread state */
+    struct
+    {
+        uint32_t esp0;
+        uint32_t ss0;
+    };
+
+    void *m_UserStack;
+    void *m_UserStackLimit;
+    void *m_KernelStack;
+    void *m_KernelStackLimit;
+
+    struct RegisterContext m_Registers;  
+    struct RegisterContext m_LastSyscall;
+
+    uint8_t m_ThreadPriority;       /* The priority when scheduling */
+    uint8_t m_ThreadState;          /* Thread state */
 };
 
 /**
@@ -142,7 +167,7 @@ struct Process *CreateELFProcess(file_t *file);
  * @param file The file that the process created from
  * @return struct Process* Pointer to new process object
  */
-struct Process *CreateProcessEx(activity_t *activity, file_t* file, const char *name);
+struct Process *CreateProcessEx(activity_t *activity, enum TaskType type, file_t* file, const char *name);
 
 /**
  * @brief Create a new thread object of specific process
@@ -177,7 +202,6 @@ void KillProcess(struct Process *process);
  * message won't do anything, call @code {.c}
  * KillProcess(struct Process *process)
  * @endcode instead.
- * 
  * 
  * @param process 
  */

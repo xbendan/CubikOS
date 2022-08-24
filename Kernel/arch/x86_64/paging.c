@@ -61,10 +61,10 @@ void LoadVirtualMemory()
     }
 
     struct Process *kproc = PR_GetKernelProcess();
-    kproc->page_map = &kernelPages;
-    kproc->vmmap = (uint64_t **) &kernelPageMarks;
+    kproc->m_Pagemap = &kernelPages;
+    kproc->m_VirtuaPagesBitmap = (uint64_t **) &kernelPageMarks;
     for (size_t idx = 0; idx < 16; idx++)
-        kproc->vmmap[idx] = &kernelPageMarks[idx * 512];
+        kproc->m_VirtuaPagesBitmap[idx] = &kernelPageMarks[idx * 512];
 
     uint64_t kernel_address = ALIGN_DOWN((uintptr_t) &KERNEL_START_ADDR, ARCH_PAGE_SIZE);
     uint64_t kernel_page_amount = (ALIGN_UP((uintptr_t) &KERNEL_END_ADDR, ARCH_PAGE_SIZE) - kernel_address) / ARCH_PAGE_SIZE;
@@ -208,7 +208,7 @@ uintptr_t VM_AllocatePages(
     bool is_kernel_space = (process == PR_GetKernelProcess());
     size_t amount_left;
     size_t space_limit = (is_kernel_space ? 16 : 16 * 256);
-    uint64_t** marks = process->vmmap;
+    uint64_t** marks = process->m_VirtuaPagesBitmap;
     /*
      * Each process can take upto 512 GiB virtual address
      * which is 512GiB / 128MiB = 8 * 512 = 4096
@@ -315,7 +315,7 @@ void VM_MarkPagesUsed(
     uint16_t pageIndex, ptr_index;
     uint8_t bit_index;
 
-    uint64_t **marks = process->vmmap;
+    uint64_t **marks = process->m_VirtuaPagesBitmap;
     
     virt /= ARCH_PAGE_SIZE;
     while (amount)
@@ -324,7 +324,7 @@ void VM_MarkPagesUsed(
         pageIndex = virt / 64;
         bit_index = virt % 64;
 
-        process->vmmap[ptr_index][pageIndex] |= (1 << bit_index);
+        process->m_VirtuaPagesBitmap[ptr_index][pageIndex] |= (1 << bit_index);
         virt++;
         amount--;
 
@@ -353,7 +353,7 @@ void VM_MarkPagesFree(
         pageIndex = virt / 64;
         bit_index = virt % 64;
 
-        process->vmmap[ptr_index][pageIndex] |= (1 << bit_index);
+        process->m_VirtuaPagesBitmap[ptr_index][pageIndex] |= (1 << bit_index);
         virt++;
         amount--;
 

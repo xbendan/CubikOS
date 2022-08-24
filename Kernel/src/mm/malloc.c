@@ -37,7 +37,7 @@ uintptr_t AllocatePages(
     }
 
     MapVirtualAddress(
-        process->page_map,
+        process->m_Pagemap,
         phys,
         virt,
         amount,

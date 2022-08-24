@@ -9,9 +9,9 @@ typedef enum FileType
 
 typedef struct File
 {
-    char *name;
-    uint8_t contentId[16];
-    enum FileType fileType;
-    uint64_t size;
+    char *m_Name;
+    uint8_t m_UUID[16];
+    enum FileType m_Type;
+    uint64_t m_Size;
     uint64_t bytesTaken;
 } file_t;

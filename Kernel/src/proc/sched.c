@@ -12,24 +12,29 @@
 struct Process g_kernelProcess;
 struct Process *g_currentProcess[MAX_CPU_AMOUNT];
 
-pid_t NextProcessId()
-{
+pid_t currentProcessId = 0;
+struct Process *processListByPid[65536];
 
-}
+struct Process* PR_GetKernelProcess() { return &g_kernelProcess; }
+struct Process* PR_GetCurrentProcess() { return g_currentProcess[CPU_CORE_ID]; }
 
-struct Process* PR_GetKernelProcess()
-{
-    return &g_kernelProcess;
-}
+pid_t GetNextPID() { return currentProcessId++; }
 
-struct Process* PR_GetCurrentProcess()
+struct Process *GetProcessByPID(pid_t pid)
 {
-    return g_currentProcess[CPU_CORE_ID];
+    if(pid > 65535)
+        return NULL;
+    return processListByPid[pid];
 }
 
 void SchedulerInitialize()
 {
     g_currentProcess[CPU_CORE_ID] = &g_kernelProcess;
 
+    
+}
+
+void Schedule()
+{
     
 }

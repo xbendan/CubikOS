@@ -2,7 +2,8 @@
 
 typedef struct activity
 {
-    char *name;
+    char *m_Name;
+    uint16_t m_ProcessCount;
     lklist_node_t listnode;
 } activity_t;
 

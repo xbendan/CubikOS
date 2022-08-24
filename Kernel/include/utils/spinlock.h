@@ -2,7 +2,7 @@
 
 typedef volatile uint32_t spinlock_t;
 
-static inline void spinlock_init(spinlock_t* lock)
+static inline void InitLock(spinlock_t* lock)
 {
     lock = 0;
 }

@@ -15,18 +15,18 @@
 #include <system.h>
 #include <panic.h>
 
-static boot_info_t boot_info;
+static boot_info_t bootInfo;
 
 void ArchitectureInitialize()
 {
-    if(boot_info.check != 0xDEADC0DE)
+    if(bootInfo.check != 0xDEADC0DE)
     {
         // stop running.
     }
 
     // load x86 features
     //DisableInterrupts();
-    EnableInterrupts();
+    DisableInterrupts();
     LoadGlobalDescTable();
     LoadInterruptDescTable();
 
@@ -60,10 +60,10 @@ void ArchitectureInitialize()
     else
         WriteLine("[APIC] Not Present.");
 
-    KernelInitialize();
-
     SMP_Initialize();
     WriteLine("[SMP] OK!");
+
+    KernelInitialize();
     asm("hlt");
 }
 
@@ -80,7 +80,7 @@ void kload_stivale2(void *addr)
         __asm__("mov $0x32, %al");
 
     ParseStivale2Info(
-        &boot_info,
+        &bootInfo,
         (stivale2_struct_t*)(addr)
     );
     ArchitectureInitialize();
@@ -92,5 +92,5 @@ hang:
 
 boot_info_t* GetBootInfo()
 {
-    return &boot_info;
+    return &bootInfo;
 }
