@@ -58,7 +58,7 @@ struct Process
     char *m_Package;      /* Package Name */
     pid_t m_ProcessId;    /* Process Id, 0~255 are reserved for kernel process */
     uint8_t m_Type;       /* Current process type */
-    struct File *m_FilePtr;         /* Pointer to the source file, can be NULL */
+    struct FsFile *m_FilePtr;         /* Pointer to the source file, can be NULL */
     struct Activity *m_Activity;    /* Pointer to the Activity */
     union
     { // Flags

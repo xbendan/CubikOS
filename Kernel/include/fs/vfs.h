@@ -7,11 +7,25 @@ typedef enum FileType
     FileTypeDisk
 } file_type_t;
 
-typedef struct File
+struct FsVolumn
+{
+
+};
+
+struct FsPartition 
+{
+
+};
+
+struct FsNode {};
+
+struct FsFile
 {
     char *m_Name;
     uint8_t m_UUID[16];
     enum FileType m_Type;
     uint64_t m_Size;
-    uint64_t bytesTaken;
-} file_t;
+    uint64_t m_BytesTaken;
+};
+
+void Fs_Mount();
