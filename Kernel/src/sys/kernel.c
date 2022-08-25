@@ -1,3 +1,4 @@
+#include <proc/sched.h>
 #include <system.h>
 #include <macros.h>
 

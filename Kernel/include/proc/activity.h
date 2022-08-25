@@ -1,6 +1,8 @@
+#pragma once
+
 #include <utils/list.h> 
 
-typedef struct activity
+typedef struct Activity
 {
     char *m_Name;
     uint16_t m_ProcessCount;
@@ -13,4 +15,4 @@ typedef struct activity
  * @param name 
  * @return activity_t* 
  */
-activity_t *NewActivity(const char* name);
+struct Activity *NewActivity(const char* name);

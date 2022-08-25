@@ -6,7 +6,20 @@
 extern struct GlobalDescTablePointer g_Gdtr;
 extern struct InterruptDescTablePointer g_Idtr;
 
-cpu_info_t *cpus[MAX_CPU_AMOUNT];
+struct CPUCore *cpus[MAX_CPU_AMOUNT];
+
+void __smp_SetTrampoline()
+{
+    
+}
+
+void __smp_InitializeProcessor(uint16_t cpuId)
+{
+    cpus[cpuId] = (struct CPUCore *) KernelAllocateObject(sizeof(struct CPUCore));
+    
+    cpus[cpuId]->id = cpuId;
+    
+}
 
 void SMP_Initialize()
 {
@@ -23,4 +36,10 @@ void SMP_Initialize()
     };
 
     SetCPULocal(cpus[0]);
+
+    for(int i = 0; i < g_ProcessorCount; i++)
+    {
+        if(g_Processors[i] != 0)
+            __smp_InitializeProcessor(g_Processors[i]);
+    }
 }

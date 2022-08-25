@@ -203,6 +203,9 @@ typedef struct AcpiExtendedSdt
     uint64_t pointers[]; // (table.length - sizeof(table)) / 8
 } acpi_xsdt_t;
 
+extern uint8_t g_Processors[];
+extern int g_ProcessorCount;
+
 void ACPI_Initialize();
 void *ACPI_FindTable(const char* str, int index);
 

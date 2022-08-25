@@ -7,15 +7,12 @@
 #include <macros.h>
 
 #ifdef ARCH_X86_64
-    #include <x86_64/paging.h>
     #include <x86_64/cpu.h>
 #elif ARCH_AARCH64
 
 #elif ARCH_RISCV
 
 #endif
-
-;
 
 typedef uint32_t tid_t;
 typedef uint16_t pid_t;
@@ -50,8 +47,7 @@ enum ThreadState
 {
     ThreadStateAbolished = 0,
     ThreadStateRunning = 1,
-    ThreadStateBlocked = 2,
-    ThreadState
+    ThreadStateBlocked = 2
 };
 
 struct Process
@@ -118,7 +114,7 @@ struct Thread
     lklist_node_t listnode;
 
     tid_t m_ThreadId;                  /* Thread ID, not duplicated in same progress */
-    struct Process *m_Parent;    /* Parent process, indicates the owner of this thread */
+    //struct Process *m_Parent;    /* Parent process, indicates the owner of this thread */
     spinlock_t m_Lock;            /* Thread lock */
     spinlock_t m_StateLock;       /* Thread state lock */
 
@@ -139,6 +135,14 @@ struct Thread
     uint8_t m_ThreadPriority;       /* The priority when scheduling */
     uint8_t m_ThreadState;          /* Thread state */
 };
+
+#ifdef ARCH_X86_64
+    #include <x86_64/paging.h>
+#elif ARCH_AARCH64
+
+#elif ARCH_RISCV
+
+#endif
 
 /**
  * @brief Create a Process object

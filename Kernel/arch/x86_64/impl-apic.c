@@ -55,10 +55,10 @@ void LAPIC_StartTimer()
 void LAPIC_Initialize()
 {
     apicLocalPtr = (uint32_t *) VM_GetIOMapping(LAPIC_ReadBase());
+    LAPIC_WriteBase(LAPIC_ReadBase() | (1UL << 11));
     LAPIC_WriteData(
         LOCAL_APIC_SIVR,
         LAPIC_ReadData(LOCAL_APIC_SIVR) | 0x100);
-    asm("hlt");
 }
 
 uintptr_t ioApicBase;

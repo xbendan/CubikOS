@@ -1,0 +1,5 @@
+global SMPTrampolineStart
+global SMPTrampolineEnd
+
+SMPTrampolineStart:
+SMPTrampolineEnd:

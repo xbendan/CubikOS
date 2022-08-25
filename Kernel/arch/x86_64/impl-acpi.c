@@ -38,13 +38,13 @@ void *ACPI_FindTable(const char *str, int index)
         entries = (acpiRsdtHeader->table.length - sizeof(acpi_header_t)) / sizeof(uint32_t);
 
     int _index = 0;
-    if (memcmp("DSDT", ACPI_SIGNATURE, 4) == 0)
+    if (memcmp("DSDT", str, 4) == 0)
         return (void *)VM_GetIOMapping(acpiFadt->dsdt);
-
+        
     for (int i = 0; i < entries; i++)
     {
         acpi_header_t *header = (acpi_header_t *)(VM_GetIOMapping(__acpi_GetEntry(i)));
-        if (memcmp(header->signature, ACPI_SIGNATURE, 4) == 0 && _index++ == index)
+        if (memcmp(header->signature, str, 4) == 0 && _index++ == index)
             return header;
     }
 }

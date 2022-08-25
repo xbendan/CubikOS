@@ -12,6 +12,7 @@
 #include <x86_64/cpu.h>
 #include <mm/address.h>
 #include <graphic/terminal.h>
+#include <proc/sched.h>
 #include <system.h>
 #include <panic.h>
 
@@ -47,7 +48,11 @@ void ArchitectureInitialize()
 
     cpuid_info_t cpuid = CPUID();
     ACPI_Initialize();
-    WriteLine("[ACPI] OK!");
+    WriteLine("[Local ACPI] OK!");
+
+    LAPIC_Initialize();
+    IOAPIC_Initialize();
+    WriteLine("[I/O APIC] OK!");
 
     // APIC
     if(cpuid.edx & CPUID_EDX_APIC)

@@ -72,7 +72,7 @@ struct Thread *CreateThread(struct Process *proc)
     *newThread = (struct Thread)
     {
         .m_ThreadId = proc->m_NextThreadId++,
-        .m_Parent = proc,
+        //.m_Parent = proc,
         .m_ThreadPriority = PriorityNormal,
         .m_ThreadState = TaskStateIdle
     };
