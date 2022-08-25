@@ -6,7 +6,7 @@ enum DeviceType
     DeviceTypeFsDriveDevice,
     DeviceTypeFsDriveController,
     DeviceTypeDisplayAdapter,
-    DeviceTypeDisplayScreen,
+    DeviceTypeDisplayMonitor,
     DeviceTypeUSBDevice,
     DeviceTypeUSBController,
     DeviceTypePCIDevice,

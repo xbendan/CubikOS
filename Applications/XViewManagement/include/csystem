@@ -1,6 +1,0 @@
-#define ProcessId uint32_t
-
-class Process
-{
-
-}
