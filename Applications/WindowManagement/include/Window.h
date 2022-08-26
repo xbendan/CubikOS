@@ -6,17 +6,17 @@
 
 enum WindowStartupLocation
 {
-    CENTER_SCREEN,
-    CENTER_OWNER,
-    LAST_OPEN,
-    TOP_LEFT_CORNER,
-    TOP_MEDIUM,
-    TOP_RIGHT_CORNER,
-    LEFT_MEDIUM,
-    RIGHT_MEDIUM,
-    BOTTOM_LEFT_CORNER,
-    BOTTOM_MEDIUM,
-    BOTTOM_RIGHT_CORNER
+    WindowStartupCenterScreen,
+    WindowStartupCenterOwner,
+    WindowStartupLastOpen,
+    WindowStartupTopLeft,
+    WindowStartupTopMedium,
+    WindowStartupTopRight,
+    WindowStartupLeft,
+    WindowStartupRight,
+    WindowStartupBottomLeft,
+    WindowStartupBottomMedium,
+    WindowStartupBottomRight
 };
 
 enum WindowAttribute
@@ -24,14 +24,19 @@ enum WindowAttribute
 
 };
 
+struct WindowBitmapBuffer
+{
+    uint32_t buffer;
+    uint64_t
+};
+
 class Window
 {
 private:
     uint32_t m_Pid;
     WindowHandle *m_WndHandle;
-    vector2d_t 
-    uint32_t m_Width;
-    uint32_t m_Height;
+    vector2d_t m_Position;
+    size2d_t m_Size;
     uint16_t m_CornerRadius;
     /**
      * @brief window attributes
@@ -45,28 +50,21 @@ public:
 
     constexpr Window(uint32_t pid, int top, int left, uint32_t width, uint32_t height, WindowStartupLocation showPolicy, uint16_t cornerRadius, uint16_t flags, bool topmost)
       : m_Pid(pid),
-        m_Width(width),
-        m_Height(height),
         m_CornerRadius(cornerRadius),
         m_Flags(flags),
         m_IsTopmost(topmost)
     {
-        if(showPolicy == CENTER_OWNER)
-        {
+        m_Size = (size2d_t) { .width = width, .height = height };
 
-        }
-        else
+        switch (showPolicy)
         {
-            
-            switch (showPolicy)
-            {
-            case /* constant-expression */:
-                /* code */
-                break;
-            
-            default:
-                break;
-            }
+        case WindowStartupCenterScreen:
+            /* code */
+            break;
+        case WindowStartupCenterOwner:
+            break;
+        default:
+            break;
         }
     }
 
@@ -76,6 +74,7 @@ public:
     char *GetTitle();
     void SetTopmost(bool newValue);
     bool IsTopmost();
+    vector2d_t GetPosition();
     void Relocate(vector2d_t vec);
     void Resize(vector2d_t vec);
 
