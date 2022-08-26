@@ -1,5 +1,20 @@
 #include <macros.h>
 
+enum FileSystemType
+{
+    FileSystemExFAT,
+    FileSystemFAT32,
+    FileSystemNTFS,
+    FileSystemISO9660,
+    FileSystem
+};
+
+enum VolumeType
+{
+    VolumeTypeLocalDisk,
+    VolumeTypeRemoteDisk
+};
+
 typedef enum FileType
 {
     FileTypeFile,
@@ -7,9 +22,13 @@ typedef enum FileType
     FileTypeDisk
 } file_type_t;
 
-struct FsVolumn
+struct FsVolume
 {
-
+    char *m_Name;
+    enum FileSystemType m_FsType;
+    enum VolumeType m_VolType;
+    uint64_t m_Capacity;
+    uint64_t m_SpaceUsed;
 };
 
 struct FsPartition 

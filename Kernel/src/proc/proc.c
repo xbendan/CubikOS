@@ -8,12 +8,12 @@ struct Process *CreateProcess()
 
 }
 
-struct Process *CreateELFProcess(file_t *file)
+struct Process *CreateELFProcess(struct FsFile *file)
 {
     return CreateProcessEx(NULL, TaskTypeBackground, file, file->m_Name);
 }
 
-struct Process *CreateProcessEx(activity_t *activity, enum TaskType type, file_t *file, const char *name)
+struct Process *CreateProcessEx(struct Activity *activity, enum TaskType type, struct FsFile *file, const char *name)
 {
     struct Process *newProc = (struct Process *) KernelAllocateObject(sizeof(struct Process));
 

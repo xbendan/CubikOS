@@ -5,13 +5,14 @@
 #include <mm/memory.h>
 #include <panic.h>
 
-const char *ACPI_SIGNATURE = "RSD PTR ";
+const char *__acpi_Signature = "RSD PTR ";
 uint8_t g_Processors[256];
 int g_ProcessorCount = 1;
 acpi_rsdp_t *acpiDesc;
 acpi_rsdt_t *acpiRsdtHeader;
 acpi_xsdt_t *acpiXsdtHeader;
 acpi_fadt_t *acpiFadt;
+lklist_node_t isos;
 pci_mcfg_t *pciMcfg;
 
 char acpiOemId[7];
@@ -53,7 +54,7 @@ void ACPI_Initialize()
 {
     for (uintptr_t addr = 0; addr <= 0x7BFF; addr += 16)
     {
-        if (memcmp((void *)VM_GetIOMapping(addr), ACPI_SIGNATURE, 8) == 0)
+        if (memcmp((void *)VM_GetIOMapping(addr), __acpi_Signature, 8) == 0)
         {
             acpiDesc = (acpi_xsdp_t *)(VM_GetIOMapping(addr));
             goto INIT_ACPI_FOUND;
@@ -62,7 +63,7 @@ void ACPI_Initialize()
 
     for (uintptr_t addr = 0x80000; addr <= 0x9FFFF; addr += 16)
     {
-        if (memcmp((void *)VM_GetIOMapping(addr), ACPI_SIGNATURE, 8) == 0)
+        if (memcmp((void *)VM_GetIOMapping(addr), __acpi_Signature, 8) == 0)
         {
             acpiDesc = (acpi_xsdp_t *)(VM_GetIOMapping(addr));
             goto INIT_ACPI_FOUND;
@@ -71,7 +72,7 @@ void ACPI_Initialize()
 
     for (uintptr_t addr = 0xE0000; addr <= 0xFFFFF; addr += 16)
     {
-        if (memcmp((void *)VM_GetIOMapping(addr), ACPI_SIGNATURE, 8) == 0)
+        if (memcmp((void *)VM_GetIOMapping(addr), __acpi_Signature, 8) == 0)
         {
             acpiDesc = (acpi_xsdp_t *)(VM_GetIOMapping(addr));
             goto INIT_ACPI_FOUND;
@@ -126,6 +127,10 @@ INIT_ACPI_FOUND:
         }
         case 2:
         {
+            madt_iso_t *iso = (madt_iso_t *)(entry);
+            lklist_item_t *item = (lklist_item_t *) KernelAllocateObject(sizeof(struct LinkedListItem));
+            item->ptr = iso;
+            LinkedListAppend(&isos, &item->listnode);
             break;
         }
         case 3:

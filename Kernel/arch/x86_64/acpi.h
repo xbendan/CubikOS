@@ -1,4 +1,5 @@
 #include <macros.h>
+#include <utils/list.h>
 
 enum AcpiTableNameDefinition
 {
@@ -205,6 +206,7 @@ typedef struct AcpiExtendedSdt
 
 extern uint8_t g_Processors[];
 extern int g_ProcessorCount;
+extern lklist_node_t isos;
 
 void ACPI_Initialize();
 void *ACPI_FindTable(const char* str, int index);

@@ -1,12 +1,12 @@
 #pragma once
 
-typedef struct linked_list_node
+typedef struct LinkedListNode
 {
-    struct linked_list_node *prev;
-    struct linked_list_node *next;
+    struct LinkedListNode *prev;
+    struct LinkedListNode *next;
 } lklist_node_t;
 
-typedef struct linked_list_item
+typedef struct LinkedListItem
 {
     lklist_node_t listnode;
     void *ptr;

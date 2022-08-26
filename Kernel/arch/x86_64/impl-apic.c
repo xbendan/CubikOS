@@ -1,5 +1,6 @@
 #include <x86_64/paging.h>
 #include <x86_64/apic.h>
+#include <x86_64/acpi.h>
 #include <x86_64/pic.h>
 #include <panic.h>
 
@@ -31,22 +32,6 @@ uint32_t LAPIC_ReadData(uint32_t reg)
     return *((volatile uint32_t*)(apicLocalPtr + reg));
 }
 
-void IOAPIC_WriteData32(uint32_t reg, uint32_t data)
-{
-}
-
-uint32_t IOAPIC_ReadData32(uint32_t reg)
-{
-}
-
-void IOAPIC_WriteData64(uint32_t reg, uint64_t data)
-{
-}
-
-uint64_t IOAPIC_ReadData64(uint32_t reg)
-{
-}
-
 void LAPIC_StartTimer()
 {
     LAPIC_WriteData(LOCAL_APIC_TIMER_DIVIDE, 0x3);
@@ -68,6 +53,10 @@ volatile uint32_t *ioApicWindow;
 uint32_t ioApicInterrupts;
 uint32_t ioApicId;
 
+void __apic_Redirect(uint8_t irq, uint8_t vector, uint32_t delivery) {
+    IOAPIC_WriteData64(0x10 + (2 * irq), delivery | vector);
+}
+
 void IOAPIC_Initialize()
 {
     if(!ioApicBase)
@@ -83,6 +72,38 @@ void IOAPIC_Initialize()
     ioApicId = IOAPIC_ReadData32(IO_APIC_REGISTER_ID) >> 24;
 
     //for(int i = 0; i < ACPI)
+
+    lklist_item_t *isoItem = isos.next;
+    do
+    {
+        madt_iso_t *iso = (madt_iso_t *) isoItem->ptr;
+        __apic_Redirect(iso->gSi, iso->irqSource + 0x20, 0);
+    } while (isoItem->listnode.next != NULL);
+}
+
+void IOAPIC_WriteData32(uint32_t reg, uint32_t data)
+{
+    *ioApicRegisterSelect = reg;
+    *ioApicWindow = data;
+}
+
+uint32_t IOAPIC_ReadData32(uint32_t reg)
+{
+    *ioApicRegisterSelect = reg;
+    return *ioApicWindow;
+}
+
+void IOAPIC_WriteData64(uint32_t reg, uint64_t data)
+{
+    uint32_t low = data & 0xFFFFFFFF, high = data >> 32;
+    IOAPIC_WriteData32(reg, low);
+    IOAPIC_WriteData32(reg + 1, high);
+}
+
+uint64_t IOAPIC_ReadData64(uint32_t reg)
+{
+    uint32_t low = IOAPIC_ReadData32(reg), high = IOAPIC_ReadData32(reg + 1);
+    return low | (high << 32);
 }
 
 void IOAPIC_SetBase(uintptr_t newBase)

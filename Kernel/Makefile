@@ -67,7 +67,7 @@ build: $(ARCH_x86_64_OUTPUT) $(KERNEL_FILES_OUT)
 
 .PHONY: run
 run:
-	qemu-system-x86_64.exe -cdrom F:/CubikOSProject/dist/${TARGET}/cubik.iso -m 512m
+	qemu-system-x86_64.exe -smp cpus=2, cores=2 -cdrom F:/CubikOSProject/dist/${TARGET}/cubik.iso -m 512m
 
 .PHONY: clean
 clean:

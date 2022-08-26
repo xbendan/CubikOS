@@ -1,6 +1,8 @@
 global asmw_flush_gdt
 global asmw_flush_idt
 global asmw_load_paging
+global asmw_enable_sse
+global asmw_enable_avx
 global asmw_get_pagemap
 
 asmw_flush_gdt:
@@ -36,6 +38,32 @@ asmw_flush_idt:
 
 asmw_load_paging:
     mov cr3, rdi
+    ret
+
+asmw_enable_sse:
+    mov rcx, 200h
+    mov rbx, cr4
+    or rbx, rcx
+    mov cr4, rbx
+
+    fninit
+
+    ret
+
+asmw_enable_avx:
+    push rax
+    push rcx
+    push rdx
+
+    xor rcx, rcx
+    xgetbv
+    or eax, 7
+    xsetbv
+
+    pop rdx
+    pop rcx
+    pop rax
+    
     ret
 
 bits 32

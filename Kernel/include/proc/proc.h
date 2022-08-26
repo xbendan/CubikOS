@@ -157,7 +157,7 @@ struct Process *CreateProcess();
  * @param file Source file, must be executable
  * @return struct Process* Pointer to new process object
  */
-struct Process *CreateELFProcess(file_t *file);
+struct Process *CreateELFProcess(struct FsFile *file);
 
 /**
  * @brief Create a Process object with full arguments
@@ -171,7 +171,7 @@ struct Process *CreateELFProcess(file_t *file);
  * @param file The file that the process created from
  * @return struct Process* Pointer to new process object
  */
-struct Process *CreateProcessEx(activity_t *activity, enum TaskType type, file_t* file, const char *name);
+struct Process *CreateProcessEx(struct Activity *activity, enum TaskType type, struct FsFile *file, const char *name);
 
 /**
  * @brief Create a new thread object of specific process
