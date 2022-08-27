@@ -10,6 +10,7 @@
 #include <x86_64/pit.h>
 #include <x86_64/smp.h>
 #include <x86_64/cpu.h>
+#include <x86_64/smbios.h>
 #include <mm/address.h>
 #include <graphic/terminal.h>
 #include <proc/sched.h>
@@ -29,7 +30,9 @@ void ArchitectureInitialize()
     //DisableInterrupts();
     DisableInterrupts();
     LoadGlobalDescTable();
+    WriteLine("[GDT] OK!");
     LoadInterruptDescTable();
+    WriteLine("[IDT] OK!");
 
     // load memory management
     MemoryInitialize();
@@ -42,32 +45,36 @@ void ArchitectureInitialize()
      * Hardware will call double fault if irq is not remapped.
      */
     PIC_Initialize();
+    WriteLine("[PIC] OK!");
     PIT_Initialize(1000);
+    WriteLine("[PIT] OK!");
 
     EnableInterrupts();
 
     cpuid_info_t cpuid = CPUID();
     ACPI_Initialize();
-    WriteLine("[Local ACPI] OK!");
-
-    LAPIC_Initialize();
-    IOAPIC_Initialize();
-    WriteLine("[I/O APIC] OK!");
+    WriteLine("[ACPI] OK!");
 
     // APIC
     if(cpuid.edx & CPUID_EDX_APIC)
     {
         PIC_Disable();
         LAPIC_Initialize();
+        WriteLine("[Local APIC] OK!");
+
         IOAPIC_Initialize();
-        WriteLine("[APIC] OK!");
+        WriteLine("[I/O APIC] OK!");
     }
     else
         WriteLine("[APIC] Not Present.");
 
+    SMBIOS_Initialize();
+    WriteLine("[SMBIOS] OK!");
+
     SMP_Initialize();
     WriteLine("[SMP] OK!");
 
+    WriteLine("[KRNL] Start to load generic kernel components.");
     KernelInitialize();
     asm("hlt");
 }

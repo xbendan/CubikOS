@@ -164,8 +164,6 @@ void MapVirtualAddress(
                     pdirEntry->usr = flags & PAGE_FLAG_USER;
                     
                     pageTable = (page_table_t *) AllocatePages(kproc, 1);
-                    if(pageTable == NULL || pageTable == 0x0)
-                        asm("hlt");
                     uint64_t pageTablePhys = ConvertVirtToPhys(map, (uint64_t)(pageTable));
                     
                     pdirEntry->addr = pageTablePhys / ARCH_PAGE_SIZE;

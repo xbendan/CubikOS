@@ -3,6 +3,7 @@
 #include <x86_64/paging.h>
 #include <x86_64/interrupts.h>
 #include <mm/memory.h>
+#include <mm/malloc.h>
 #include <panic.h>
 
 const char *__acpi_Signature = "RSD PTR ";
@@ -12,7 +13,8 @@ acpi_rsdp_t *acpiDesc;
 acpi_rsdt_t *acpiRsdtHeader;
 acpi_xsdt_t *acpiXsdtHeader;
 acpi_fadt_t *acpiFadt;
-lklist_node_t isos;
+madt_iso_t *g_Isos[256];
+uint8_t g_IsoAmount;
 pci_mcfg_t *pciMcfg;
 
 char acpiOemId[7];
@@ -128,9 +130,7 @@ INIT_ACPI_FOUND:
         case 2:
         {
             madt_iso_t *iso = (madt_iso_t *)(entry);
-            lklist_item_t *item = (lklist_item_t *) KernelAllocateObject(sizeof(struct LinkedListItem));
-            item->ptr = iso;
-            LinkedListAppend(&isos, &item->listnode);
+            g_Isos[g_IsoAmount++] = iso;
             break;
         }
         case 3:

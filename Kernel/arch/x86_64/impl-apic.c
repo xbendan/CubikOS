@@ -71,14 +71,11 @@ void IOAPIC_Initialize()
     ioApicInterrupts = IOAPIC_ReadData32(IO_APIC_REGISTER_VER) >> 16;
     ioApicId = IOAPIC_ReadData32(IO_APIC_REGISTER_ID) >> 24;
 
-    //for(int i = 0; i < ACPI)
-
-    lklist_item_t *isoItem = isos.next;
-    do
+    for (int i = 0; i < g_IsoAmount; i++)
     {
-        madt_iso_t *iso = (madt_iso_t *) isoItem->ptr;
+        madt_iso_t *iso = (madt_iso_t *) g_Isos[i];
         __apic_Redirect(iso->gSi, iso->irqSource + 0x20, 0);
-    } while (isoItem->listnode.next != NULL);
+    }
 }
 
 void IOAPIC_WriteData32(uint32_t reg, uint32_t data)
@@ -103,7 +100,7 @@ void IOAPIC_WriteData64(uint32_t reg, uint64_t data)
 uint64_t IOAPIC_ReadData64(uint32_t reg)
 {
     uint32_t low = IOAPIC_ReadData32(reg), high = IOAPIC_ReadData32(reg + 1);
-    return low | (high << 32);
+    return low | ((uint64_t)(high) << 32);
 }
 
 void IOAPIC_SetBase(uintptr_t newBase)

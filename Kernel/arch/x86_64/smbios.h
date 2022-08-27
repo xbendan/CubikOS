@@ -1,3 +1,5 @@
+#include <macros.h>
+
 struct SMBIOS2EntryPoint
 {
     char EntryPointString[4];
@@ -8,7 +10,7 @@ struct SMBIOS2EntryPoint
     uint16_t MaxSize;
     uint8_t Revision;
     char FmtArea[5];
-    char EntryPointString[5];
+    char EntryPointString2[5];
     uint8_t Checksum2;
     uint16_t TableLength;
     uint32_t TableAddress;

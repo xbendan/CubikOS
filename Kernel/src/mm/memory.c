@@ -72,8 +72,6 @@ void MemoryInitialize()
         PR_GetKernelProcess(),
         1
     );
-    WriteLine("Terminal buffer:");
-    WriteLong(t_addr);
     MapVirtualAddress(
         VM_GetKernelPages(),
         0xb8000,

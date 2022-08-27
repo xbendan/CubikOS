@@ -1,6 +1,7 @@
 #include <mm/malloc.h>
 #include <proc/proc.h>
 #include <proc/activity.h>
+#include <string.h>
 
 
 struct Activity *NewActivity(const char* name)

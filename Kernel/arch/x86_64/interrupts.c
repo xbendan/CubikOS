@@ -7,8 +7,22 @@
 
 isr_t g_IsrHandlers[256];
 
-void DisableInterrupts() { __asm__("cli"); }
-void EnableInterrupts() { __asm__("sti"); }
+void DisableInterrupts()
+{
+    #ifdef __DEBUG__
+        WriteLine("[Debug] Interrupt disabled.");
+    #endif
+
+    __asm__("cli");
+}
+void EnableInterrupts()
+{
+    #ifdef __DEBUG__
+        WriteLine("[Debug] Interrupt enabled.");
+    #endif
+
+    __asm__("sti");
+}
 
 void RegisterInterruptHandler(int num, isr_t func)
 {

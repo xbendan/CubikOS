@@ -206,7 +206,8 @@ typedef struct AcpiExtendedSdt
 
 extern uint8_t g_Processors[];
 extern int g_ProcessorCount;
-extern lklist_node_t isos;
+extern madt_iso_t *g_Isos[256];
+extern uint8_t g_IsoAmount;
 
 void ACPI_Initialize();
 void *ACPI_FindTable(const char* str, int index);

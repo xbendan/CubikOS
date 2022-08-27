@@ -1,5 +1,7 @@
 #include <x86_64/smbios.h>
 #include <x86_64/paging.h>
+#include <mm/address.h>
+#include <panic.h>
 
 const char* __smbios_SignatureL2 = "_SM_";
 const char* __smbios_SignatureL3 = "_SM3_";
@@ -18,9 +20,10 @@ bool __smbios_Checksum(uintptr_t address)
 
 void SMBIOS_Initialize()
 {
-    while (address < 0x100000)
+    uintptr_t address = 0xF0000 + KERNEL_IO_VIRTUAL_BASE;
+    while (address < 0x100000 + KERNEL_IO_VIRTUAL_BASE)
     {
-        if(memcmp((void *) VM_GetIOMapping(address), __smbios_SignatureL2, 4)
+        if(memcmp((void *) address, __smbios_SignatureL2, 4)
             && __smbios_Checksum(address))
         {
             g_SmbiosVersion = 2;
@@ -28,7 +31,7 @@ void SMBIOS_Initialize()
             break;
         }
 
-        if(memcmp((void *) VM_GetIOMapping(address), __smbios_SignatureL3, 5)
+        if(memcmp((void *) address, __smbios_SignatureL3, 5)
             && __smbios_Checksum(address))
         {
             g_SmbiosVersion = 3;
